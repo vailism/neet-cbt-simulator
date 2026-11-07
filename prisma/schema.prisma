@@ -1,0 +1,181 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum SubjectType {
+  PHYSICS
+  CHEMISTRY
+  BOTANY
+  ZOOLOGY
+}
+
+enum Difficulty {
+  EASY
+  MODERATE
+  DIFFICULT
+}
+
+enum ExamMode {
+  FULL_MOCK
+  PRACTICE
+}
+
+enum AttemptStatus {
+  IN_PROGRESS
+  SUBMITTED
+  TIMED_OUT
+}
+
+enum QuestionStatus {
+  NOT_VISITED
+  NOT_ANSWERED
+  ANSWERED
+  MARKED_FOR_REVIEW
+  ANSWERED_AND_MARKED
+}
+
+model Candidate {
+  id          String        @id @default(uuid())
+  rollNumber  String        @unique
+  name        String
+  email       String?
+  avatarUrl   String?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  attempts    ExamAttempt[]
+
+  @@index([rollNumber])
+}
+
+model Subject {
+  id        String      @id @default(uuid())
+  code      SubjectType @unique
+  name      String
+  order     Int         @default(0)
+  chapters  Chapter[]
+  questions Question[]
+}
+
+model Chapter {
+  id        String     @id @default(uuid())
+  subjectId String
+  subject   Subject    @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  name      String
+  questions Question[]
+
+  @@unique([subjectId, name])
+  @@index([subjectId])
+}
+
+model Question {
+  id            String            @id @default(uuid())
+  subjectId     String
+  subject       Subject           @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  chapterId     String?
+  chapter       Chapter?          @relation(fields: [chapterId], references: [id], onDelete: SetNull)
+  topic         String?
+  statement     String            @db.Text
+  imageUrl      String?
+  option1       String            @db.Text
+  option2       String            @db.Text
+  option3       String            @db.Text
+  option4       String            @db.Text
+  correctAnswer Int               // 1, 2, 3, or 4
+  explanation   String            @db.Text
+  difficulty    Difficulty        @default(MODERATE)
+  source        String?
+  previousYear  String?           // e.g. "NEET 2023", "NEET 2022"
+  isVerifiedPYQ Boolean           @default(false)
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+  attemptItems  AttemptQuestion[]
+
+  @@index([subjectId])
+  @@index([chapterId])
+  @@index([difficulty])
+  @@index([isVerifiedPYQ])
+}
+
+model ExamConfiguration {
+  id                   String        @id @default(uuid())
+  name                 String
+  code                 String        @unique
+  durationMinutes      Int           @default(180)
+  totalQuestions       Int           @default(180)
+  physicsQuestions     Int           @default(45)
+  chemistryQuestions   Int           @default(45)
+  botanyQuestions      Int           @default(45)
+  zoologyQuestions     Int           @default(45)
+  marksPerCorrect      Int           @default(4)
+  marksPerIncorrect    Int           @default(-1)
+  marksPerUnanswered   Int           @default(0)
+  easyPercent          Int           @default(30)
+  moderatePercent      Int           @default(50)
+  difficultPercent     Int           @default(20)
+  isDefault            Boolean       @default(false)
+  createdAt            DateTime      @default(now())
+  updatedAt            DateTime      @updatedAt
+  attempts             ExamAttempt[]
+}
+
+model ExamAttempt {
+  id                  String             @id @default(uuid())
+  candidateId         String
+  candidate           Candidate          @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  configId            String?
+  config              ExamConfiguration? @relation(fields: [configId], references: [id], onDelete: SetNull)
+  mode                ExamMode           @default(FULL_MOCK)
+  title               String             @default("NEET (UG) CBT Full Mock Examination")
+  subjectFilter       String?            // For practice mode
+  chapterFilter       String?            // For practice mode
+  status              AttemptStatus      @default(IN_PROGRESS)
+  startedAt           DateTime           @default(now())
+  expiresAt           DateTime
+  submittedAt         DateTime?
+  totalScore          Int?
+  maxScore            Int                @default(720)
+  correctCount        Int?
+  incorrectCount      Int?
+  unattemptedCount    Int?
+  accuracy            Float?
+  timeSpentSeconds    Int?
+  physicsScore        Int?
+  chemistryScore      Int?
+  botanyScore         Int?
+  zoologyScore        Int?
+  createdAt           DateTime           @default(now())
+  updatedAt           DateTime           @updatedAt
+  questions           AttemptQuestion[]
+
+  @@index([candidateId])
+  @@index([status])
+  @@index([startedAt])
+}
+
+model AttemptQuestion {
+  id               String         @id @default(uuid())
+  attemptId        String
+  attempt          ExamAttempt    @relation(fields: [attemptId], references: [id], onDelete: Cascade)
+  questionId       String
+  question         Question       @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  questionOrder    Int
+  subjectCode      SubjectType
+  selectedOption   Int?           // 1, 2, 3, 4 or null
+  isMarkedForReview Boolean       @default(false)
+  status           QuestionStatus @default(NOT_VISITED)
+  timeSpentSeconds Int            @default(0)
+  isCorrect        Boolean?
+  marksAwarded     Int?
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+
+  @@unique([attemptId, questionOrder])
+  @@index([attemptId])
+  @@index([questionId])
+  @@index([status])
+}

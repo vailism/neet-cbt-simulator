@@ -1,0 +1,281 @@
+import { NextRequest, NextResponse } from 'next/server';
+import { prisma } from '@/lib/prisma';
+import { SubjectType, Difficulty } from '@prisma/client';
+
+export async function GET(
+  req: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  try {
+    const attemptId = params.id;
+
+    const attempt = await prisma.examAttempt.findUnique({
+      where: { id: attemptId },
+      include: {
+        candidate: true,
+        config: true,
+        questions: {
+          include: {
+            question: {
+              include: {
+                chapter: true,
+              },
+            },
+          },
+          orderBy: { questionOrder: 'asc' },
+        },
+      },
+    });
+
+    if (!attempt) {
+      return NextResponse.json(
+        { error: 'Attempt not found.' },
+        { status: 404 }
+      );
+    }
+
+    const marksPerCorrect = attempt.config?.marksPerCorrect ?? 4;
+
+    // Subject breakdown
+    const subjectStats: Record<
+      SubjectType,
+      {
+        subject: SubjectType;
+        name: string;
+        score: number;
+        maxScore: number;
+        correct: number;
+        incorrect: number;
+        unattempted: number;
+        accuracy: number;
+        timeSpentSeconds: number;
+      }
+    > = {
+      [SubjectType.PHYSICS]: {
+        subject: SubjectType.PHYSICS,
+        name: 'Physics',
+        score: attempt.physicsScore ?? 0,
+        maxScore: 0,
+        correct: 0,
+        incorrect: 0,
+        unattempted: 0,
+        accuracy: 0,
+        timeSpentSeconds: 0,
+      },
+      [SubjectType.CHEMISTRY]: {
+        subject: SubjectType.CHEMISTRY,
+        name: 'Chemistry',
+        score: attempt.chemistryScore ?? 0,
+        maxScore: 0,
+        correct: 0,
+        incorrect: 0,
+        unattempted: 0,
+        accuracy: 0,
+        timeSpentSeconds: 0,
+      },
+      [SubjectType.BOTANY]: {
+        subject: SubjectType.BOTANY,
+        name: 'Botany',
+        score: attempt.botanyScore ?? 0,
+        maxScore: 0,
+        correct: 0,
+        incorrect: 0,
+        unattempted: 0,
+        accuracy: 0,
+        timeSpentSeconds: 0,
+      },
+      [SubjectType.ZOOLOGY]: {
+        subject: SubjectType.ZOOLOGY,
+        name: 'Zoology',
+        score: attempt.zoologyScore ?? 0,
+        maxScore: 0,
+        correct: 0,
+        incorrect: 0,
+        unattempted: 0,
+        accuracy: 0,
+        timeSpentSeconds: 0,
+      },
+    };
+
+    const chapterMap = new Map<
+      string,
+      {
+        chapter: string;
+        subject: SubjectType;
+        total: number;
+        correct: number;
+        incorrect: number;
+        unattempted: number;
+      }
+    >();
+
+    const difficultyStats: Record<
+      Difficulty,
+      {
+        total: number;
+        correct: number;
+        incorrect: number;
+        accuracy: number;
+      }
+    > = {
+      [Difficulty.EASY]: { total: 0, correct: 0, incorrect: 0, accuracy: 0 },
+      [Difficulty.MODERATE]: { total: 0, correct: 0, incorrect: 0, accuracy: 0 },
+      [Difficulty.DIFFICULT]: { total: 0, correct: 0, incorrect: 0, accuracy: 0 },
+    };
+
+    const reviewQuestions = attempt.questions.map((item) => {
+      const sub = item.subjectCode;
+      subjectStats[sub].maxScore += marksPerCorrect;
+      subjectStats[sub].timeSpentSeconds += item.timeSpentSeconds;
+
+      if (item.isCorrect === true) {
+        subjectStats[sub].correct++;
+      } else if (item.isCorrect === false) {
+        subjectStats[sub].incorrect++;
+      } else {
+        subjectStats[sub].unattempted++;
+      }
+
+      const chapName = item.question.chapter?.name || 'General';
+      const chapKey = `${sub}__${chapName}`;
+      if (!chapterMap.has(chapKey)) {
+        chapterMap.set(chapKey, {
+          chapter: chapName,
+          subject: sub,
+          total: 0,
+          correct: 0,
+          incorrect: 0,
+          unattempted: 0,
+        });
+      }
+      const c = chapterMap.get(chapKey)!;
+      c.total++;
+      if (item.isCorrect === true) c.correct++;
+      else if (item.isCorrect === false) c.incorrect++;
+      else c.unattempted++;
+
+      const diff = item.question.difficulty;
+      difficultyStats[diff].total++;
+      if (item.isCorrect === true) difficultyStats[diff].correct++;
+      else if (item.isCorrect === false) difficultyStats[diff].incorrect++;
+
+      return {
+        id: item.id,
+        questionOrder: item.questionOrder,
+        subjectCode: item.subjectCode,
+        chapter: chapName,
+        topic: item.question.topic,
+        difficulty: item.question.difficulty,
+        statement: item.question.statement,
+        imageUrl: item.question.imageUrl,
+        option1: item.question.option1,
+        option2: item.question.option2,
+        option3: item.question.option3,
+        option4: item.question.option4,
+        selectedOption: item.selectedOption,
+        correctAnswer: item.question.correctAnswer,
+        isCorrect: item.isCorrect,
+        status: item.status,
+        explanation: item.question.explanation,
+        previousYear: item.question.previousYear,
+        isVerifiedPYQ: item.question.isVerifiedPYQ,
+        timeSpentSeconds: item.timeSpentSeconds,
+        marksAwarded: item.marksAwarded ?? 0,
+      };
+    });
+
+    // Subject accuracy
+    for (const sub of Object.keys(subjectStats) as SubjectType[]) {
+      const s = subjectStats[sub];
+      const attempted = s.correct + s.incorrect;
+      s.accuracy = attempted > 0 ? Math.round((s.correct / attempted) * 1000) / 10 : 0;
+    }
+
+    // Difficulty accuracy
+    for (const diff of Object.keys(difficultyStats) as Difficulty[]) {
+      const d = difficultyStats[diff];
+      const attempted = d.correct + d.incorrect;
+      d.accuracy = attempted > 0 ? Math.round((d.correct / attempted) * 1000) / 10 : 0;
+    }
+
+    // Chapter accuracy
+    const chapterWise = Array.from(chapterMap.values()).map((c) => {
+      const attempted = c.correct + c.incorrect;
+      const acc = attempted > 0 ? Math.round((c.correct / attempted) * 1000) / 10 : 0;
+      return {
+        ...c,
+        accuracy: acc,
+      };
+    });
+
+    const weakChapters: string[] = [];
+    const strongChapters: string[] = [];
+
+    for (const c of chapterWise) {
+      if (c.incorrect > c.correct || (c.accuracy < 50 && c.correct + c.incorrect > 0)) {
+        weakChapters.push(`${c.chapter} (${c.subject})`);
+      } else if (c.accuracy >= 75 && c.correct > 0) {
+        strongChapters.push(`${c.chapter} (${c.subject})`);
+      }
+    }
+
+    // Timing analysis: fastest & slowest correctly answered, average time
+    const attemptedItems = reviewQuestions.filter((q) => q.timeSpentSeconds > 0);
+    const sortedByTime = [...attemptedItems].sort((a, b) => b.timeSpentSeconds - a.timeSpentSeconds);
+    const slowestQuestions = sortedByTime.slice(0, 5);
+    const fastestQuestions = [...attemptedItems].sort((a, b) => a.timeSpentSeconds - b.timeSpentSeconds).slice(0, 5);
+    const averageTimePerQuestion =
+      attemptedItems.length > 0
+        ? Math.round(
+            attemptedItems.reduce((acc, q) => acc + q.timeSpentSeconds, 0) / attemptedItems.length
+          )
+        : 0;
+
+    return NextResponse.json({
+      attemptId: attempt.id,
+      title: attempt.title,
+      mode: attempt.mode,
+      candidate: attempt.candidate,
+      startedAt: attempt.startedAt,
+      submittedAt: attempt.submittedAt,
+      status: attempt.status,
+      overall: {
+        totalScore: attempt.totalScore ?? 0,
+        maxScore: attempt.maxScore,
+        correctCount: attempt.correctCount ?? 0,
+        incorrectCount: attempt.incorrectCount ?? 0,
+        unattemptedCount: attempt.unattemptedCount ?? 0,
+        accuracy: attempt.accuracy ?? 0,
+        totalTimeSpentSeconds: attempt.timeSpentSeconds ?? 0,
+        averageTimePerQuestion,
+      },
+      subjectWise: Object.values(subjectStats),
+      chapterWise,
+      difficultyWise: difficultyStats,
+      weakChapters,
+      strongChapters,
+      timing: {
+        averageTimePerQuestion,
+        slowestQuestions: slowestQuestions.map((q) => ({
+          order: q.questionOrder,
+          subject: q.subjectCode,
+          timeSpent: q.timeSpentSeconds,
+          isCorrect: q.isCorrect,
+        })),
+        fastestQuestions: fastestQuestions.map((q) => ({
+          order: q.questionOrder,
+          subject: q.subjectCode,
+          timeSpent: q.timeSpentSeconds,
+          isCorrect: q.isCorrect,
+        })),
+      },
+      questions: reviewQuestions,
+    });
+  } catch (error: any) {
+    console.error('Result report error:', error);
+    return NextResponse.json(
+      { error: error.message || 'Internal server error' },
+      { status: 500 }
+    );
+  }
+}
