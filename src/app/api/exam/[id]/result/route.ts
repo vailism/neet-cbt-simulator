@@ -253,6 +253,65 @@ export async function GET(
           )
         : 0;
 
+    // Negative Marking Analysis
+    const correctCount = attempt.correctCount ?? 0;
+    const incorrectCount = attempt.incorrectCount ?? 0;
+    const grossScore = correctCount * marksPerCorrect;
+    const marksLostToNegatives = incorrectCount * 1;
+    const netScore = attempt.totalScore ?? (grossScore - marksLostToNegatives);
+    const penaltyPercentage = grossScore > 0 ? Math.round((marksLostToNegatives / grossScore) * 1000) / 10 : 0;
+
+    // Previous Mocks Comparison for this Candidate
+    const previousAttempts = await prisma.examAttempt.findMany({
+      where: {
+        candidateId: attempt.candidateId,
+        status: { in: ['SUBMITTED', 'TIMED_OUT'] },
+      },
+      select: {
+        id: true,
+        title: true,
+        mode: true,
+        startedAt: true,
+        totalScore: true,
+        maxScore: true,
+        accuracy: true,
+        correctCount: true,
+        incorrectCount: true,
+      },
+      orderBy: { startedAt: 'asc' },
+      take: 10,
+    });
+
+    const previousMockComparison = previousAttempts.map((prev, idx) => ({
+      mockIndex: idx + 1,
+      attemptId: prev.id,
+      title: prev.title.replace(' (Attempt #1)', '').replace(' [OMR Simulation]', ''),
+      mode: prev.mode,
+      date: new Date(prev.startedAt).toLocaleDateString('en-IN', { month: 'short', day: 'numeric' }),
+      score: prev.totalScore ?? 0,
+      maxScore: prev.maxScore,
+      accuracy: prev.accuracy ?? 0,
+      negatives: prev.incorrectCount ?? 0,
+      isCurrent: prev.id === attempt.id,
+    }));
+
+    // Incorrect Question Notebook Items
+    const incorrectNotebook = reviewQuestions
+      .filter((q) => q.isCorrect === false)
+      .map((q) => ({
+        id: q.id,
+        order: q.questionOrder,
+        subject: q.subjectCode,
+        chapter: q.chapter,
+        statement: q.statement,
+        selectedOption: q.selectedOption,
+        selectedOptionText: (q as any)[`option${q.selectedOption}`] || 'None',
+        correctAnswer: q.correctAnswer,
+        correctOptionText: (q as any)[`option${q.correctAnswer}`] || '',
+        explanation: q.explanation,
+        timeSpent: q.timeSpentSeconds,
+      }));
+
     return NextResponse.json({
       attemptId: attempt.id,
       title: attempt.title,
@@ -262,20 +321,28 @@ export async function GET(
       submittedAt: attempt.submittedAt,
       status: attempt.status,
       overall: {
-        totalScore: attempt.totalScore ?? 0,
+        totalScore: netScore,
         maxScore: attempt.maxScore,
-        correctCount: attempt.correctCount ?? 0,
-        incorrectCount: attempt.incorrectCount ?? 0,
+        correctCount,
+        incorrectCount,
         unattemptedCount: attempt.unattemptedCount ?? 0,
         accuracy: attempt.accuracy ?? 0,
         totalTimeSpentSeconds: attempt.timeSpentSeconds ?? 0,
         averageTimePerQuestion,
+      },
+      negativeMarking: {
+        grossScore,
+        marksLost: marksLostToNegatives,
+        netScore,
+        penaltyPercentage,
       },
       subjectWise: Object.values(subjectStats),
       chapterWise,
       difficultyWise: difficultyStats,
       weakChapters,
       strongChapters,
+      previousMockComparison,
+      incorrectNotebook,
       timing: {
         averageTimePerQuestion,
         slowestQuestions: slowestQuestions.map((q) => ({

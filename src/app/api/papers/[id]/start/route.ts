@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { launchMockPaperAttempt } from '@/lib/mockPaperEngine';
+import { ExamMode } from '@prisma/client';
 
 export async function POST(
   req: NextRequest,
@@ -25,13 +26,25 @@ export async function POST(
       );
     }
 
-    const result = await launchMockPaperAttempt(mockPaperId, candidateId);
+    const examMode = body.mode === 'OMR_SIMULATION'
+      ? ExamMode.OMR_SIMULATION
+      : body.mode === 'PRACTICE'
+      ? ExamMode.PRACTICE
+      : ExamMode.FULL_MOCK;
+
+    const durationMinutes = body.durationMinutes ? parseInt(body.durationMinutes, 10) : undefined;
+
+    const result = await launchMockPaperAttempt(mockPaperId, candidateId, {
+      mode: examMode,
+      durationMinutes,
+    });
 
     return NextResponse.json({
       success: true,
       attemptId: result.attemptId,
       isResumed: result.isResumed,
       attemptNumber: result.attemptNumber,
+      mode: result.mode,
     });
   } catch (error: any) {
     console.error('Launch paper attempt error:', error);

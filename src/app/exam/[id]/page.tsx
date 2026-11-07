@@ -342,6 +342,64 @@ export default function ExamInterfacePage() {
     }
   };
 
+  // 3. Global Keyboard Shortcuts for CBT Experience
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Ignore if user is typing in an input or textarea or any modal is open
+      if (['INPUT', 'TEXTAREA'].includes((e.target as HTMLElement)?.tagName)) return;
+      if (showSubmitModal || showPaperModal || showInstructionsModal || showShortcutsModal) return;
+
+      const key = e.key.toLowerCase();
+      if (e.key === '1' || key === 'a') {
+        e.preventDefault();
+        setCurrentSelectedOption(1);
+      } else if (e.key === '2' || key === 'b') {
+        e.preventDefault();
+        setCurrentSelectedOption(2);
+      } else if (e.key === '3' || key === 'c') {
+        e.preventDefault();
+        setCurrentSelectedOption(3);
+      } else if (e.key === '4' || key === 'd') {
+        e.preventDefault();
+        setCurrentSelectedOption(4);
+      } else if (e.key === 'Enter') {
+        e.preventDefault();
+        handleSaveAndNext();
+      } else if (key === 'm') {
+        e.preventDefault();
+        handleMarkForReviewAndNext();
+      } else if (e.key === 'Backspace') {
+        e.preventDefault();
+        handleClearResponse();
+      } else if (e.key === 'ArrowLeft' || key === 'p') {
+        if (activeQuestionIndex > 0) {
+          e.preventDefault();
+          navigateToQuestion(activeQuestionIndex - 1);
+        }
+      } else if (e.key === 'ArrowRight' || key === 'n') {
+        if (activeQuestionIndex < (examData?.questions.length || 0) - 1) {
+          e.preventDefault();
+          navigateToQuestion(activeQuestionIndex + 1);
+        }
+      } else if (e.key === '?') {
+        e.preventDefault();
+        setShowShortcutsModal(true);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [
+    activeQuestionIndex,
+    currentQuestion,
+    currentSelectedOption,
+    examData,
+    showSubmitModal,
+    showPaperModal,
+    showInstructionsModal,
+    showShortcutsModal,
+  ]);
+
   // Question Palette Counters
   const getSubjectStatusCounts = (sub: 'PHYSICS' | 'CHEMISTRY' | 'BOTANY' | 'ZOOLOGY') => {
     const list = examData?.questions.filter((q) => q.subjectCode === sub) || [];
@@ -454,6 +512,15 @@ export default function ExamInterfacePage() {
             >
               <HelpCircle className="w-3.5 h-3.5" />
               Instructions
+            </button>
+
+            <button
+              onClick={() => setShowShortcutsModal(true)}
+              className="hidden lg:flex items-center gap-1.5 bg-blue-800 hover:bg-blue-700 border border-blue-400/30 text-white text-xs font-semibold px-2.5 py-1.5 rounded transition-colors"
+              title="Keyboard Shortcuts (1-4, Enter, M, Backspace, Arrows)"
+            >
+              <Keyboard className="w-3.5 h-3.5 text-amber-300" />
+              Shortcuts
             </button>
 
             {/* Countdown Timer Display */}
@@ -916,6 +983,56 @@ export default function ExamInterfacePage() {
                 className="px-4 py-1.5 bg-blue-700 text-white rounded text-xs font-bold"
               >
                 Close Instructions
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL 4: KEYBOARD SHORTCUTS REFERENCE */}
+      {showShortcutsModal && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-xl shadow-2xl border border-gray-200 max-w-md w-full overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+            <div className="bg-[#1e3a8a] text-white p-4 flex items-center justify-between">
+              <h3 className="font-bold text-base flex items-center gap-2">
+                <Keyboard className="w-4 h-4 text-amber-300" /> CBT Keyboard Shortcuts
+              </h3>
+              <button onClick={() => setShowShortcutsModal(false)} className="text-blue-200 hover:text-white">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="p-5 text-xs text-gray-800 space-y-2.5">
+              <div className="flex justify-between items-center py-1.5 border-b border-gray-100">
+                <span className="font-semibold text-gray-700">Select Option (1, 2, 3, or 4)</span>
+                <span className="font-mono bg-gray-100 px-2 py-0.5 rounded border border-gray-300 text-blue-900 font-bold">1, 2, 3, 4 / A, B, C, D</span>
+              </div>
+              <div className="flex justify-between items-center py-1.5 border-b border-gray-100">
+                <span className="font-semibold text-gray-700">Save & Next Question</span>
+                <span className="font-mono bg-gray-100 px-2 py-0.5 rounded border border-gray-300 text-green-700 font-bold">Enter</span>
+              </div>
+              <div className="flex justify-between items-center py-1.5 border-b border-gray-100">
+                <span className="font-semibold text-gray-700">Mark for Review & Next</span>
+                <span className="font-mono bg-gray-100 px-2 py-0.5 rounded border border-gray-300 text-purple-700 font-bold">M</span>
+              </div>
+              <div className="flex justify-between items-center py-1.5 border-b border-gray-100">
+                <span className="font-semibold text-gray-700">Clear Current Selection</span>
+                <span className="font-mono bg-gray-100 px-2 py-0.5 rounded border border-gray-300 text-red-700 font-bold">Backspace</span>
+              </div>
+              <div className="flex justify-between items-center py-1.5 border-b border-gray-100">
+                <span className="font-semibold text-gray-700">Previous / Next Question</span>
+                <span className="font-mono bg-gray-100 px-2 py-0.5 rounded border border-gray-300 text-gray-800 font-bold">← / → (or P / N)</span>
+              </div>
+              <div className="flex justify-between items-center py-1.5">
+                <span className="font-semibold text-gray-700">Open Shortcuts Help</span>
+                <span className="font-mono bg-gray-100 px-2 py-0.5 rounded border border-gray-300 text-gray-800 font-bold">?</span>
+              </div>
+            </div>
+            <div className="bg-gray-50 p-3 border-t border-gray-200 text-right">
+              <button
+                onClick={() => setShowShortcutsModal(false)}
+                className="px-4 py-1.5 bg-blue-700 hover:bg-blue-800 text-white rounded text-xs font-bold"
+              >
+                Close Shortcuts
               </button>
             </div>
           </div>

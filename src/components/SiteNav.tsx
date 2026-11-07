@@ -18,7 +18,12 @@ export const SiteNav: React.FC = () => {
   }, []);
 
   // Do not render top navigation on active examination screen
-  if (pathname.startsWith('/exam/') && !pathname.includes('/result') && !pathname.includes('/solutions')) {
+  if (
+    (pathname.startsWith('/exam/') || pathname.startsWith('/omr/')) &&
+    !pathname.includes('/result') &&
+    !pathname.includes('/solutions') &&
+    !pathname.includes('/print-')
+  ) {
     return null;
   }
 

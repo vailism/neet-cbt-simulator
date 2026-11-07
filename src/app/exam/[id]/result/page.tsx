@@ -17,6 +17,12 @@ import {
   FileCheck,
   User,
   Zap,
+  Bookmark,
+  MinusCircle,
+  Layers,
+  ChevronDown,
+  ChevronUp,
+  Search,
 } from 'lucide-react';
 import {
   BarChart,
@@ -30,8 +36,11 @@ import {
   Pie,
   Cell,
   Legend,
+  LineChart,
+  Line,
 } from 'recharts';
 import confetti from 'canvas-confetti';
+import { MathRenderer } from '@/components/MathRenderer';
 
 interface ResultData {
   attemptId: string;
@@ -52,6 +61,12 @@ interface ResultData {
     accuracy: number;
     totalTimeSpentSeconds: number;
     averageTimePerQuestion: number;
+  };
+  negativeMarking: {
+    grossScore: number;
+    marksLost: number;
+    netScore: number;
+    penaltyPercentage: number;
   };
   subjectWise: Array<{
     subject: string;
@@ -84,6 +99,31 @@ interface ResultData {
   >;
   weakChapters: string[];
   strongChapters: string[];
+  previousMockComparison?: Array<{
+    mockIndex: number;
+    attemptId: string;
+    title: string;
+    mode: string;
+    date: string;
+    score: number;
+    maxScore: number;
+    accuracy: number;
+    negatives: number;
+    isCurrent: boolean;
+  }>;
+  incorrectNotebook?: Array<{
+    id: string;
+    order: number;
+    subject: string;
+    chapter: string;
+    statement: string;
+    selectedOption: number | null;
+    selectedOptionText: string;
+    correctAnswer: number;
+    correctOptionText: string;
+    explanation: string;
+    timeSpent: number;
+  }>;
   timing: {
     averageTimePerQuestion: number;
     slowestQuestions: Array<{ order: number; subject: string; timeSpent: number; isCorrect: boolean | null }>;
@@ -100,6 +140,11 @@ export default function ExamResultPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  // Incorrect Notebook Filter & Bookmarking
+  const [notebookFilter, setNotebookFilter] = useState<'ALL' | 'PHYSICS' | 'CHEMISTRY' | 'BOTANY' | 'ZOOLOGY'>('ALL');
+  const [bookmarkedIds, setBookmarkedIds] = useState<Set<string>>(new Set());
+  const [chapterSearch, setChapterSearch] = useState('');
+
   useEffect(() => {
     async function loadResult() {
       try {
@@ -108,7 +153,6 @@ export default function ExamResultPage() {
         if (!res.ok) throw new Error(json.error || 'Failed to fetch result.');
         setData(json);
 
-        // Fire celebratory confetti if score is solid
         if (json.overall.totalScore >= 300) {
           confetti({
             particleCount: 80,
@@ -124,6 +168,15 @@ export default function ExamResultPage() {
     }
     loadResult();
   }, [attemptId]);
+
+  const toggleBookmark = (id: string) => {
+    setBookmarkedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
 
   const formatSeconds = (sec: number) => {
     const mins = Math.floor(sec / 60);
@@ -159,16 +212,25 @@ export default function ExamResultPage() {
     );
   }
 
-  const { overall, subjectWise, difficultyWise, weakChapters, strongChapters, timing } = data;
+  const {
+    overall,
+    negativeMarking,
+    subjectWise,
+    chapterWise,
+    difficultyWise,
+    weakChapters,
+    strongChapters,
+    previousMockComparison,
+    incorrectNotebook = [],
+    timing,
+  } = data;
 
-  // Pie chart data for breakdown
   const pieData = [
     { name: 'Correct', value: overall.correctCount, color: '#16a34a' },
     { name: 'Incorrect', value: overall.incorrectCount, color: '#dc2626' },
     { name: 'Unattempted', value: overall.unattemptedCount, color: '#94a3b8' },
   ];
 
-  // Subject bar chart data
   const subjectChartData = subjectWise.map((s) => ({
     name: s.name,
     score: s.score,
@@ -176,141 +238,175 @@ export default function ExamResultPage() {
     accuracy: s.accuracy,
   }));
 
-  // Score percent
-  const scorePercent = overall.maxScore > 0 ? Math.round((overall.totalScore / overall.maxScore) * 100) : 0;
+  const filteredNotebook = incorrectNotebook.filter((item) => {
+    if (notebookFilter === 'ALL') return true;
+    return item.subject === notebookFilter;
+  });
+
+  const filteredChapters = chapterWise.filter((c) => {
+    if (!chapterSearch) return true;
+    const q = chapterSearch.toLowerCase();
+    return c.chapter.toLowerCase().includes(q) || c.subject.toLowerCase().includes(q);
+  });
 
   return (
     <div className="flex-1 bg-gray-50 py-8 px-4">
       <div className="max-w-6xl mx-auto space-y-6">
-        {/* Top Header Card */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 flex flex-wrap items-center justify-between gap-4 border-t-4 border-t-blue-700">
-          <div>
-            <div className="text-xs font-bold uppercase tracking-wider text-blue-600">
-              National Testing Agency (NTA) • Examination Scorecard
+        {/* TOP SCORECARD BANNER */}
+        <div className="bg-gradient-to-r from-blue-900 via-indigo-950 to-blue-950 text-white rounded-2xl p-6 sm:p-8 shadow-sm">
+          <div className="flex flex-wrap items-center justify-between gap-4">
+            <div>
+              <div className="inline-flex items-center gap-1.5 bg-blue-800/80 border border-blue-400/30 text-blue-200 text-xs px-2.5 py-0.5 rounded-full mb-2">
+                <Award className="w-3.5 h-3.5 text-amber-300" />
+                <span>Official NEET UG Performance Scorecard • {data.mode}</span>
+              </div>
+              <h1 className="text-2xl sm:text-3xl font-black tracking-tight">{data.title}</h1>
+              <div className="text-xs text-blue-200 mt-1 flex flex-wrap items-center gap-3">
+                <span>Candidate: <strong>{data.candidate.name}</strong></span>
+                <span>•</span>
+                <span className="font-mono">Roll: {data.candidate.rollNumber}</span>
+                <span>•</span>
+                <span>Submitted: {new Date(data.submittedAt).toLocaleTimeString()}</span>
+              </div>
             </div>
-            <h1 className="text-xl sm:text-2xl font-black text-gray-900 mt-1">{data.title}</h1>
-            <div className="text-xs text-gray-500 mt-1 flex flex-wrap items-center gap-3">
-              <span>Candidate: <strong className="text-gray-800">{data.candidate.name}</strong></span>
-              <span>• Roll No: <strong className="font-mono text-gray-800">{data.candidate.rollNumber}</strong></span>
-              <span>• Submitted: {new Date(data.submittedAt).toLocaleTimeString('en-IN')}</span>
+
+            {/* Total Marks Hero Badge */}
+            <div className="bg-white/10 backdrop-blur-xs border border-white/20 rounded-xl p-4 text-center min-w-[170px]">
+              <div className="text-xs uppercase tracking-wider text-blue-200 font-bold">Total Score</div>
+              <div className="text-3xl sm:text-4xl font-black text-amber-300 font-mono my-0.5">
+                {overall.totalScore}
+                <span className="text-sm text-blue-200 font-normal"> / {overall.maxScore}</span>
+              </div>
+              <div className="text-xs text-emerald-300 font-bold">
+                Accuracy: {overall.accuracy}%
+              </div>
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => router.push(`/exam/${attemptId}/solutions`)}
-              className="bg-blue-700 hover:bg-blue-800 text-white text-xs font-bold px-4 py-2.5 rounded-lg shadow transition-colors flex items-center gap-2"
-            >
-              <FileCheck className="w-4 h-4" />
-              Review Step-by-Step Solutions
-            </button>
-            <button
-              onClick={() => router.push('/dashboard')}
-              className="bg-gray-100 hover:bg-gray-200 border border-gray-300 text-gray-700 text-xs font-bold px-3 py-2.5 rounded-lg transition-colors"
-            >
-              Dashboard
-            </button>
-          </div>
-        </div>
-
-        {/* OVERALL PERFORMANCE CARDS */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-          {/* Total Score */}
-          <div className="col-span-2 sm:col-span-1 bg-gradient-to-br from-blue-900 to-indigo-900 text-white rounded-xl p-4 shadow-sm">
-            <div className="text-[11px] font-semibold text-blue-200 uppercase tracking-wider">
-              Total Score
+          {/* Quick Metrics Strip */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-6 pt-6 border-t border-white/10 text-xs">
+            <div className="bg-white/5 rounded-lg p-2.5">
+              <span className="text-blue-200 block text-[11px]">Correct Answers (+4)</span>
+              <strong className="text-base text-green-300 font-mono font-bold">
+                {overall.correctCount} <span className="text-xs font-normal text-blue-200">/ 180</span>
+              </strong>
             </div>
-            <div className="text-3xl font-black tracking-tight mt-1">
-              {overall.totalScore} <span className="text-xs font-normal text-blue-200">/ {overall.maxScore}</span>
+            <div className="bg-white/5 rounded-lg p-2.5">
+              <span className="text-blue-200 block text-[11px]">Incorrect Answers (-1)</span>
+              <strong className="text-base text-red-300 font-mono font-bold">
+                {overall.incorrectCount} <span className="text-xs font-normal text-blue-200">questions</span>
+              </strong>
             </div>
-            <div className="text-[10px] text-blue-200 mt-1">
-              Score Percentage: {scorePercent}%
+            <div className="bg-white/5 rounded-lg p-2.5">
+              <span className="text-blue-200 block text-[11px]">Unattempted (0)</span>
+              <strong className="text-base text-slate-300 font-mono font-bold">
+                {overall.unattemptedCount} <span className="text-xs font-normal text-blue-200">questions</span>
+              </strong>
             </div>
-          </div>
-
-          {/* Correct Answers */}
-          <div className="bg-white rounded-xl border border-green-200 p-4 shadow-xs">
-            <div className="flex items-center justify-between text-green-700">
-              <span className="text-xs font-bold">Correct</span>
-              <CheckCircle className="w-4 h-4" />
-            </div>
-            <div className="text-2xl font-black text-green-700 mt-1">
-              {overall.correctCount}
-            </div>
-            <div className="text-[10px] text-green-600 font-semibold">
-              +{overall.correctCount * 4} Marks
-            </div>
-          </div>
-
-          {/* Incorrect Answers */}
-          <div className="bg-white rounded-xl border border-red-200 p-4 shadow-xs">
-            <div className="flex items-center justify-between text-red-600">
-              <span className="text-xs font-bold">Incorrect</span>
-              <XCircle className="w-4 h-4" />
-            </div>
-            <div className="text-2xl font-black text-red-600 mt-1">
-              {overall.incorrectCount}
-            </div>
-            <div className="text-[10px] text-red-500 font-semibold">
-              -{overall.incorrectCount * 1} Negative Marks
-            </div>
-          </div>
-
-          {/* Unattempted */}
-          <div className="bg-white rounded-xl border border-gray-200 p-4 shadow-xs">
-            <div className="flex items-center justify-between text-gray-600">
-              <span className="text-xs font-bold">Unattempted</span>
-              <HelpCircle className="w-4 h-4 text-gray-400" />
-            </div>
-            <div className="text-2xl font-black text-gray-700 mt-1">
-              {overall.unattemptedCount}
-            </div>
-            <div className="text-[10px] text-gray-500 font-semibold">
-              0 Marks
-            </div>
-          </div>
-
-          {/* Accuracy */}
-          <div className="bg-white rounded-xl border border-blue-200 p-4 shadow-xs">
-            <div className="flex items-center justify-between text-blue-700">
-              <span className="text-xs font-bold">Accuracy</span>
-              <TrendingUp className="w-4 h-4" />
-            </div>
-            <div className="text-2xl font-black text-blue-800 mt-1">
-              {overall.accuracy}%
-            </div>
-            <div className="text-[10px] text-blue-600 font-semibold">
-              Attempt Accuracy
-            </div>
-          </div>
-
-          {/* Time Taken */}
-          <div className="bg-white rounded-xl border border-purple-200 p-4 shadow-xs">
-            <div className="flex items-center justify-between text-purple-700">
-              <span className="text-xs font-bold">Time Taken</span>
-              <Clock className="w-4 h-4" />
-            </div>
-            <div className="text-2xl font-black text-purple-800 mt-1">
-              {Math.floor(overall.totalTimeSpentSeconds / 60)}m
-            </div>
-            <div className="text-[10px] text-purple-600 font-semibold">
-              ~{overall.averageTimePerQuestion}s / question
+            <div className="bg-white/5 rounded-lg p-2.5">
+              <span className="text-blue-200 block text-[11px]">Total Time Spent</span>
+              <strong className="text-base text-amber-300 font-mono font-bold">
+                {formatSeconds(overall.totalTimeSpentSeconds)}
+              </strong>
             </div>
           </div>
         </div>
 
-        {/* VISUAL CHARTS ROW: SUBJECT PERFORMANCE & ATTEMPT DISTRIBUTION */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-          {/* Subject-Wise Performance Bar Chart */}
-          <div className="lg:col-span-7 bg-white rounded-xl shadow-sm border border-gray-200 p-5">
-            <div className="flex items-center justify-between mb-4 pb-2 border-b border-gray-100">
+        {/* 1. NEGATIVE MARKING DEEP-DIVE ANALYSIS */}
+        <div className="bg-white rounded-xl shadow-sm border border-red-200 p-6">
+          <div className="flex items-center justify-between pb-3 border-b border-gray-100 mb-4">
+            <h3 className="font-bold text-gray-900 text-sm flex items-center gap-2">
+              <MinusCircle className="w-4 h-4 text-red-600" />
+              Negative Marking Analysis & Score Deduction Impact
+            </h3>
+            <span className="bg-red-50 text-red-700 font-mono font-bold text-xs px-2 py-0.5 rounded border border-red-200">
+              Loss Penalty: -{negativeMarking.marksLost} Marks
+            </span>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div className="p-3 bg-emerald-50 rounded-lg border border-emerald-200">
+              <div className="text-[11px] text-emerald-800 font-semibold">Gross Earned Score</div>
+              <div className="text-xl font-black text-emerald-900 font-mono mt-0.5">
+                +{negativeMarking.grossScore}
+              </div>
+              <div className="text-[10px] text-emerald-700">From {overall.correctCount} correct questions</div>
+            </div>
+
+            <div className="p-3 bg-red-50 rounded-lg border border-red-200">
+              <div className="text-[11px] text-red-800 font-semibold">Negative Marking Loss</div>
+              <div className="text-xl font-black text-red-700 font-mono mt-0.5">
+                -{negativeMarking.marksLost}
+              </div>
+              <div className="text-[10px] text-red-600">From {overall.incorrectCount} incorrect deductions</div>
+            </div>
+
+            <div className="p-3 bg-blue-50 rounded-lg border border-blue-200">
+              <div className="text-[11px] text-blue-800 font-semibold">Official Net Score</div>
+              <div className="text-xl font-black text-blue-950 font-mono mt-0.5">
+                {negativeMarking.netScore}
+              </div>
+              <div className="text-[10px] text-blue-700">Gross Score minus Negative Marks</div>
+            </div>
+
+            <div className="p-3 bg-amber-50 rounded-lg border border-amber-200">
+              <div className="text-[11px] text-amber-800 font-semibold">Score Drag Ratio</div>
+              <div className="text-xl font-black text-amber-900 font-mono mt-0.5">
+                {negativeMarking.penaltyPercentage}%
+              </div>
+              <div className="text-[10px] text-amber-700">Percentage of earned score lost</div>
+            </div>
+          </div>
+        </div>
+
+        {/* 2. PREVIOUS MOCK COMPARISON (HISTORICAL TIMELINE) */}
+        {previousMockComparison && previousMockComparison.length > 1 && (
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+            <div className="flex items-center justify-between pb-3 border-b border-gray-100 mb-4">
               <h3 className="font-bold text-gray-900 text-sm flex items-center gap-2">
-                <BarChart3 className="w-4 h-4 text-blue-700" />
-                Subject-Wise Marks Breakdown (Out of 180 Each)
+                <TrendingUp className="w-4 h-4 text-blue-700" />
+                Previous Mock Comparison & Score Progression
               </h3>
+              <span className="text-xs text-gray-500 font-medium">
+                {previousMockComparison.length} Examinations Completed
+              </span>
             </div>
 
             <div className="h-64 w-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={previousMockComparison} margin={{ top: 10, right: 20, left: -10, bottom: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                  <XAxis dataKey="title" tick={{ fontSize: 11, fill: '#475569' }} />
+                  <YAxis domain={[0, 720]} tick={{ fontSize: 11, fill: '#475569' }} />
+                  <Tooltip
+                    formatter={(val: any, name: any) => [`${val} Marks`, 'Score']}
+                    contentStyle={{ backgroundColor: '#ffffff', borderRadius: '8px', border: '1px solid #e2e8f0', fontSize: '12px' }}
+                  />
+                  <Line
+                    type="monotone"
+                    dataKey="score"
+                    stroke="#1e3a8a"
+                    strokeWidth={3}
+                    dot={{ r: 5, fill: '#1e3a8a' }}
+                    activeDot={{ r: 8 }}
+                    name="Score (/720)"
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+        )}
+
+        {/* 3. CHARTS ROW: SUBJECT MARKS & ATTEMPT DISTRIBUTION */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          {/* Subject Performance */}
+          <div className="lg:col-span-7 bg-white rounded-xl shadow-sm border border-gray-200 p-5">
+            <h3 className="font-bold text-gray-900 text-sm mb-4 pb-2 border-b border-gray-100 flex items-center gap-2">
+              <BarChart3 className="w-4 h-4 text-blue-700" />
+              Subject-Wise Performance (Out of 180 Each)
+            </h3>
+
+            <div className="h-60 w-full">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={subjectChartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
@@ -325,54 +421,39 @@ export default function ExamResultPage() {
               </ResponsiveContainer>
             </div>
 
-            {/* Subject details table */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mt-4 pt-3 border-t border-gray-100 text-xs">
               {subjectWise.map((s) => (
                 <div key={s.subject} className="bg-gray-50 p-2 rounded border border-gray-200 text-center">
                   <div className="font-bold text-gray-800">{s.name}</div>
                   <div className="font-black text-blue-900 text-sm">{s.score} / {s.maxScore}</div>
-                  <div className="text-[10px] text-gray-500">Acc: {s.accuracy}%</div>
+                  <div className="text-[10px] text-gray-500">Accuracy: {s.accuracy}%</div>
                 </div>
               ))}
             </div>
           </div>
 
-          {/* Question Breakdown Donut Chart */}
+          {/* Response Distribution */}
           <div className="lg:col-span-5 bg-white rounded-xl shadow-sm border border-gray-200 p-5">
-            <div className="flex items-center justify-between mb-4 pb-2 border-b border-gray-100">
-              <h3 className="font-bold text-gray-900 text-sm flex items-center gap-2">
-                <Award className="w-4 h-4 text-amber-600" />
-                Attempt & Response Distribution
-              </h3>
-            </div>
+            <h3 className="font-bold text-gray-900 text-sm mb-4 pb-2 border-b border-gray-100 flex items-center gap-2">
+              <Award className="w-4 h-4 text-amber-600" />
+              Attempt Breakdown & Difficulty Analysis
+            </h3>
 
-            <div className="h-48 w-full flex items-center justify-center">
+            <div className="h-44 w-full flex items-center justify-center">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
-                  <Pie
-                    data={pieData}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={50}
-                    outerRadius={75}
-                    paddingAngle={3}
-                    dataKey="value"
-                  >
+                  <Pie data={pieData} cx="50%" cy="50%" innerRadius={45} outerRadius={70} paddingAngle={3} dataKey="value">
                     {pieData.map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={entry.color} />
                     ))}
                   </Pie>
-                  <Tooltip
-                    formatter={(val: any, name: any) => [`${val} Questions`, name]}
-                    contentStyle={{ backgroundColor: '#ffffff', borderRadius: '8px', border: '1px solid #e2e8f0', fontSize: '12px' }}
-                  />
-                  <Legend verticalAlign="bottom" height={36} iconSize={10} wrapperStyle={{ fontSize: '11px' }} />
+                  <Tooltip formatter={(val: any, name: any) => [`${val} Questions`, name]} />
+                  <Legend verticalAlign="bottom" height={30} iconSize={8} wrapperStyle={{ fontSize: '10px' }} />
                 </PieChart>
               </ResponsiveContainer>
             </div>
 
-            {/* Difficulty Analysis Box */}
-            <div className="mt-4 pt-3 border-t border-gray-100 grid grid-cols-3 gap-2 text-center text-xs">
+            <div className="mt-3 pt-3 border-t border-gray-100 grid grid-cols-3 gap-2 text-center text-xs">
               <div className="p-2 rounded bg-green-50 border border-green-200">
                 <div className="text-[10px] text-green-800 font-bold">EASY</div>
                 <div className="font-black text-green-900">{difficultyWise.EASY?.accuracy || 0}%</div>
@@ -392,55 +473,165 @@ export default function ExamResultPage() {
           </div>
         </div>
 
-        {/* WEAK & STRONG CHAPTERS DIAGNOSTIC */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Weak Chapters (Priority for Revision) */}
-          <div className="bg-white rounded-xl shadow-sm border border-red-200 p-5">
-            <h3 className="font-bold text-red-900 text-sm mb-3 flex items-center gap-2">
-              <AlertTriangle className="w-4 h-4 text-red-600" />
-              Focus Areas & Weak Chapters ({weakChapters.length})
+        {/* 4. CHAPTER-WISE ACCURACY BREAKDOWN TABLE */}
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+          <div className="p-4 border-b border-gray-200 flex flex-wrap items-center justify-between gap-3 bg-gray-50">
+            <h3 className="font-bold text-gray-900 text-sm flex items-center gap-2">
+              <BookOpen className="w-4 h-4 text-blue-700" />
+              Chapter-Wise Accuracy & Mastery Matrix ({filteredChapters.length} Chapters)
             </h3>
-            {weakChapters.length > 0 ? (
-              <div className="flex flex-wrap gap-2">
-                {weakChapters.map((ch, idx) => (
-                  <span
-                    key={idx}
-                    className="bg-red-50 text-red-800 border border-red-200 px-2.5 py-1 rounded text-xs font-medium"
-                  >
-                    ⚠️ {ch}
-                  </span>
-                ))}
-              </div>
-            ) : (
-              <div className="text-xs text-gray-500 italic">
-                No weak chapters flagged! Excellent conceptual clarity across attempted chapters.
-              </div>
-            )}
+
+            <div className="relative">
+              <Search className="w-3.5 h-3.5 text-gray-400 absolute left-2.5 top-2.5" />
+              <input
+                type="text"
+                placeholder="Search chapter or subject..."
+                value={chapterSearch}
+                onChange={(e) => setChapterSearch(e.target.value)}
+                className="pl-8 pr-3 py-1.5 border border-gray-300 rounded-lg text-xs w-56 focus:ring-1 focus:ring-blue-600 outline-hidden"
+              />
+            </div>
           </div>
 
-          {/* Strong Chapters */}
-          <div className="bg-white rounded-xl shadow-sm border border-emerald-200 p-5">
-            <h3 className="font-bold text-emerald-900 text-sm mb-3 flex items-center gap-2">
-              <Zap className="w-4 h-4 text-emerald-600" />
-              Strong Areas & High Accuracy Chapters ({strongChapters.length})
-            </h3>
-            {strongChapters.length > 0 ? (
-              <div className="flex flex-wrap gap-2">
-                {strongChapters.map((ch, idx) => (
-                  <span
-                    key={idx}
-                    className="bg-emerald-50 text-emerald-800 border border-emerald-200 px-2.5 py-1 rounded text-xs font-medium"
-                  >
-                    ✨ {ch}
-                  </span>
+          <div className="max-h-72 overflow-y-auto">
+            <table className="w-full text-left text-xs">
+              <thead className="bg-gray-100 text-gray-700 font-bold sticky top-0 border-b border-gray-200">
+                <tr>
+                  <th className="p-3">Chapter</th>
+                  <th className="p-3">Subject</th>
+                  <th className="p-3 text-center">Total</th>
+                  <th className="p-3 text-center">Correct</th>
+                  <th className="p-3 text-center">Incorrect</th>
+                  <th className="p-3 text-center">Skipped</th>
+                  <th className="p-3 text-right">Accuracy</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100 font-medium">
+                {filteredChapters.map((ch, idx) => (
+                  <tr key={idx} className="hover:bg-gray-50/80 transition-colors">
+                    <td className="p-3 font-semibold text-gray-900">{ch.chapter}</td>
+                    <td className="p-3">
+                      <span className="bg-blue-50 text-blue-800 px-2 py-0.5 rounded text-[10px] font-bold">
+                        {ch.subject}
+                      </span>
+                    </td>
+                    <td className="p-3 text-center font-mono">{ch.total}</td>
+                    <td className="p-3 text-center text-green-700 font-bold font-mono">{ch.correct}</td>
+                    <td className="p-3 text-center text-red-600 font-bold font-mono">{ch.incorrect}</td>
+                    <td className="p-3 text-center text-gray-400 font-mono">{ch.unattempted}</td>
+                    <td className="p-3 text-right font-black text-xs font-mono">
+                      <span
+                        className={
+                          ch.accuracy >= 75
+                            ? 'text-emerald-700'
+                            : ch.accuracy >= 50
+                            ? 'text-amber-700'
+                            : 'text-red-600'
+                        }
+                      >
+                        {ch.accuracy}%
+                      </span>
+                    </td>
+                  </tr>
                 ))}
-              </div>
-            ) : (
-              <div className="text-xs text-gray-500 italic">
-                Complete more mock exams to solidify strong chapters.
-              </div>
-            )}
+              </tbody>
+            </table>
           </div>
+        </div>
+
+        {/* 5. INCORRECT QUESTION NOTEBOOK ("MISTAKE NOTEBOOK") */}
+        <div className="bg-white rounded-xl shadow-sm border border-red-200 p-6 space-y-4">
+          <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-gray-100">
+            <div>
+              <h3 className="font-bold text-base text-red-950 flex items-center gap-2">
+                <AlertTriangle className="w-5 h-5 text-red-600" />
+                Incorrect Question Notebook & Targeted Revision ({incorrectNotebook.length})
+              </h3>
+              <p className="text-xs text-gray-500 mt-0.5">
+                Review questions answered incorrectly, understand conceptual traps, and bookmark them for your revision journal.
+              </p>
+            </div>
+
+            {/* Subject Filters */}
+            <div className="flex items-center gap-1">
+              {(['ALL', 'PHYSICS', 'CHEMISTRY', 'BOTANY', 'ZOOLOGY'] as const).map((filterKey) => (
+                <button
+                  key={filterKey}
+                  onClick={() => setNotebookFilter(filterKey)}
+                  className={`px-2.5 py-1 rounded text-xs font-bold transition-colors ${
+                    notebookFilter === filterKey
+                      ? 'bg-red-700 text-white'
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }`}
+                >
+                  {filterKey}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {filteredNotebook.length > 0 ? (
+            <div className="space-y-4">
+              {filteredNotebook.map((item) => {
+                const isBookmarked = bookmarkedIds.has(item.id);
+                return (
+                  <div key={item.id} className="border border-red-200 rounded-xl p-4 bg-red-50/20 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <span className="font-mono font-black text-red-900 bg-red-100 px-2 py-0.5 rounded text-xs">
+                          Q.{item.order}
+                        </span>
+                        <span className="font-bold text-gray-800 text-xs">
+                          {item.subject} • {item.chapter}
+                        </span>
+                      </div>
+
+                      <button
+                        onClick={() => toggleBookmark(item.id)}
+                        className={`flex items-center gap-1 text-xs px-2.5 py-1 rounded-md font-semibold transition-colors ${
+                          isBookmarked
+                            ? 'bg-amber-100 text-amber-900 border border-amber-300'
+                            : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
+                        }`}
+                      >
+                        <Bookmark className={`w-3.5 h-3.5 ${isBookmarked ? 'fill-amber-600 text-amber-600' : ''}`} />
+                        <span>{isBookmarked ? 'Bookmarked' : 'Save for Revision'}</span>
+                      </button>
+                    </div>
+
+                    <div className="text-xs font-medium text-gray-900">
+                      <MathRenderer text={item.statement} />
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                      <div className="bg-red-50 border border-red-200 p-2.5 rounded-lg text-red-900">
+                        <div className="text-[10px] font-bold text-red-700 uppercase">Your Selection (Incorrect)</div>
+                        <div className="font-semibold mt-0.5">
+                          Option ({item.selectedOption}): <MathRenderer text={item.selectedOptionText} />
+                        </div>
+                      </div>
+
+                      <div className="bg-emerald-50 border border-emerald-200 p-2.5 rounded-lg text-emerald-900">
+                        <div className="text-[10px] font-bold text-emerald-700 uppercase">Correct Answer</div>
+                        <div className="font-semibold mt-0.5">
+                          Option ({item.correctAnswer}): <MathRenderer text={item.correctOptionText} />
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="bg-white border border-gray-200 p-3 rounded-lg text-xs text-gray-800 space-y-1">
+                      <div className="font-bold text-blue-900">NCERT Solution & Explanation:</div>
+                      <MathRenderer text={item.explanation} />
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            <div className="text-center py-8 text-xs text-gray-500 italic">
+              No incorrect questions found in this category! Outstanding performance.
+            </div>
+          )}
         </div>
 
         {/* BOTTOM ACTION BAR */}
@@ -464,7 +655,7 @@ export default function ExamResultPage() {
               onClick={() => router.push(`/exam/${attemptId}/solutions`)}
               className="bg-blue-700 hover:bg-blue-800 text-white text-xs font-bold px-5 py-2 rounded-lg shadow transition-colors flex items-center gap-1.5"
             >
-              Review All Solutions & Explanations
+              Review All 180 Solutions
               <ArrowRight className="w-4 h-4" />
             </button>
           </div>
@@ -473,4 +664,3 @@ export default function ExamResultPage() {
     </div>
   );
 }
-

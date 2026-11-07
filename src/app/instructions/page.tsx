@@ -17,6 +17,8 @@ import {
 export default function InstructionsPage() {
   const router = useRouter();
 
+  const [selectedMode, setSelectedMode] = useState<'FULL_MOCK' | 'OMR_SIMULATION'>('FULL_MOCK');
+  const [selectedDuration, setSelectedDuration] = useState<number>(180);
   const [candidateRoll, setCandidateRoll] = useState('240410012345');
   const [candidateName, setCandidateName] = useState('KUMAR ADITYA');
   const [candidateId, setCandidateId] = useState<string | null>(null);
@@ -67,8 +69,9 @@ export default function InstructionsPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           candidateId: cId,
-          mode: 'FULL_MOCK',
+          mode: selectedMode,
           configCode: 'NEET_UG_DEFAULT',
+          durationMinutes: selectedDuration,
         }),
       });
 
@@ -77,7 +80,11 @@ export default function InstructionsPage() {
         throw new Error(data.error || 'Failed to initialize examination.');
       }
 
-      router.push(`/exam/${data.attemptId}`);
+      if (selectedMode === 'OMR_SIMULATION') {
+        router.push(`/omr/${data.attemptId}`);
+      } else {
+        router.push(`/exam/${data.attemptId}`);
+      }
     } catch (err: any) {
       setError(err.message || 'Failed to start examination.');
       setLoading(false);
@@ -267,6 +274,88 @@ export default function InstructionsPage() {
                   </tr>
                 </tbody>
               </table>
+            </div>
+          </div>
+
+          {/* Section 5: Configurable Examination Settings */}
+          <div className="bg-slate-50 border border-slate-200 rounded-lg p-4 space-y-4">
+            <h2 className="font-bold text-sm text-blue-900 flex items-center gap-2">
+              <Layers className="w-4 h-4 text-blue-700" />
+              5. Examination Mode & Authenticity Settings
+            </h2>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+              {/* Mode Selection */}
+              <div>
+                <label className="block font-bold text-gray-800 mb-1.5">Simulation Mode:</label>
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setSelectedMode('FULL_MOCK')}
+                    className={`p-2.5 rounded-lg border text-left transition-all ${
+                      selectedMode === 'FULL_MOCK'
+                        ? 'border-blue-700 bg-blue-50 font-bold text-blue-900 ring-1 ring-blue-700'
+                        : 'border-gray-300 bg-white text-gray-700 hover:bg-gray-50'
+                    }`}
+                  >
+                    <div className="font-bold text-xs">🖥️ CBT Online Mode</div>
+                    <div className="text-[10px] text-gray-500 font-normal mt-0.5">
+                      Question palette with Save & Next / Mark for Review
+                    </div>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setSelectedMode('OMR_SIMULATION')}
+                    className={`p-2.5 rounded-lg border text-left transition-all ${
+                      selectedMode === 'OMR_SIMULATION'
+                        ? 'border-amber-600 bg-amber-50 font-bold text-amber-900 ring-1 ring-amber-600'
+                        : 'border-gray-300 bg-white text-gray-700 hover:bg-gray-50'
+                    }`}
+                  >
+                    <div className="font-bold text-xs">📝 OMR Bubble Sheet</div>
+                    <div className="text-[10px] text-gray-500 font-normal mt-0.5">
+                      180-bubble digital OMR sheet + printable booklet & OMR
+                    </div>
+                  </button>
+                </div>
+              </div>
+
+              {/* Duration Selection */}
+              <div>
+                <label className="block font-bold text-gray-800 mb-1.5">Examination Duration:</label>
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setSelectedDuration(180)}
+                    className={`p-2.5 rounded-lg border text-left transition-all ${
+                      selectedDuration === 180
+                        ? 'border-blue-700 bg-blue-50 font-bold text-blue-900 ring-1 ring-blue-700'
+                        : 'border-gray-300 bg-white text-gray-700 hover:bg-gray-50'
+                    }`}
+                  >
+                    <div className="font-bold text-xs">⏱️ 180 Minutes</div>
+                    <div className="text-[10px] text-gray-500 font-normal mt-0.5">
+                      Standard NEET UG duration (3 hours)
+                    </div>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setSelectedDuration(200)}
+                    className={`p-2.5 rounded-lg border text-left transition-all ${
+                      selectedDuration === 200
+                        ? 'border-blue-700 bg-blue-50 font-bold text-blue-900 ring-1 ring-blue-700'
+                        : 'border-gray-300 bg-white text-gray-700 hover:bg-gray-50'
+                    }`}
+                  >
+                    <div className="font-bold text-xs">⏱️ 200 Minutes</div>
+                    <div className="text-[10px] text-gray-500 font-normal mt-0.5">
+                      NTA extended format (3 hours 20 mins)
+                    </div>
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
 
