@@ -103,7 +103,9 @@ export default function AdminDashboardPage() {
     chapterName: '',
     topic: '',
     difficulty: 'MODERATE',
-    count: 5,
+    count: 25,
+    model: 'gemini-2.5-flash',
+    autoVerify: true,
   });
   const [aiGenerating, setAiGenerating] = useState(false);
   const [aiResultMsg, setAiResultMsg] = useState<string | null>(null);
@@ -791,6 +793,33 @@ CHEMISTRY,Solutions,Colligative Properties,"Which colligative property is prefer
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
+                  <label className="font-bold text-gray-700 block mb-1">Gemini AI Model *</label>
+                  <select
+                    value={aiGenData.model}
+                    onChange={(e) => setAiGenData({ ...aiGenData, model: e.target.value })}
+                    className="w-full border rounded-lg p-2 font-mono"
+                  >
+                    <option value="gemini-2.5-flash">gemini-2.5-flash (Official / Recommended)</option>
+                    <option value="gemini-1.5-pro">gemini-1.5-pro (Deep Numerical Reasoning)</option>
+                    <option value="gemini-1.5-flash">gemini-1.5-flash (High Throughput)</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="font-bold text-gray-700 block mb-1">Batch Count (25 – 50)</label>
+                  <input
+                    type="number"
+                    min={25}
+                    max={50}
+                    value={aiGenData.count}
+                    onChange={(e) => setAiGenData({ ...aiGenData, count: parseInt(e.target.value, 10) || 25 })}
+                    className="w-full border rounded-lg p-2 font-mono"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
                   <label className="font-bold text-gray-700 block mb-1">Chapter Name (Optional)</label>
                   <input
                     type="text"
@@ -802,16 +831,28 @@ CHEMISTRY,Solutions,Colligative Properties,"Which colligative property is prefer
                 </div>
 
                 <div>
-                  <label className="font-bold text-gray-700 block mb-1">Batch Count</label>
+                  <label className="font-bold text-gray-700 block mb-1">Topic Focus (Optional)</label>
                   <input
-                    type="number"
-                    min={1}
-                    max={20}
-                    value={aiGenData.count}
-                    onChange={(e) => setAiGenData({ ...aiGenData, count: parseInt(e.target.value, 10) })}
-                    className="w-full border rounded-lg p-2 font-mono"
+                    type="text"
+                    placeholder="e.g. Kirchhoff's Laws"
+                    value={aiGenData.topic}
+                    onChange={(e) => setAiGenData({ ...aiGenData, topic: e.target.value })}
+                    className="w-full border rounded-lg p-2"
                   />
                 </div>
+              </div>
+
+              <div className="p-3 bg-gray-50 border border-gray-200 rounded-lg flex items-center justify-between">
+                <div>
+                  <div className="font-bold text-gray-800">Auto Independent Verification</div>
+                  <div className="text-[11px] text-gray-500">Run blind second-pass solver and 7-rule quality check</div>
+                </div>
+                <input
+                  type="checkbox"
+                  checked={aiGenData.autoVerify}
+                  onChange={(e) => setAiGenData({ ...aiGenData, autoVerify: e.target.checked })}
+                  className="w-4 h-4 text-blue-600 rounded"
+                />
               </div>
 
               <button
@@ -820,7 +861,7 @@ CHEMISTRY,Solutions,Colligative Properties,"Which colligative property is prefer
                 className="bg-blue-700 hover:bg-blue-800 text-white font-bold py-2.5 px-5 rounded-lg shadow-xs text-xs flex items-center gap-2"
               >
                 <Sparkles className="w-4 h-4 text-amber-300" />
-                {aiGenerating ? 'Generating NCERT Questions...' : 'Run Generation Batch'}
+                {aiGenerating ? 'Generating NCERT Batch via Gemini SDK...' : 'Run Generation Batch (25-50)'}
               </button>
             </form>
           </div>

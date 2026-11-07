@@ -53,6 +53,15 @@ export function computeDuplicateHash(statement: string): string {
   return crypto.createHash('sha256').update(normalized).digest('hex');
 }
 
+export const generateDuplicateHash = (statement: string, options?: string[]) => {
+  if (options && options.length > 0) {
+    const norm = normalizeQuestionText(statement);
+    const normOpts = options.map((o) => normalizeQuestionText(o)).sort().join('|');
+    return crypto.createHash('sha256').update(`${norm}::${normOpts}`).digest('hex');
+  }
+  return computeDuplicateHash(statement);
+};
+
 /**
  * Computes token-level Jaccard similarity between two texts (0 to 1).
  */

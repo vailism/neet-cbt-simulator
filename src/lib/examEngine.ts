@@ -281,6 +281,9 @@ export async function evaluateAttempt(attemptId: string): Promise<ScoreSummary> 
     where: { id: attemptId },
     include: {
       config: true,
+      mockPaper: {
+        include: { paperQuestions: true },
+      },
       questions: {
         include: {
           question: {
@@ -389,8 +392,14 @@ export async function evaluateAttempt(attemptId: string): Promise<ScoreSummary> 
         item.status === QuestionStatus.ANSWERED_AND_MARKED) &&
       item.selectedOption !== null;
 
+    // Build paperQuestion lookup for shuffled options
+    const pq = attempt.mockPaper?.paperQuestions?.find(
+      (p) => p.questionId === item.questionId
+    );
+    const targetCorrectAnswer = pq ? pq.shuffledCorrectAnswer : item.question.correctAnswer;
+
     if (isConsideredAnswered) {
-      if (item.selectedOption === item.question.correctAnswer) {
+      if (item.selectedOption === targetCorrectAnswer) {
         // Correct
         totalScore += marksPerCorrect;
         correctCount++;

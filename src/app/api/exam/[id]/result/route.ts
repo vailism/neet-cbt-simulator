@@ -14,6 +14,11 @@ export async function GET(
       include: {
         candidate: true,
         config: true,
+        mockPaper: {
+          include: {
+            paperQuestions: true,
+          },
+        },
         questions: {
           include: {
             question: {
@@ -159,6 +164,23 @@ export async function GET(
       if (item.isCorrect === true) difficultyStats[diff].correct++;
       else if (item.isCorrect === false) difficultyStats[diff].incorrect++;
 
+      // Build MockPaperQuestion map if attempt is tied to a frozen paper
+      const pq = attempt.mockPaper?.paperQuestions.find(
+        (p) => p.questionId === item.questionId
+      );
+      const optMap: Record<number, string> = {
+        1: item.question.option1,
+        2: item.question.option2,
+        3: item.question.option3,
+        4: item.question.option4,
+      };
+
+      const option1 = pq ? optMap[pq.optionAMapping] : item.question.option1;
+      const option2 = pq ? optMap[pq.optionBMapping] : item.question.option2;
+      const option3 = pq ? optMap[pq.optionCMapping] : item.question.option3;
+      const option4 = pq ? optMap[pq.optionDMapping] : item.question.option4;
+      const correctAnswer = pq ? pq.shuffledCorrectAnswer : item.question.correctAnswer;
+
       return {
         id: item.id,
         questionOrder: item.questionOrder,
@@ -168,12 +190,12 @@ export async function GET(
         difficulty: item.question.difficulty,
         statement: item.question.statement,
         imageUrl: item.question.imageUrl,
-        option1: item.question.option1,
-        option2: item.question.option2,
-        option3: item.question.option3,
-        option4: item.question.option4,
+        option1,
+        option2,
+        option3,
+        option4,
         selectedOption: item.selectedOption,
-        correctAnswer: item.question.correctAnswer,
+        correctAnswer,
         isCorrect: item.isCorrect,
         status: item.status,
         explanation: item.question.explanation,

@@ -22,6 +22,11 @@ export async function GET(
           },
         },
         config: true,
+        mockPaper: {
+          include: {
+            paperQuestions: true,
+          },
+        },
         questions: {
           include: {
             question: {
@@ -62,34 +67,58 @@ export async function GET(
     const isFinished =
       currentStatus === AttemptStatus.SUBMITTED || currentStatus === AttemptStatus.TIMED_OUT;
 
+    // Build MockPaperQuestion map if attempt is tied to a frozen paper
+    const pqMap = new Map<string, any>();
+    if (attempt.mockPaper?.paperQuestions) {
+      for (const pq of attempt.mockPaper.paperQuestions) {
+        pqMap.set(pq.questionId, pq);
+      }
+    }
+
     // Format questions list
-    const questions = attempt.questions.map((item) => ({
-      id: item.id,
-      questionId: item.questionId,
-      questionOrder: item.questionOrder,
-      subjectCode: item.subjectCode,
-      chapter: item.question.chapter?.name || 'General',
-      topic: item.question.topic || '',
-      statement: item.question.statement,
-      imageUrl: item.question.imageUrl,
-      option1: item.question.option1,
-      option2: item.question.option2,
-      option3: item.question.option3,
-      option4: item.question.option4,
-      selectedOption: item.selectedOption,
-      isMarkedForReview: item.isMarkedForReview,
-      status: item.status,
-      timeSpentSeconds: item.timeSpentSeconds,
-      // Answers and explanations are strictly omitted if exam is active
-      ...(isFinished
-        ? {
-            correctAnswer: item.question.correctAnswer,
-            explanation: item.question.explanation,
-            isCorrect: item.isCorrect,
-            marksAwarded: item.marksAwarded,
-          }
-        : {}),
-    }));
+    const questions = attempt.questions.map((item) => {
+      const pq = pqMap.get(item.questionId);
+      const optMap: Record<number, string> = {
+        1: item.question.option1,
+        2: item.question.option2,
+        3: item.question.option3,
+        4: item.question.option4,
+      };
+
+      const option1 = pq ? optMap[pq.optionAMapping] : item.question.option1;
+      const option2 = pq ? optMap[pq.optionBMapping] : item.question.option2;
+      const option3 = pq ? optMap[pq.optionCMapping] : item.question.option3;
+      const option4 = pq ? optMap[pq.optionDMapping] : item.question.option4;
+      const correctAnswer = pq ? pq.shuffledCorrectAnswer : item.question.correctAnswer;
+
+      return {
+        id: item.id,
+        questionId: item.questionId,
+        questionOrder: item.questionOrder,
+        subjectCode: item.subjectCode,
+        chapter: item.question.chapter?.name || 'General',
+        topic: item.question.topic || '',
+        statement: item.question.statement,
+        imageUrl: item.question.imageUrl,
+        option1,
+        option2,
+        option3,
+        option4,
+        selectedOption: item.selectedOption,
+        isMarkedForReview: item.isMarkedForReview,
+        status: item.status,
+        timeSpentSeconds: item.timeSpentSeconds,
+        // Answers and explanations are strictly omitted if exam is active
+        ...(isFinished
+          ? {
+              correctAnswer,
+              explanation: item.question.explanation,
+              isCorrect: item.isCorrect,
+              marksAwarded: item.marksAwarded,
+            }
+          : {}),
+      };
+    });
 
     return NextResponse.json({
       attemptId: attempt.id,

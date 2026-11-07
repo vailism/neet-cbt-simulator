@@ -10,6 +10,7 @@ export interface PaperGenerationOptions {
   moderateCount?: number; // default 90
   difficultCount?: number; // default 36
   syllabusVersion?: string;
+  excludeQuestionIds?: string[]; // IDs used in previous papers to minimize repetition
 }
 
 /**
@@ -49,24 +50,25 @@ export function seededShuffle<T>(array: T[], prng: () => number): T[] {
 export async function generateMockPaper(options: PaperGenerationOptions) {
   const {
     paperNumber,
-    title = `NEET (UG) Full Mock Test ${paperNumber.toString().padStart(3, '0')}`,
-    description = `Official NEET UG CBT Full-Length Simulation (180 Questions, 720 Marks)`,
-    seed = `NEET_2026_MOCK_SEED_${paperNumber.toString().padStart(3, '0')}`,
+    title = `NEET MOCK TEST ${paperNumber.toString().padStart(2, '0')}`,
+    description = `Official NEET UG 2027 CBT Full-Length Simulation (180 Questions, 720 Marks)`,
+    seed = `NEET_2027_MOCK_SEED_${paperNumber.toString().padStart(2, '0')}`,
     easyCount = 54,
     moderateCount = 90,
     difficultCount = 36,
-    syllabusVersion = 'NMC_NEET_2026',
+    syllabusVersion = 'NMC_NEET_2027',
+    excludeQuestionIds = [],
   } = options;
 
   const prng = createPRNG(seed);
-  const code = `MOCK_${paperNumber.toString().padStart(3, '0')}`;
+  const code = `MOCK_${paperNumber.toString().padStart(2, '0')}`;
 
   // Check if paper already exists
   const existing = await prisma.mockPaper.findUnique({
     where: { paperNumber },
     include: { paperQuestions: true },
   });
-  if (existing && existing.paperQuestions.length === 180) {
+  if (existing && existing.paperQuestions.length === 180 && existing.title.startsWith('NEET MOCK TEST')) {
     return existing;
   }
 
@@ -131,9 +133,14 @@ export async function generateMockPaper(options: PaperGenerationOptions) {
       }),
     ]);
 
+    const excludedSet = new Set(excludeQuestionIds);
+
     const pickQuestions = (pool: any[], target: number) => {
-      const unused = pool.filter((q) => !paperQuestionIds.has(q.id));
-      const shuffled = seededShuffle(unused, prng);
+      const unusedInPaper = pool.filter((q) => !paperQuestionIds.has(q.id));
+      const freshQuestions = unusedInPaper.filter((q) => !excludedSet.has(q.id));
+      const poolToUse = freshQuestions.length >= target ? freshQuestions : unusedInPaper;
+
+      const shuffled = seededShuffle(poolToUse, prng);
       const picked = shuffled.slice(0, target);
       for (const p of picked) {
         paperQuestionIds.add(p.id);
@@ -156,7 +163,9 @@ export async function generateMockPaper(options: PaperGenerationOptions) {
           id: { notIn: Array.from(paperQuestionIds) },
         },
       });
-      const additional = seededShuffle(allSubVerified, prng).slice(0, 45 - subjectQuestions.length);
+      const freshAll = allSubVerified.filter((q) => !excludedSet.has(q.id));
+      const poolToUse = freshAll.length >= (45 - subjectQuestions.length) ? freshAll : allSubVerified;
+      const additional = seededShuffle(poolToUse, prng).slice(0, 45 - subjectQuestions.length);
       for (const a of additional) {
         paperQuestionIds.add(a.id);
       }
@@ -312,4 +321,38 @@ export async function launchMockPaperAttempt(
     isResumed: false,
     attemptNumber: nextAttemptNumber,
   };
+}
+
+/**
+ * Generates the complete 10 NEET Full-Length Mock Papers (NEET MOCK TEST 01 to 10)
+ * with minimal/zero question repetition across all 10 examinations.
+ */
+export async function generateTenMockPapers() {
+  const generatedPapers = [];
+  const globalUsedQuestionIds = new Set<string>();
+
+  for (let num = 1; num <= 10; num++) {
+    const paper = await generateMockPaper({
+      paperNumber: num,
+      title: `NEET MOCK TEST ${num.toString().padStart(2, '0')}`,
+      description: `Official NEET UG 2027 CBT Full-Length Simulation (180 Questions, 720 Marks)`,
+      seed: `NEET_2027_MOCK_SEED_${num.toString().padStart(2, '0')}`,
+      easyCount: 54,
+      moderateCount: 90,
+      difficultCount: 36,
+      syllabusVersion: 'NMC_NEET_2027',
+      excludeQuestionIds: Array.from(globalUsedQuestionIds),
+    });
+
+    // Record question IDs used in this paper to exclude them from subsequent papers
+    if (paper && (paper as any).paperQuestions) {
+      for (const pq of (paper as any).paperQuestions) {
+        globalUsedQuestionIds.add(pq.questionId);
+      }
+    }
+
+    generatedPapers.push(paper);
+  }
+
+  return generatedPapers;
 }

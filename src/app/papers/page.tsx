@@ -151,13 +151,13 @@ export default function MockPaperLibraryPage() {
             <div>
               <div className="inline-flex items-center gap-1.5 bg-blue-800/80 border border-blue-400/30 px-3 py-1 rounded-full text-xs font-semibold mb-3">
                 <Sparkles className="w-3.5 h-3.5 text-amber-300" />
-                <span>Target 100 Full-Length NEET Mock Tests</span>
+                <span>NEET UG 2027 Official CBT Mock Examinations</span>
               </div>
-              <h1 className="text-xl sm:text-3xl font-black mb-2">NEET 100 Mock Paper Library</h1>
+              <h1 className="text-xl sm:text-3xl font-black mb-2">NEET Mock Test Library (01 – 10)</h1>
               <p className="text-blue-100 text-xs sm:text-sm max-w-2xl leading-relaxed">
-                Practice with 100 full-length, deterministic 180-question NEET CBT mock papers.
+                Complete 10 full-length, authentic 180-question NEET CBT mock examinations generated from our validated question bank.
                 Each paper adheres strictly to NTA difficulty distribution (54 Easy, 90 Moderate, 36 Difficult)
-                and official 45-question subject partitions.
+                and official 45-question subject partitions with zero question repetition.
               </p>
             </div>
 
@@ -278,6 +278,10 @@ export default function MockPaperLibraryPage() {
                     {/* Specifications Grid */}
                     <div className="bg-gray-50 p-2.5 rounded-lg border border-gray-200 text-[11px] space-y-1 font-mono text-gray-700 mb-4">
                       <div className="flex justify-between">
+                        <span>Total Questions:</span>
+                        <strong className="text-gray-900">{paper.totalQuestions} Questions (720 Marks)</strong>
+                      </div>
+                      <div className="flex justify-between">
                         <span>Duration:</span>
                         <strong className="text-gray-900">{paper.durationMinutes} Minutes (3 Hrs)</strong>
                       </div>
@@ -294,7 +298,7 @@ export default function MockPaperLibraryPage() {
                     {/* Score preview if attempted */}
                     {isCompleted && paper.bestScore !== null && (
                       <div className="mb-4 p-2.5 rounded bg-green-50 border border-green-200 flex items-center justify-between text-xs">
-                        <span className="font-semibold text-green-800">Best Score:</span>
+                        <span className="font-semibold text-green-800">Previous Score:</span>
                         <span className="font-black text-green-950 text-sm">
                           {paper.bestScore} / 720 ({paper.bestAccuracy}%)
                         </span>
@@ -303,28 +307,36 @@ export default function MockPaperLibraryPage() {
                   </div>
 
                   {/* Actions Bar */}
-                  <div className="pt-2 border-t border-gray-100 flex items-center gap-2">
+                  <div className="pt-2 border-t border-gray-100 flex flex-col gap-2">
                     {isInProgress ? (
                       <button
                         onClick={() => handleLaunchPaper(paper.id, false)}
                         className="w-full bg-amber-600 hover:bg-amber-700 text-white font-bold py-2 rounded-lg text-xs transition-colors flex items-center justify-center gap-1.5 shadow-xs"
                       >
-                        <Play className="w-3.5 h-3.5" /> Resume Test
+                        <Play className="w-3.5 h-3.5" /> Resume Examination
                       </button>
                     ) : isCompleted ? (
                       <>
-                        <button
-                          onClick={() => router.push(`/exam/${paper.latestAttemptId}/result`)}
-                          className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-800 font-bold py-2 rounded-lg text-xs transition-colors border border-gray-300"
-                        >
-                          View Result
-                        </button>
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => router.push(`/exam/${paper.latestAttemptId}/result`)}
+                            className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-800 font-bold py-2 rounded-lg text-xs transition-colors border border-gray-300"
+                          >
+                            Result
+                          </button>
+                          <button
+                            onClick={() => router.push(`/exam/${paper.latestAttemptId}/solutions`)}
+                            className="flex-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-900 font-bold py-2 rounded-lg text-xs transition-colors border border-indigo-200 flex items-center justify-center gap-1"
+                          >
+                            <FileCheck className="w-3.5 h-3.5" /> Solutions
+                          </button>
+                        </div>
                         <button
                           onClick={() => handleLaunchPaper(paper.id, true)}
-                          className="flex-1 bg-blue-700 hover:bg-blue-800 text-white font-bold py-2 rounded-lg text-xs transition-colors flex items-center justify-center gap-1 shadow-xs"
+                          className="w-full bg-blue-700 hover:bg-blue-800 text-white font-bold py-2 rounded-lg text-xs transition-colors flex items-center justify-center gap-1 shadow-xs"
                           title="Retake this mock paper without overwriting previous results"
                         >
-                          <RotateCcw className="w-3.5 h-3.5" /> Retake
+                          <RotateCcw className="w-3.5 h-3.5" /> Retake Examination
                         </button>
                       </>
                     ) : (
@@ -332,7 +344,7 @@ export default function MockPaperLibraryPage() {
                         onClick={() => handleLaunchPaper(paper.id, false)}
                         className="w-full bg-blue-700 hover:bg-blue-800 text-white font-bold py-2.5 rounded-lg text-xs transition-colors flex items-center justify-center gap-1.5 shadow-xs"
                       >
-                        <Play className="w-3.5 h-3.5" /> Start Mock Test
+                        <Play className="w-3.5 h-3.5" /> Start Examination
                       </button>
                     )}
                   </div>
@@ -349,3 +361,4 @@ export default function MockPaperLibraryPage() {
     </div>
   );
 }
+
