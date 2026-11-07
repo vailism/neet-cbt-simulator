@@ -39,6 +39,20 @@ enum QuestionStatus {
   ANSWERED_AND_MARKED
 }
 
+enum QuestionSource {
+  OFFICIAL_PYQ
+  NCERT_PRACTICE
+  AI_GENERATED
+  ADVANCED_APPLICATION
+}
+
+enum VerificationStatus {
+  PENDING
+  VERIFIED
+  REJECTED
+  NEEDS_REVIEW
+}
+
 model Candidate {
   id          String        @id @default(uuid())
   rollNumber  String        @unique
@@ -73,31 +87,45 @@ model Chapter {
 }
 
 model Question {
-  id            String            @id @default(uuid())
-  subjectId     String
-  subject       Subject           @relation(fields: [subjectId], references: [id], onDelete: Cascade)
-  chapterId     String?
-  chapter       Chapter?          @relation(fields: [chapterId], references: [id], onDelete: SetNull)
-  topic         String?
-  statement     String            @db.Text
-  imageUrl      String?
-  option1       String            @db.Text
-  option2       String            @db.Text
-  option3       String            @db.Text
-  option4       String            @db.Text
-  correctAnswer Int               // 1, 2, 3, or 4
-  explanation   String            @db.Text
-  difficulty    Difficulty        @default(MODERATE)
-  source        String?
-  previousYear  String?           // e.g. "NEET 2023", "NEET 2022"
-  isVerifiedPYQ Boolean           @default(false)
-  createdAt     DateTime          @default(now())
-  updatedAt     DateTime          @updatedAt
-  attemptItems  AttemptQuestion[]
+  id                 String             @id @default(uuid())
+  subjectId          String
+  subject            Subject            @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  chapterId          String?
+  chapter            Chapter?           @relation(fields: [chapterId], references: [id], onDelete: SetNull)
+  topic              String?
+  statement          String             @db.Text
+  imageUrl           String?
+  option1            String             @db.Text
+  option2            String             @db.Text
+  option3            String             @db.Text
+  option4            String             @db.Text
+  correctAnswer      Int                // 1, 2, 3, or 4
+  explanation        String             @db.Text
+  difficulty         Difficulty         @default(MODERATE)
+  questionSource     QuestionSource     @default(NCERT_PRACTICE)
+  source             String?
+  sourceYear         Int?
+  sourcePaper        String?
+  syllabusVersion    String             @default("NMC_NEET_2026")
+  verificationStatus VerificationStatus @default(VERIFIED)
+  duplicateHash      String?
+  rejectionReason    String?
+  reviewerNotes      String?
+  verifiedAt         DateTime?
+  verifiedBy         String?
+  previousYear       String?            // e.g. "NEET 2023", "NEET 2022"
+  isVerifiedPYQ      Boolean            @default(false)
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
+  attemptItems       AttemptQuestion[]
+  mockPaperItems     MockPaperQuestion[]
 
   @@index([subjectId])
   @@index([chapterId])
   @@index([difficulty])
+  @@index([verificationStatus])
+  @@index([questionSource])
+  @@index([duplicateHash])
   @@index([isVerifiedPYQ])
 }
 
@@ -123,12 +151,61 @@ model ExamConfiguration {
   attempts             ExamAttempt[]
 }
 
+model MockPaper {
+  id                 String              @id @default(uuid())
+  paperNumber        Int                 @unique // 1 to 100
+  code               String              @unique // e.g. "MOCK_001"
+  title              String              // e.g. "NEET (UG) Full Mock Test 001"
+  description        String?
+  durationMinutes    Int                 @default(180)
+  totalQuestions     Int                 @default(180)
+  physicsCount       Int                 @default(45)
+  chemistryCount     Int                 @default(45)
+  botanyCount        Int                 @default(45)
+  zoologyCount       Int                 @default(45)
+  easyCount          Int                 @default(54)
+  moderateCount      Int                 @default(90)
+  difficultCount     Int                 @default(36)
+  randomSeed         String
+  syllabusVersion    String              @default("NMC_NEET_2026")
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @updatedAt
+  paperQuestions     MockPaperQuestion[]
+  attempts           ExamAttempt[]
+
+  @@index([paperNumber])
+  @@index([code])
+}
+
+model MockPaperQuestion {
+  id                     String      @id @default(uuid())
+  mockPaperId            String
+  mockPaper              MockPaper   @relation(fields: [mockPaperId], references: [id], onDelete: Cascade)
+  questionId             String
+  question               Question    @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  questionOrder          Int         // 1 to 180
+  subjectCode            SubjectType
+  optionAMapping         Int         @default(1) // Original option number (1..4)
+  optionBMapping         Int         @default(2)
+  optionCMapping         Int         @default(3)
+  optionDMapping         Int         @default(4)
+  shuffledCorrectAnswer  Int         @default(1) // 1..4 in shuffled option order
+  createdAt              DateTime    @default(now())
+
+  @@unique([mockPaperId, questionOrder])
+  @@index([mockPaperId])
+  @@index([questionId])
+}
+
 model ExamAttempt {
   id                  String             @id @default(uuid())
   candidateId         String
   candidate           Candidate          @relation(fields: [candidateId], references: [id], onDelete: Cascade)
   configId            String?
   config              ExamConfiguration? @relation(fields: [configId], references: [id], onDelete: SetNull)
+  mockPaperId         String?
+  mockPaper           MockPaper?         @relation(fields: [mockPaperId], references: [id], onDelete: SetNull)
+  attemptNumber       Int                @default(1)
   mode                ExamMode           @default(FULL_MOCK)
   title               String             @default("NEET (UG) CBT Full Mock Examination")
   subjectFilter       String?            // For practice mode
@@ -155,6 +232,7 @@ model ExamAttempt {
   @@index([candidateId])
   @@index([status])
   @@index([startedAt])
+  @@index([mockPaperId])
 }
 
 model AttemptQuestion {
@@ -178,4 +256,16 @@ model AttemptQuestion {
   @@index([attemptId])
   @@index([questionId])
   @@index([status])
+}
+
+model AIGenerationBatch {
+  id             String      @id @default(uuid())
+  subjectCode    SubjectType
+  chapterName    String?
+  topic          String?
+  targetCount    Int
+  generatedCount Int         @default(0)
+  status         String      @default("PENDING")
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
 }

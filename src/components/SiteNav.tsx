@@ -24,7 +24,7 @@ export const SiteNav: React.FC = () => {
 
   const navLinks = [
     { href: '/', label: 'Exam Portal', icon: FileText },
-    { href: '/instructions', label: 'Instructions', icon: BookOpen },
+    { href: '/papers', label: '100 Mock Papers', icon: BookOpen },
     { href: '/practice', label: 'Practice Mode', icon: CheckCircle },
     { href: '/dashboard', label: 'Student Dashboard', icon: LayoutDashboard },
     { href: '/admin', label: 'Question Bank', icon: Settings },

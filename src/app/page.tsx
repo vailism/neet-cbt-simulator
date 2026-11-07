@@ -240,10 +240,10 @@ export default function HomePage() {
 
               <button
                 type="button"
-                onClick={() => handleRegisterCandidate('/instructions')}
+                onClick={() => handleRegisterCandidate('/papers')}
                 className="w-full bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold py-2 rounded-md transition-colors flex items-center justify-center gap-1.5 shadow-sm"
               >
-                Start Full Mock CBT
+                Browse 100 Mock Papers
                 <ArrowRight className="w-3.5 h-3.5" />
               </button>
             </div>

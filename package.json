@@ -8,7 +8,7 @@
     "start": "next start",
     "lint": "next lint",
     "seed": "tsx prisma/seed.ts",
-    "test": "tsx src/lib/__tests__/fullLifecycle.test.ts"
+    "test": "tsx src/lib/__tests__/examEngine.test.ts && tsx src/lib/__tests__/fullLifecycle.test.ts && tsx src/lib/__tests__/mockPaperEngine.test.ts"
   },
   "dependencies": {
     "@prisma/client": "^5.22.0",

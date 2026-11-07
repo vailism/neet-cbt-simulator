@@ -922,3 +922,4 @@ export default function ExamInterfacePage() {
     </div>
   );
 }
+

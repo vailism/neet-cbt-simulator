@@ -65,3 +65,4 @@ export const MathRenderer: React.FC<MathRendererProps> = ({ text, className = ''
 
   return <div className={`leading-relaxed text-gray-800 ${className}`}>{renderFormattedText()}</div>;
 };
+
