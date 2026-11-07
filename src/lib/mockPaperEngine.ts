@@ -382,3 +382,35 @@ export async function generateTenMockPapers() {
 
   return generatedPapers;
 }
+
+/**
+ * Generates all 100 NEET Full-Length Mock Papers (NEET MOCK TEST 01 to 100)
+ * conforming to official NTA 180-question format.
+ */
+export async function generateHundredMockPapers(
+  startNumber = 1,
+  endNumber = 100,
+  onProgress?: (current: number, total: number) => void
+) {
+  const generatedPapers = [];
+
+  for (let num = startNumber; num <= endNumber; num++) {
+    const paper = await generateMockPaper({
+      paperNumber: num,
+      title: `NEET MOCK TEST ${num.toString().padStart(2, '0')}`,
+      description: `Official NEET UG 2027 CBT Full-Length Simulation (180 Questions, 720 Marks)`,
+      seed: `NEET_2027_MOCK_SEED_${num.toString().padStart(3, '0')}`,
+      easyCount: 54,
+      moderateCount: 90,
+      difficultCount: 36,
+      syllabusVersion: 'NMC_NEET_2027',
+    });
+
+    generatedPapers.push(paper);
+    if (onProgress) {
+      onProgress(num, endNumber);
+    }
+  }
+
+  return generatedPapers;
+}

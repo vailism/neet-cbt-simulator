@@ -12,8 +12,8 @@ export async function POST(req: NextRequest) {
     for (let num = startNumber; num <= endNumber; num++) {
       const paper = await generateMockPaper({
         paperNumber: num,
-        title: `NEET (UG) Official Mock Test ${num.toString().padStart(3, '0')}`,
-        description: `Full-Length 180-Question CBT Mock Exam conforming strictly to NTA syllabus guidelines`,
+        title: `NEET MOCK TEST ${num.toString().padStart(2, '0')}`,
+        description: `Official NEET UG 2027 CBT Full-Length Simulation (180 Questions, 720 Marks)`,
       });
       generatedPapers.push({
         id: paper.id,
