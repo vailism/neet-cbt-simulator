@@ -166,7 +166,7 @@ export function validateRawGeneratedQuestion(item: any): RawGeneratedQuestion | 
  */
 export async function executeGeminiWithRetry<T>(
   prompt: string,
-  modelName: string = 'gemini-2.5-flash',
+  modelName: string = process.env.GEMINI_MODEL || 'gemini-3.8-flash',
   maxRetries: number = 4
 ): Promise<T> {
   const ai = getGeminiClient();
@@ -557,3 +557,4 @@ function getSubjectTemplates(subject: SubjectType, chapterName: string) {
     },
   ];
 }
+

@@ -70,7 +70,7 @@ async function runTests() {
     chapterName: 'Laws of Motion',
     difficulty: Difficulty.EASY,
   };
-  const vResult = await verifyQuestionQuality(validQ, { checkDuplicateInDb: false });
+  const vResult = await verifyQuestionQuality(validQ, { checkDuplicateInDb: false, useGeminiIndependentVerification: false });
   assert(vResult.status === VerificationStatus.VERIFIED, 'Conforming question verified with status VERIFIED');
   assert(vResult.qualityScore >= 80, `High quality score awarded (score: ${vResult.qualityScore})`);
 
@@ -79,7 +79,7 @@ async function runTests() {
     ...validQ,
     option4: 'All of the above',
   };
-  const vForbidden = await verifyQuestionQuality(forbiddenQ, { checkDuplicateInDb: false });
+  const vForbidden = await verifyQuestionQuality(forbiddenQ, { checkDuplicateInDb: false, useGeminiIndependentVerification: false });
   assert(vForbidden.status === VerificationStatus.REJECTED, 'Question with "All of the above" is strictly REJECTED');
   assert(vForbidden.checks.fourOptionsValid === false, 'Four-option check caught forbidden option pattern');
 
@@ -88,7 +88,7 @@ async function runTests() {
     ...validQ,
     option3: '$5\\text{ m/s}^2$', // identical to option1
   };
-  const vDupOpts = await verifyQuestionQuality(duplicateOptsQ, { checkDuplicateInDb: false });
+  const vDupOpts = await verifyQuestionQuality(duplicateOptsQ, { checkDuplicateInDb: false, useGeminiIndependentVerification: false });
   assert(vDupOpts.status === VerificationStatus.REJECTED, 'Question with duplicate options is strictly REJECTED');
 
   // Test 2.4: Capitalization of negative stem
@@ -96,7 +96,7 @@ async function runTests() {
     ...validQ,
     statement: 'Which of the following statements is not correct regarding gravitational field?',
   };
-  const vNeg = await verifyQuestionQuality(negativeStemQ, { checkDuplicateInDb: false });
+  const vNeg = await verifyQuestionQuality(negativeStemQ, { checkDuplicateInDb: false, useGeminiIndependentVerification: false });
   assert(vNeg.checks.ambiguityCheckPassed === true, 'Ambiguity checker analyzed negative stem');
 
   // =========================================================================

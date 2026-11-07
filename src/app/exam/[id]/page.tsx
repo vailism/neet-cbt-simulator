@@ -17,6 +17,7 @@ import {
   User,
   Shield,
   X,
+  Keyboard,
 } from 'lucide-react';
 import { MathRenderer } from '@/components/MathRenderer';
 import { getUpdatedQuestionStatus } from '@/lib/examEngine';
@@ -87,6 +88,7 @@ export default function ExamInterfacePage() {
   const [showSubmitModal, setShowSubmitModal] = useState(false);
   const [showPaperModal, setShowPaperModal] = useState(false);
   const [showInstructionsModal, setShowInstructionsModal] = useState(false);
+  const [showShortcutsModal, setShowShortcutsModal] = useState(false);
 
   // Question Time Tracking
   const questionStartTimeRef = useRef<number>(Date.now());
