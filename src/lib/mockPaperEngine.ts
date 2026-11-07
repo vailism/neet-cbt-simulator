@@ -11,6 +11,7 @@ export interface PaperGenerationOptions {
   difficultCount?: number; // default 36
   syllabusVersion?: string;
   excludeQuestionIds?: string[]; // IDs used in previous papers to minimize repetition
+  questionPool?: Array<{ id: string; subjectId: string; difficulty: Difficulty; correctAnswer: number }>;
 }
 
 /**
@@ -109,29 +110,43 @@ export async function generateMockPaper(options: PaperGenerationOptions) {
     });
     if (!subject) continue;
 
-    const [easyPool, modPool, diffPool] = await Promise.all([
-      prisma.question.findMany({
-        where: {
-          subjectId: subject.id,
-          verificationStatus: VerificationStatus.VERIFIED,
-          difficulty: Difficulty.EASY,
-        },
-      }),
-      prisma.question.findMany({
-        where: {
-          subjectId: subject.id,
-          verificationStatus: VerificationStatus.VERIFIED,
-          difficulty: Difficulty.MODERATE,
-        },
-      }),
-      prisma.question.findMany({
-        where: {
-          subjectId: subject.id,
-          verificationStatus: VerificationStatus.VERIFIED,
-          difficulty: Difficulty.DIFFICULT,
-        },
-      }),
-    ]);
+    const subPool = options.questionPool
+      ? options.questionPool.filter((q) => q.subjectId === subject.id)
+      : null;
+
+    let easyPool: any[], modPool: any[], diffPool: any[];
+    if (subPool) {
+      easyPool = subPool.filter((q) => q.difficulty === Difficulty.EASY);
+      modPool = subPool.filter((q) => q.difficulty === Difficulty.MODERATE);
+      diffPool = subPool.filter((q) => q.difficulty === Difficulty.DIFFICULT);
+    } else {
+      [easyPool, modPool, diffPool] = await Promise.all([
+        prisma.question.findMany({
+          where: {
+            subjectId: subject.id,
+            verificationStatus: VerificationStatus.VERIFIED,
+            difficulty: Difficulty.EASY,
+          },
+          select: { id: true, correctAnswer: true },
+        }),
+        prisma.question.findMany({
+          where: {
+            subjectId: subject.id,
+            verificationStatus: VerificationStatus.VERIFIED,
+            difficulty: Difficulty.MODERATE,
+          },
+          select: { id: true, correctAnswer: true },
+        }),
+        prisma.question.findMany({
+          where: {
+            subjectId: subject.id,
+            verificationStatus: VerificationStatus.VERIFIED,
+            difficulty: Difficulty.DIFFICULT,
+          },
+          select: { id: true, correctAnswer: true },
+        }),
+      ]);
+    }
 
     const excludedSet = new Set(excludeQuestionIds);
 
@@ -156,13 +171,16 @@ export async function generateMockPaper(options: PaperGenerationOptions) {
 
     // Fallback if difficulty bucket ran short
     if (subjectQuestions.length < 45) {
-      const allSubVerified = await prisma.question.findMany({
-        where: {
-          subjectId: subject.id,
-          verificationStatus: VerificationStatus.VERIFIED,
-          id: { notIn: Array.from(paperQuestionIds) },
-        },
-      });
+      const allSubVerified = subPool
+        ? subPool.filter((q) => !paperQuestionIds.has(q.id))
+        : await prisma.question.findMany({
+            where: {
+              subjectId: subject.id,
+              verificationStatus: VerificationStatus.VERIFIED,
+              id: { notIn: Array.from(paperQuestionIds) },
+            },
+            select: { id: true, correctAnswer: true },
+          });
       const freshAll = allSubVerified.filter((q) => !excludedSet.has(q.id));
       const poolToUse = freshAll.length >= (45 - subjectQuestions.length) ? freshAll : allSubVerified;
       const additional = seededShuffle(poolToUse, prng).slice(0, 45 - subjectQuestions.length);
@@ -394,6 +412,12 @@ export async function generateHundredMockPapers(
 ) {
   const generatedPapers = [];
 
+  // Pre-fetch all verified questions in 1 lightweight query to avoid repeated network roundtrips over WAN
+  const preloadedQuestions = await prisma.question.findMany({
+    where: { verificationStatus: VerificationStatus.VERIFIED },
+    select: { id: true, subjectId: true, difficulty: true, correctAnswer: true },
+  });
+
   for (let num = startNumber; num <= endNumber; num++) {
     const paper = await generateMockPaper({
       paperNumber: num,
@@ -404,6 +428,7 @@ export async function generateHundredMockPapers(
       moderateCount: 90,
       difficultCount: 36,
       syllabusVersion: 'NMC_NEET_2027',
+      questionPool: preloadedQuestions,
     });
 
     generatedPapers.push(paper);

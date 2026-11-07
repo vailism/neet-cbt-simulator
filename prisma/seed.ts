@@ -49,88 +49,87 @@ async function main() {
   });
   console.log(`✓ Default candidate ready: ${defaultCandidate.name} (${defaultCandidate.rollNumber})`);
 
-  // 3. Subjects
-  const subjectDefinitions = [
-    { code: SubjectType.PHYSICS, name: 'Physics', order: 1 },
-    { code: SubjectType.CHEMISTRY, name: 'Chemistry', order: 2 },
-    { code: SubjectType.BOTANY, name: 'Botany', order: 3 },
-    { code: SubjectType.ZOOLOGY, name: 'Zoology', order: 4 },
-  ];
-
-  const subjectMap = new Map<SubjectType, string>();
-  for (const s of subjectDefinitions) {
-    const sub = await prisma.subject.upsert({
-      where: { code: s.code },
-      update: { name: s.name, order: s.order },
-      create: { code: s.code, name: s.name, order: s.order },
-    });
-    subjectMap.set(s.code, sub.id);
-  }
-  console.log(`✓ 4 Core Subjects ready: Physics, Chemistry, Botany, Zoology`);
-
-  // 4. Load & Seed Full Question Bank from Seed JSON
+  // 3. Subjects & Chapters (preserve IDs and map relations reliably)
   const seedFilePath = path.join(__dirname, 'fullQuestionBankSeed.json');
+  const subjectMap = new Map<SubjectType, string>();
+  const oldSubjectIdToCode = new Map<string, SubjectType>();
+
   if (fs.existsSync(seedFilePath)) {
     const seedData = JSON.parse(fs.readFileSync(seedFilePath, 'utf-8'));
+    for (const s of seedData.subjects) {
+      const sub = await prisma.subject.upsert({
+        where: { code: s.code },
+        update: { name: s.name, order: s.order },
+        create: { id: s.id, code: s.code, name: s.name, order: s.order },
+      });
+      subjectMap.set(s.code, sub.id);
+      oldSubjectIdToCode.set(s.id, s.code);
+    }
+    console.log(`✓ 4 Core Subjects ready: Physics, Chemistry, Botany, Zoology`);
+
     console.log(`\n📚 Loading ${seedData.questions.length} questions from question bank archive...`);
 
     // Ensure all chapters exist
     const chapterMap = new Map<string, string>();
+    const chaptersToInsert = [];
     for (const c of seedData.chapters) {
-      const subjectId = c.subjectId;
-      const chapter = await prisma.chapter.upsert({
-        where: {
-          subjectId_name: {
-            subjectId,
-            name: c.name,
-          },
-        },
-        update: {},
-        create: {
-          id: c.id,
-          subjectId,
-          name: c.name,
-        },
+      const subCode = oldSubjectIdToCode.get(c.subjectId);
+      const targetSubjectId = subCode ? subjectMap.get(subCode)! : c.subjectId;
+      chapterMap.set(c.id, c.id);
+      chaptersToInsert.push({
+        id: c.id,
+        subjectId: targetSubjectId,
+        name: c.name,
       });
-      chapterMap.set(c.id, chapter.id);
     }
+
+    await prisma.chapter.createMany({
+      data: chaptersToInsert,
+      skipDuplicates: true,
+    });
     console.log(`✓ ${seedData.chapters.length} NCERT Syllabus Chapters verified`);
 
-    // Seed questions in chunks of 200
+    // Seed questions in fast batch chunks using createMany
     const existingQCount = await prisma.question.count();
     if (existingQCount < seedData.questions.length) {
-      console.log(`Seeding missing questions (current: ${existingQCount}, target: ${seedData.questions.length})...`);
-      const chunkSize = 200;
+      console.log(`Seeding questions with bulk inserts (current: ${existingQCount}, target: ${seedData.questions.length})...`);
+      const chunkSize = 500;
       for (let i = 0; i < seedData.questions.length; i += chunkSize) {
         const chunk = seedData.questions.slice(i, i + chunkSize);
-        for (const q of chunk) {
-          await prisma.question.upsert({
-            where: { id: q.id },
-            update: {},
-            create: {
-              id: q.id,
-              subjectId: q.subjectId,
-              chapterId: q.chapterId,
-              topic: q.topic,
-              statement: q.statement,
-              imageUrl: q.imageUrl,
-              option1: q.option1,
-              option2: q.option2,
-              option3: q.option3,
-              option4: q.option4,
-              correctAnswer: q.correctAnswer,
-              explanation: q.explanation,
-              difficulty: q.difficulty as Difficulty,
-              verificationStatus: q.verificationStatus as VerificationStatus,
-              duplicateHash: q.duplicateHash,
-              previousYear: q.previousYear,
-              isVerifiedPYQ: q.isVerifiedPYQ,
-              source: q.source,
-              verifiedAt: q.verifiedAt ? new Date(q.verifiedAt) : undefined,
-              verifiedBy: q.verifiedBy,
-            },
-          });
-        }
+        const mappedData = chunk.map((q: any) => {
+          const subCode = oldSubjectIdToCode.get(q.subjectId);
+          const targetSubjectId = subCode ? subjectMap.get(subCode)! : q.subjectId;
+          const targetChapterId = chapterMap.get(q.chapterId) || q.chapterId;
+
+          return {
+            id: q.id,
+            subjectId: targetSubjectId,
+            chapterId: targetChapterId,
+            topic: q.topic,
+            statement: q.statement,
+            imageUrl: q.imageUrl,
+            option1: q.option1,
+            option2: q.option2,
+            option3: q.option3,
+            option4: q.option4,
+            correctAnswer: q.correctAnswer,
+            explanation: q.explanation,
+            difficulty: q.difficulty as Difficulty,
+            verificationStatus: q.verificationStatus as VerificationStatus,
+            duplicateHash: q.duplicateHash,
+            previousYear: q.previousYear,
+            isVerifiedPYQ: q.isVerifiedPYQ,
+            source: q.source,
+            verifiedAt: q.verifiedAt ? new Date(q.verifiedAt) : undefined,
+            verifiedBy: q.verifiedBy,
+          };
+        });
+
+        await prisma.question.createMany({
+          data: mappedData,
+          skipDuplicates: true,
+        });
+        console.log(`  - Inserted chunk ${Math.min(i + chunkSize, seedData.questions.length)} / ${seedData.questions.length}`);
       }
       console.log(`✓ All ${seedData.questions.length} questions seeded in PostgreSQL!`);
     } else {

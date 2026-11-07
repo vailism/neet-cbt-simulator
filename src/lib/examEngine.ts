@@ -484,21 +484,49 @@ export async function evaluateAttempt(attemptId: string): Promise<ScoreSummary> 
     }
   }
 
-  // Update DB Attempt and Items atomically
-  await prisma.$transaction(async (tx) => {
-    // Update individual attempt questions
-    for (const u of updateItems) {
-      await tx.attemptQuestion.update({
-        where: { id: u.id },
-        data: {
-          isCorrect: u.isCorrect,
-          marksAwarded: u.marksAwarded,
-        },
-      });
-    }
+  // Group update items by result for high-performance batch updates (optimal for Neon Serverless)
+  const correctIds = updateItems.filter((u) => u.isCorrect === true).map((u) => u.id);
+  const incorrectIds = updateItems.filter((u) => u.isCorrect === false).map((u) => u.id);
+  const unattemptedIds = updateItems.filter((u) => u.isCorrect === null).map((u) => u.id);
 
-    // Update Attempt record
-    await tx.examAttempt.update({
+  const txOperations = [];
+  if (correctIds.length > 0) {
+    txOperations.push(
+      prisma.attemptQuestion.updateMany({
+        where: { id: { in: correctIds } },
+        data: {
+          isCorrect: true,
+          marksAwarded: marksPerCorrect,
+        },
+      })
+    );
+  }
+  if (incorrectIds.length > 0) {
+    txOperations.push(
+      prisma.attemptQuestion.updateMany({
+        where: { id: { in: incorrectIds } },
+        data: {
+          isCorrect: false,
+          marksAwarded: marksPerIncorrect,
+        },
+      })
+    );
+  }
+  if (unattemptedIds.length > 0) {
+    txOperations.push(
+      prisma.attemptQuestion.updateMany({
+        where: { id: { in: unattemptedIds } },
+        data: {
+          isCorrect: null,
+          marksAwarded: marksPerUnanswered,
+        },
+      })
+    );
+  }
+
+  // Update Attempt record
+  txOperations.push(
+    prisma.examAttempt.update({
       where: { id: attemptId },
       data: {
         totalScore,
@@ -514,8 +542,10 @@ export async function evaluateAttempt(attemptId: string): Promise<ScoreSummary> 
         status: AttemptStatus.SUBMITTED,
         submittedAt: new Date(),
       },
-    });
-  });
+    })
+  );
+
+  await prisma.$transaction(txOperations);
 
   return {
     totalScore,
