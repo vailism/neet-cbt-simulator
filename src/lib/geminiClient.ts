@@ -298,6 +298,9 @@ export async function generateQuestionBatch(
       });
 
       rawQuestions = await executeGeminiWithRetry<any[]>(prompt, modelName, 4);
+      if (!Array.isArray(rawQuestions)) {
+        rawQuestions = rawQuestions ? [rawQuestions] : [];
+      }
     } else {
       console.info(`[Gemini API] GEMINI_API_KEY is not configured. Utilizing syllabus-grounded high-yield generator.`);
       rawQuestions = generateOfflineSyllabusQuestions(params.subject, params.chapterName, batchSize);
