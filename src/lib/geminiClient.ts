@@ -197,9 +197,13 @@ export async function executeGeminiWithRetry<T>(
 
       const isRateLimit =
         err?.status === 429 ||
+        err?.status === 503 ||
         err?.message?.includes('429') ||
+        err?.message?.includes('503') ||
         err?.message?.includes('RESOURCE_EXHAUSTED') ||
-        err?.message?.includes('Quota exceeded');
+        err?.message?.includes('Quota exceeded') ||
+        err?.message?.includes('overloaded') ||
+        err?.message?.includes('UNAVAILABLE');
 
       if (attempt >= maxRetries) {
         break;

@@ -67,17 +67,17 @@ export async function GET(
     const isFinished =
       currentStatus === AttemptStatus.SUBMITTED || currentStatus === AttemptStatus.TIMED_OUT;
 
-    // Build MockPaperQuestion map if attempt is tied to a frozen paper
-    const pqMap = new Map<string, any>();
+    // Build MockPaperQuestion map if attempt is tied to a frozen paper (indexed by questionOrder)
+    const pqMap = new Map<number, any>();
     if (attempt.mockPaper?.paperQuestions) {
       for (const pq of attempt.mockPaper.paperQuestions) {
-        pqMap.set(pq.questionId, pq);
+        pqMap.set(pq.questionOrder, pq);
       }
     }
 
     // Format questions list
     const questions = attempt.questions.map((item) => {
-      const pq = pqMap.get(item.questionId);
+      const pq = pqMap.get(item.questionOrder);
       const optMap: Record<number, string> = {
         1: item.question.option1,
         2: item.question.option2,

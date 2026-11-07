@@ -233,12 +233,12 @@ export default function ExamInterfacePage() {
   };
 
   // Handle Question Navigation
-  const navigateToQuestion = (globalIndex: number) => {
+  const navigateToQuestion = (globalIndex: number, skipTiming = false) => {
     if (!examData || globalIndex < 0 || globalIndex >= examData.questions.length) return;
 
-    // Calculate time spent on current question before leaving
-    const timeSpentDelta = Math.round((Date.now() - questionStartTimeRef.current) / 1000);
-    if (currentQuestion) {
+    // Calculate time spent on current question before leaving (unless already flushed by action handler)
+    if (!skipTiming && currentQuestion) {
+      const timeSpentDelta = Math.round((Date.now() - questionStartTimeRef.current) / 1000);
       currentQuestion.timeSpentSeconds += timeSpentDelta;
     }
 
@@ -269,9 +269,12 @@ export default function ExamInterfacePage() {
     // Persist immediately
     saveAnswerToServer(currentQuestion.id, currentSelectedOption, newStatus, timeSpentDelta);
 
-    // Advance to next question
+    // Reset timestamp so subsequent actions don't duplicate
+    questionStartTimeRef.current = Date.now();
+
+    // Advance to next question without re-adding delta
     if (activeQuestionIndex < (examData?.questions.length || 0) - 1) {
-      navigateToQuestion(activeQuestionIndex + 1);
+      navigateToQuestion(activeQuestionIndex + 1, true);
     }
   };
 
@@ -294,9 +297,12 @@ export default function ExamInterfacePage() {
     // Persist immediately
     saveAnswerToServer(currentQuestion.id, currentSelectedOption, newStatus, timeSpentDelta);
 
-    // Advance to next question
+    // Reset timestamp so subsequent actions don't duplicate
+    questionStartTimeRef.current = Date.now();
+
+    // Advance to next question without re-adding delta
     if (activeQuestionIndex < (examData?.questions.length || 0) - 1) {
-      navigateToQuestion(activeQuestionIndex + 1);
+      navigateToQuestion(activeQuestionIndex + 1, true);
     }
   };
 
@@ -492,7 +498,7 @@ export default function ExamInterfacePage() {
               National Testing Agency (NTA) • CBT Center
             </div>
             <h1 className="text-sm sm:text-base font-extrabold tracking-tight">
-              NATIONAL ELIGIBILITY CUM ENTRANCE TEST (UG) - 2026
+              NATIONAL ELIGIBILITY CUM ENTRANCE TEST (UG) - 2027
             </h1>
           </div>
 
@@ -570,7 +576,9 @@ export default function ExamInterfacePage() {
         <div className="flex-1 flex flex-col overflow-hidden bg-white">
           {/* SUBJECT SELECTION TABS */}
           <div className="bg-gray-100 border-b border-gray-200 px-3 pt-2 flex items-center gap-1 overflow-x-auto shrink-0">
-            {(['PHYSICS', 'CHEMISTRY', 'BOTANY', 'ZOOLOGY'] as const).map((sub) => {
+            {(['PHYSICS', 'CHEMISTRY', 'BOTANY', 'ZOOLOGY'] as const)
+              .filter((sub) => examData.questions.some((q) => q.subjectCode === sub))
+              .map((sub) => {
               const isActive = activeSubject === sub;
               const subQuestions = examData.questions.filter((q) => q.subjectCode === sub);
               const answeredCount = subQuestions.filter((q) => q.status === 'ANSWERED' || q.status === 'ANSWERED_AND_MARKED').length;

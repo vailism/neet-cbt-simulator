@@ -46,11 +46,46 @@ export async function POST(
       );
     }
 
+    // Validate that the question belongs to this specific attempt
+    const targetQuestion = await prisma.attemptQuestion.findUnique({
+      where: { id: attemptQuestionId },
+      select: { id: true, attemptId: true },
+    });
+
+    if (!targetQuestion || targetQuestion.attemptId !== attemptId) {
+      return NextResponse.json(
+        { error: 'Question not found in this examination attempt.' },
+        { status: 404 }
+      );
+    }
+
+    // Validate selectedOption (NEET has 4 options)
+    const parsedOption =
+      selectedOption === null || selectedOption === undefined
+        ? null
+        : Number(selectedOption);
+
+    if (parsedOption !== null && ![1, 2, 3, 4].includes(parsedOption)) {
+      return NextResponse.json(
+        { error: 'Invalid selectedOption: Must be 1, 2, 3, 4 or null.' },
+        { status: 400 }
+      );
+    }
+
+    // Validate question status enum
+    const validStatuses = Object.values(QuestionStatus);
+    if (!validStatuses.includes(status as QuestionStatus)) {
+      return NextResponse.json(
+        { error: `Invalid question status '${status}'.` },
+        { status: 400 }
+      );
+    }
+
     // 2. Update Question Answer
     const updated = await prisma.attemptQuestion.update({
       where: { id: attemptQuestionId },
       data: {
-        selectedOption: selectedOption === null || selectedOption === undefined ? null : Number(selectedOption),
+        selectedOption: parsedOption,
         status: status as QuestionStatus,
         isMarkedForReview:
           status === QuestionStatus.MARKED_FOR_REVIEW ||

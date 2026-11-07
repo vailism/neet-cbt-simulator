@@ -392,9 +392,9 @@ export async function evaluateAttempt(attemptId: string): Promise<ScoreSummary> 
         item.status === QuestionStatus.ANSWERED_AND_MARKED) &&
       item.selectedOption !== null;
 
-    // Build paperQuestion lookup for shuffled options
+    // Build paperQuestion lookup for shuffled options (indexed by unique questionOrder)
     const pq = attempt.mockPaper?.paperQuestions?.find(
-      (p) => p.questionId === item.questionId
+      (p) => p.questionOrder === item.questionOrder
     );
     const targetCorrectAnswer = pq ? pq.shuffledCorrectAnswer : item.question.correctAnswer;
 

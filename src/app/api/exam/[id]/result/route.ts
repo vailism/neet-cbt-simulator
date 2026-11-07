@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { SubjectType, Difficulty } from '@prisma/client';
+import { SubjectType, Difficulty, AttemptStatus } from '@prisma/client';
+import { evaluateAttempt } from '@/lib/examEngine';
 
 export async function GET(
   req: NextRequest,
@@ -9,7 +10,7 @@ export async function GET(
   try {
     const attemptId = params.id;
 
-    const attempt = await prisma.examAttempt.findUnique({
+    let attempt = await prisma.examAttempt.findUnique({
       where: { id: attemptId },
       include: {
         candidate: true,
@@ -37,6 +38,52 @@ export async function GET(
         { error: 'Attempt not found.' },
         { status: 404 }
       );
+    }
+
+    // Security & Integrity check: do not leak answers while exam is active
+    const now = Date.now();
+    const expiresAtMs = new Date(attempt.expiresAt).getTime();
+    if (attempt.status === AttemptStatus.IN_PROGRESS) {
+      if (now < expiresAtMs) {
+        return NextResponse.json(
+          { error: 'Examination is still in progress. Results and solutions are only accessible after final submission.' },
+          { status: 403 }
+        );
+      }
+      // If time has elapsed, automatically evaluate and transition to TIMED_OUT
+      await evaluateAttempt(attemptId);
+      await prisma.examAttempt.update({
+        where: { id: attemptId },
+        data: { status: AttemptStatus.TIMED_OUT },
+      });
+
+      // Reload fresh evaluated attempt data
+      attempt = await prisma.examAttempt.findUnique({
+        where: { id: attemptId },
+        include: {
+          candidate: true,
+          config: true,
+          mockPaper: {
+            include: {
+              paperQuestions: true,
+            },
+          },
+          questions: {
+            include: {
+              question: {
+                include: {
+                  chapter: true,
+                },
+              },
+            },
+            orderBy: { questionOrder: 'asc' },
+          },
+        },
+      });
+
+      if (!attempt) {
+        return NextResponse.json({ error: 'Attempt not found.' }, { status: 404 });
+      }
     }
 
     const marksPerCorrect = attempt.config?.marksPerCorrect ?? 4;
@@ -166,7 +213,7 @@ export async function GET(
 
       // Build MockPaperQuestion map if attempt is tied to a frozen paper
       const pq = attempt.mockPaper?.paperQuestions.find(
-        (p) => p.questionId === item.questionId
+        (p) => p.questionOrder === item.questionOrder
       );
       const optMap: Record<number, string> = {
         1: item.question.option1,
@@ -261,7 +308,7 @@ export async function GET(
     const netScore = attempt.totalScore ?? (grossScore - marksLostToNegatives);
     const penaltyPercentage = grossScore > 0 ? Math.round((marksLostToNegatives / grossScore) * 1000) / 10 : 0;
 
-    // Previous Mocks Comparison for this Candidate
+    // Previous Mocks Comparison for this Candidate (fetch 10 most recent)
     const previousAttempts = await prisma.examAttempt.findMany({
       where: {
         candidateId: attempt.candidateId,
@@ -278,11 +325,11 @@ export async function GET(
         correctCount: true,
         incorrectCount: true,
       },
-      orderBy: { startedAt: 'asc' },
+      orderBy: { startedAt: 'desc' },
       take: 10,
     });
 
-    const previousMockComparison = previousAttempts.map((prev, idx) => ({
+    const previousMockComparison = [...previousAttempts].reverse().map((prev, idx) => ({
       mockIndex: idx + 1,
       attemptId: prev.id,
       title: prev.title.replace(/ \(Attempt #\d+\)/, ''),

@@ -31,10 +31,12 @@ export async function POST(
       : ExamMode.FULL_MOCK;
 
     const durationMinutes = body.durationMinutes ? parseInt(body.durationMinutes, 10) : undefined;
+    const forceNew = Boolean(body.forceNewAttempt || body.forceNew);
 
     const result = await launchMockPaperAttempt(mockPaperId, candidateId, {
       mode: examMode,
       durationMinutes,
+      forceNew,
     });
 
     return NextResponse.json({

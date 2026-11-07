@@ -93,7 +93,7 @@ export default function InstructionsPage() {
         <div className="bg-[#1e3a8a] text-white p-4 sm:p-5 flex flex-wrap items-center justify-between gap-4 border-b border-blue-900">
           <div>
             <div className="text-xs uppercase tracking-wider text-blue-200 font-semibold">
-              National Eligibility Cum Entrance Test (UG) - 2026
+              National Eligibility Cum Entrance Test (UG) - 2027
             </div>
             <h1 className="text-lg sm:text-xl font-bold">General Examination Instructions</h1>
           </div>

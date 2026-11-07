@@ -10,20 +10,30 @@ export async function POST(
   try {
     const attemptId = params.id;
 
-    const attempt = await prisma.examAttempt.findUnique({
-      where: { id: attemptId },
-      select: { id: true, status: true },
+    // Atomic check-and-lock: ensures only ONE submit process runs, preventing race conditions
+    const updated = await prisma.examAttempt.updateMany({
+      where: {
+        id: attemptId,
+        status: AttemptStatus.IN_PROGRESS,
+      },
+      data: {
+        status: AttemptStatus.SUBMITTED,
+      },
     });
 
-    if (!attempt) {
-      return NextResponse.json(
-        { error: 'Attempt not found.' },
-        { status: 404 }
-      );
-    }
+    if (updated.count === 0) {
+      const existing = await prisma.examAttempt.findUnique({
+        where: { id: attemptId },
+        select: { id: true, status: true },
+      });
 
-    // If already submitted, return success without re-evaluating
-    if (attempt.status === AttemptStatus.SUBMITTED || attempt.status === AttemptStatus.TIMED_OUT) {
+      if (!existing) {
+        return NextResponse.json(
+          { error: 'Attempt not found.' },
+          { status: 404 }
+        );
+      }
+
       return NextResponse.json({
         success: true,
         message: 'Exam already submitted.',

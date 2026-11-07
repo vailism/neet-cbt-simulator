@@ -249,6 +249,7 @@ export interface LaunchAttemptOptions {
   durationMinutes?: number;
   marksPerCorrect?: number;
   marksPerIncorrect?: number;
+  forceNew?: boolean;
 }
 
 /**
@@ -273,6 +274,7 @@ export async function launchMockPaperAttempt(
   if (!paper) throw new Error('Mock paper not found.');
 
   const examMode = options?.mode || ExamMode.FULL_MOCK;
+  const now = new Date();
 
   // Find previous attempts for this candidate on this paper with matching mode
   const existingAttempts = await prisma.examAttempt.findMany({
@@ -284,20 +286,29 @@ export async function launchMockPaperAttempt(
     orderBy: { attemptNumber: 'desc' },
   });
 
-  // If there's an IN_PROGRESS attempt, return it (Resume Interrupted Paper)
-  const activeAttempt = existingAttempts.find((a) => a.status === 'IN_PROGRESS');
-  if (activeAttempt) {
-    return {
-      attemptId: activeAttempt.id,
-      isResumed: true,
-      attemptNumber: activeAttempt.attemptNumber,
-      mode: activeAttempt.mode,
-    };
+  // If forceNew is NOT requested, check for active non-expired IN_PROGRESS attempt
+  if (!options?.forceNew) {
+    const activeAttempt = existingAttempts.find((a) => a.status === 'IN_PROGRESS');
+    if (activeAttempt) {
+      const isExpired = new Date(activeAttempt.expiresAt).getTime() <= now.getTime();
+      if (!isExpired) {
+        return {
+          attemptId: activeAttempt.id,
+          isResumed: true,
+          attemptNumber: activeAttempt.attemptNumber,
+          mode: activeAttempt.mode,
+        };
+      }
+      // If it has expired, mark it TIMED_OUT so candidate is not trapped in an expired session
+      await prisma.examAttempt.update({
+        where: { id: activeAttempt.id },
+        data: { status: 'TIMED_OUT' },
+      });
+    }
   }
 
   // Otherwise, create a NEW attempt (e.g. Attempt #2, Attempt #3)
   const nextAttemptNumber = existingAttempts.length + 1;
-  const now = new Date();
   const examDuration = options?.durationMinutes || paper.durationMinutes || 180;
   const expiresAt = new Date(now.getTime() + examDuration * 60 * 1000);
 
