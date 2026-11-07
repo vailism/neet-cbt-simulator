@@ -301,10 +301,6 @@ export async function launchMockPaperAttempt(
   const examDuration = options?.durationMinutes || paper.durationMinutes || 180;
   const expiresAt = new Date(now.getTime() + examDuration * 60 * 1000);
 
-  const titlePrefix = examMode === ExamMode.OMR_SIMULATION
-    ? `${paper.title} [OMR Simulation]`
-    : paper.title;
-
   const newAttempt = await prisma.$transaction(async (tx) => {
     const attempt = await tx.examAttempt.create({
       data: {
@@ -312,7 +308,7 @@ export async function launchMockPaperAttempt(
         mockPaperId: paper.id,
         attemptNumber: nextAttemptNumber,
         mode: examMode,
-        title: `${titlePrefix} (Attempt #${nextAttemptNumber})`,
+        title: `${paper.title} (Attempt #${nextAttemptNumber})`,
         startedAt: now,
         expiresAt,
         maxScore: 720,

@@ -82,8 +82,7 @@ export default function MockPaperLibraryPage() {
 
   const handleLaunchPaper = async (
     paperId: string,
-    forceNew = false,
-    mode: 'FULL_MOCK' | 'OMR_SIMULATION' = 'FULL_MOCK'
+    forceNew = false
   ) => {
     try {
       const res = await fetch(`/api/papers/${paperId}/start`, {
@@ -92,18 +91,14 @@ export default function MockPaperLibraryPage() {
         body: JSON.stringify({
           rollNumber: candidateRoll,
           forceNewAttempt: forceNew,
-          mode,
+          mode: 'FULL_MOCK',
         }),
       });
 
       const json = await res.json();
       if (!res.ok) throw new Error(json.error || 'Failed to launch examination.');
 
-      if (json.mode === 'OMR_SIMULATION' || mode === 'OMR_SIMULATION') {
-        router.push(`/omr/${json.attemptId}`);
-      } else {
-        router.push(`/exam/${json.attemptId}`);
-      }
+      router.push(`/exam/${json.attemptId}`);
     } catch (e: any) {
       alert(e.message || 'Failed to launch paper.');
     }
@@ -340,38 +335,21 @@ export default function MockPaperLibraryPage() {
                             <FileCheck className="w-3.5 h-3.5" /> Solutions
                           </button>
                         </div>
-                        <div className="grid grid-cols-2 gap-2">
-                          <button
-                            onClick={() => handleLaunchPaper(paper.id, true, 'FULL_MOCK')}
-                            className="bg-blue-700 hover:bg-blue-800 text-white font-bold py-2 rounded-lg text-xs transition-colors flex items-center justify-center gap-1 shadow-xs"
-                            title="Retake in CBT mode"
-                          >
-                            <RotateCcw className="w-3 h-3" /> CBT Retake
-                          </button>
-                          <button
-                            onClick={() => handleLaunchPaper(paper.id, true, 'OMR_SIMULATION')}
-                            className="bg-amber-600 hover:bg-amber-700 text-white font-bold py-2 rounded-lg text-xs transition-colors flex items-center justify-center gap-1 shadow-xs"
-                            title="Retake in OMR Simulation mode"
-                          >
-                            <Layers className="w-3 h-3" /> OMR Retake
-                          </button>
-                        </div>
+                        <button
+                          onClick={() => handleLaunchPaper(paper.id, true)}
+                          className="w-full bg-blue-700 hover:bg-blue-800 text-white font-bold py-2 rounded-lg text-xs transition-colors flex items-center justify-center gap-1.5 shadow-xs"
+                          title="Retake CBT examination"
+                        >
+                          <RotateCcw className="w-3.5 h-3.5" /> Retake Examination
+                        </button>
                       </>
                     ) : (
-                      <div className="grid grid-cols-2 gap-2">
-                        <button
-                          onClick={() => handleLaunchPaper(paper.id, false, 'FULL_MOCK')}
-                          className="bg-blue-700 hover:bg-blue-800 text-white font-bold py-2.5 rounded-lg text-xs transition-colors flex items-center justify-center gap-1 shadow-xs"
-                        >
-                          <Play className="w-3.5 h-3.5" /> CBT Exam
-                        </button>
-                        <button
-                          onClick={() => handleLaunchPaper(paper.id, false, 'OMR_SIMULATION')}
-                          className="bg-indigo-900 hover:bg-indigo-950 text-amber-300 font-bold py-2.5 rounded-lg text-xs transition-colors flex items-center justify-center gap-1 shadow-xs"
-                        >
-                          <Layers className="w-3.5 h-3.5" /> OMR Exam
-                        </button>
-                      </div>
+                      <button
+                        onClick={() => handleLaunchPaper(paper.id, false)}
+                        className="w-full bg-blue-700 hover:bg-blue-800 text-white font-bold py-2.5 rounded-lg text-xs transition-colors flex items-center justify-center gap-1.5 shadow-xs"
+                      >
+                        <Play className="w-3.5 h-3.5" /> Start Examination
+                      </button>
                     )}
                   </div>
                 </div>

@@ -285,7 +285,7 @@ export async function GET(
     const previousMockComparison = previousAttempts.map((prev, idx) => ({
       mockIndex: idx + 1,
       attemptId: prev.id,
-      title: prev.title.replace(' (Attempt #1)', '').replace(' [OMR Simulation]', ''),
+      title: prev.title.replace(/ \(Attempt #\d+\)/, ''),
       mode: prev.mode,
       date: new Date(prev.startedAt).toLocaleDateString('en-IN', { month: 'short', day: 'numeric' }),
       score: prev.totalScore ?? 0,

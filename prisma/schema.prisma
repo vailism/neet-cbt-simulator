@@ -21,7 +21,6 @@ enum Difficulty {
 }
 
 enum ExamMode {
-  OMR_SIMULATION
   FULL_MOCK
   PRACTICE
 }

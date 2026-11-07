@@ -166,7 +166,7 @@ export function validateRawGeneratedQuestion(item: any): RawGeneratedQuestion | 
  */
 export async function executeGeminiWithRetry<T>(
   prompt: string,
-  modelName: string = process.env.GEMINI_MODEL || 'gemini-3.8-flash',
+  modelName: string = process.env.GEMINI_MODEL || 'gemini-3.5-flash',
   maxRetries: number = 4
 ): Promise<T> {
   const ai = getGeminiClient();
@@ -266,8 +266,8 @@ JSON SCHEMA:
 export async function generateQuestionBatch(
   params: BatchGenerationParams
 ): Promise<BatchGenerationResult> {
-  const batchSize = Math.max(25, Math.min(50, params.batchSize || 25));
-  const modelName = params.model || process.env.GEMINI_MODEL || 'gemini-2.5-flash';
+  const batchSize = Math.max(1, Math.min(50, params.batchSize || 25));
+  const modelName = params.model || process.env.GEMINI_MODEL || 'gemini-3.5-flash';
 
   // 1. Record batch metadata in DB
   const batchRecord = await prisma.aIGenerationBatch.create({

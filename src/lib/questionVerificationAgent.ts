@@ -112,7 +112,7 @@ function checkAmbiguity(statement: string): { passed: boolean; reason?: string; 
  */
 async function solveQuestionIndependentlyWithGemini(
   q: QuestionVerificationInput,
-  modelName: string = process.env.GEMINI_MODEL || 'gemini-3.8-flash'
+  modelName: string = process.env.GEMINI_MODEL || 'gemini-3.5-flash-lite'
 ): Promise<{
   derivedAnswer: number;
   isAmbiguous: boolean;

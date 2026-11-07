@@ -26,9 +26,7 @@ export async function POST(
       );
     }
 
-    const examMode = body.mode === 'OMR_SIMULATION'
-      ? ExamMode.OMR_SIMULATION
-      : body.mode === 'PRACTICE'
+    const examMode = body.mode === 'PRACTICE'
       ? ExamMode.PRACTICE
       : ExamMode.FULL_MOCK;
 
