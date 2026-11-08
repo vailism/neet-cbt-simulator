@@ -14,21 +14,28 @@ export async function POST(req: NextRequest) {
       chapterFilter,
       questionCount,
       durationMinutes,
+      rollNumber: rawRoll,
+      candidateName: rawName,
+      name: fallbackName,
     } = body;
 
-    if (!candidateId) {
-      const candidate = await prisma.candidate.findUnique({
-        where: { rollNumber: '240410012345' },
-      });
-      if (candidate) candidateId = candidate.id;
-    }
+    const rollNumber = (rawRoll || '240410012345').trim().toUpperCase();
+    const candidateName = (rawName || fallbackName || 'KUMAR ADITYA').trim().toUpperCase();
 
-    if (!candidateId) {
-      return NextResponse.json(
-        { error: 'Default candidate not found in database.' },
-        { status: 500 }
-      );
-    }
+    // Upsert candidate dynamically
+    const candidate = await prisma.candidate.upsert({
+      where: { rollNumber },
+      update: {
+        name: candidateName,
+      },
+      create: {
+        rollNumber,
+        name: candidateName,
+        email: `${rollNumber.toLowerCase()}@neet.nta.ac.in`,
+        avatarUrl: '/candidate-avatar.png',
+      },
+    });
+    candidateId = candidate.id;
 
     const attempt = await generateExamAttempt({
       candidateId,
@@ -46,6 +53,11 @@ export async function POST(req: NextRequest) {
       expiresAt: attempt.expiresAt,
       mode: attempt.mode,
       title: attempt.title,
+      candidate: {
+        id: candidate.id,
+        name: candidate.name,
+        rollNumber: candidate.rollNumber,
+      },
     });
   } catch (error: any) {
     console.error('Exam creation error:', error);

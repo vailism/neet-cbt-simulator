@@ -1,7 +1,8 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import {
   Clock,
   Award,
@@ -14,10 +15,70 @@ import {
   BarChart3,
   CheckCircle2,
   Zap,
+  Edit3,
 } from 'lucide-react';
-import { SINGLE_STUDENT } from '@/lib/auth';
+import {
+  getClientCandidate,
+  saveClientCandidate,
+  syncCandidateToServer,
+  CandidateInfo,
+  DEFAULT_CANDIDATE,
+} from '@/lib/candidateClient';
+import { CandidateModal } from '@/components/CandidateModal';
 
 export default function HomePage() {
+  const router = useRouter();
+  const [candidate, setCandidate] = useState<CandidateInfo>(DEFAULT_CANDIDATE);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editName, setEditName] = useState(DEFAULT_CANDIDATE.name);
+  const [editRoll, setEditRoll] = useState(DEFAULT_CANDIDATE.rollNumber);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [saveSuccess, setSaveSuccess] = useState(false);
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    const current = getClientCandidate();
+    setCandidate(current);
+    setEditName(current.name);
+    setEditRoll(current.rollNumber);
+
+    const handleUpdate = (e: any) => {
+      const c = e.detail || getClientCandidate();
+      setCandidate(c);
+      setEditName(c.name);
+      setEditRoll(c.rollNumber);
+    };
+
+    window.addEventListener('neet_candidate_updated', handleUpdate);
+    return () => window.removeEventListener('neet_candidate_updated', handleUpdate);
+  }, []);
+
+  const handleInlineSave = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editName.trim() || !editRoll.trim()) return;
+
+    setSaving(true);
+    try {
+      const updated = await syncCandidateToServer(editName, editRoll);
+      setCandidate(updated);
+      setIsEditing(false);
+      setSaveSuccess(true);
+      setTimeout(() => setSaveSuccess(false), 3000);
+    } catch (err: any) {
+      alert(err.message || 'Failed to update candidate details.');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleLaunchInstantMock = () => {
+    setIsModalOpen(true);
+  };
+
+  const onConfirmLaunch = () => {
+    router.push('/instructions');
+  };
+
   return (
     <div className="flex-1 bg-gray-50 pb-16">
       {/* Hero Banner */}
@@ -52,66 +113,133 @@ export default function HomePage() {
 
       <div className="max-w-6xl mx-auto px-4 -mt-6">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-          {/* Candidate Card */}
+          {/* Dynamic Candidate Card & Rename Form */}
           <div className="lg:col-span-5 bg-white rounded-xl shadow-lg border border-gray-200 p-6 flex flex-col justify-between">
             <div>
               <div className="flex items-center justify-between pb-3 border-b border-gray-100 mb-4">
                 <div className="flex items-center gap-3">
                   <div className="w-12 h-12 rounded-xl bg-blue-700 text-white font-black text-lg flex items-center justify-center shadow-sm">
-                    {SINGLE_STUDENT.name.charAt(0)}
+                    {candidate.name ? candidate.name.charAt(0) : 'S'}
                   </div>
                   <div>
                     <div className="text-[10px] font-bold uppercase tracking-wider text-blue-600">
-                      Authorized Candidate Profile
+                      Active Candidate Profile
                     </div>
-                    <h2 className="text-base font-bold text-gray-900">{SINGLE_STUDENT.name}</h2>
-                    <p className="text-xs text-gray-500 font-mono">Roll: {SINGLE_STUDENT.rollNumber}</p>
+                    <h2 className="text-base font-bold text-gray-900">{candidate.name}</h2>
+                    <p className="text-xs text-gray-500 font-mono">Roll: {candidate.rollNumber}</p>
                   </div>
                 </div>
-                <span className="bg-green-100 text-green-800 text-[10px] font-bold px-2.5 py-1 rounded-full flex items-center gap-1">
-                  <ShieldCheck className="w-3 h-3" /> Active
-                </span>
+                <button
+                  type="button"
+                  onClick={() => setIsEditing(!isEditing)}
+                  className="text-xs text-blue-700 hover:text-blue-900 font-bold flex items-center gap-1 bg-blue-50 px-2.5 py-1 rounded-md border border-blue-200 hover:bg-blue-100 transition-colors"
+                >
+                  <Edit3 className="w-3 h-3" />
+                  <span>{isEditing ? 'Close' : 'Rename'}</span>
+                </button>
               </div>
 
-              <div className="bg-slate-50 border border-slate-200 rounded-lg p-3 text-xs space-y-2 mb-4 font-medium text-slate-700">
-                <div className="flex justify-between">
-                  <span className="text-gray-500">Examination:</span>
-                  <span className="font-bold text-gray-900">NEET (UG) 2027</span>
+              {/* Inline Rename Form */}
+              {isEditing ? (
+                <form onSubmit={handleInlineSave} className="bg-blue-50/70 border border-blue-200 rounded-lg p-3.5 mb-4 space-y-3">
+                  <div className="text-xs font-bold text-blue-950 flex items-center gap-1.5">
+                    <Edit3 className="w-3.5 h-3.5 text-blue-700" />
+                    <span>Change Candidate Name & Roll Number</span>
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-bold text-gray-700 mb-1 uppercase">
+                      Student Full Name:
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={editName}
+                      onChange={(e) => setEditName(e.target.value)}
+                      placeholder="e.g. PRIYA SHARMA"
+                      className="w-full px-2.5 py-1.5 text-xs border border-gray-300 rounded bg-white font-semibold uppercase text-gray-900 focus:ring-2 focus:ring-blue-600 focus:outline-none"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-bold text-gray-700 mb-1 uppercase">
+                      Roll Number:
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={editRoll}
+                      onChange={(e) => setEditRoll(e.target.value)}
+                      placeholder="e.g. 240410012345"
+                      className="w-full px-2.5 py-1.5 text-xs border border-gray-300 rounded bg-white font-mono text-gray-900 focus:ring-2 focus:ring-blue-600 focus:outline-none"
+                    />
+                  </div>
+
+                  <div className="flex items-center justify-end gap-2 pt-1">
+                    <button
+                      type="button"
+                      onClick={() => setIsEditing(false)}
+                      className="px-2.5 py-1 text-xs text-gray-600 hover:text-gray-900 font-medium"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={saving}
+                      className="bg-blue-700 hover:bg-blue-800 disabled:opacity-50 text-white font-bold px-3 py-1 rounded text-xs transition-colors"
+                    >
+                      {saving ? 'Saving...' : 'Save Name'}
+                    </button>
+                  </div>
+                </form>
+              ) : (
+                <div className="bg-slate-50 border border-slate-200 rounded-lg p-3 text-xs space-y-2 mb-4 font-medium text-slate-700">
+                  <div className="flex justify-between">
+                    <span className="text-gray-500">Student Name:</span>
+                    <span className="font-bold text-gray-900">{candidate.name}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-500">Roll Number:</span>
+                    <span className="font-mono text-gray-900">{candidate.rollNumber}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-500">Examination:</span>
+                    <span className="font-bold text-gray-900">NEET (UG) 2027</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-500">Available Mock Papers:</span>
+                    <span className="font-bold text-blue-900">100 Full-Length Mocks</span>
+                  </div>
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-500">Registered Email:</span>
-                  <span className="font-mono text-gray-800">{SINGLE_STUDENT.email}</span>
+              )}
+
+              {saveSuccess && (
+                <div className="p-2 mb-3 bg-green-50 border border-green-200 text-green-800 text-xs rounded flex items-center gap-1.5 font-medium animate-in fade-in">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-green-600" />
+                  <span>Candidate profile updated successfully!</span>
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-500">Access Mode:</span>
-                  <span className="text-emerald-700 font-semibold">Private Single-Student Simulator</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-500">Available Mock Papers:</span>
-                  <span className="font-bold text-blue-900">100 Full-Length Mocks</span>
-                </div>
-              </div>
+              )}
 
               <p className="text-xs text-gray-500 leading-relaxed mb-4">
-                Your examination session is permanently synced. Every attempted test, chapter analytics,
-                and review bookmark are recorded automatically in your personal database.
+                You can change the student name at any time. The simulator will ask you to confirm your name and roll number before starting each examination.
               </p>
             </div>
 
             <div className="space-y-2 pt-2 border-t border-gray-100">
-              <Link
-                href="/instructions"
-                className="w-full bg-[#1e3a8a] hover:bg-blue-800 text-white font-bold py-2.5 px-4 rounded-lg shadow transition-all flex items-center justify-center gap-2 text-xs"
+              <button
+                type="button"
+                onClick={handleLaunchInstantMock}
+                className="w-full bg-[#1e3a8a] hover:bg-blue-800 text-white font-bold py-2.5 px-4 rounded-lg shadow transition-all flex items-center justify-center gap-2 text-xs cursor-pointer"
               >
-                <span>Read Official Examination Instructions</span>
+                <span>Confirm Name & Read Instructions</span>
                 <ArrowRight className="w-4 h-4" />
-              </Link>
+              </button>
               <Link
                 href="/dashboard"
                 className="w-full bg-blue-50 hover:bg-blue-100 text-blue-900 font-bold py-2 px-4 rounded-lg border border-blue-200 transition-colors flex items-center justify-center gap-2 text-xs"
               >
                 <BarChart3 className="w-3.5 h-3.5 text-blue-700" />
-                <span>Open Personal Analytics Dashboard</span>
+                <span>Open Student Analytics Dashboard</span>
               </Link>
             </div>
           </div>
@@ -225,13 +353,14 @@ export default function HomePage() {
                 </p>
               </div>
 
-              <Link
-                href="/instructions"
-                className="w-full bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold py-2 rounded-md transition-colors flex items-center justify-center gap-1.5 shadow-sm"
+              <button
+                type="button"
+                onClick={handleLaunchInstantMock}
+                className="w-full bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold py-2 rounded-md transition-colors flex items-center justify-center gap-1.5 shadow-sm cursor-pointer"
               >
                 Launch Mock Exam
                 <ArrowRight className="w-3.5 h-3.5" />
-              </Link>
+              </button>
             </div>
           </div>
         </div>
@@ -302,6 +431,15 @@ export default function HomePage() {
           </div>
         </div>
       </div>
+
+      <CandidateModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onConfirm={onConfirmLaunch}
+        title="Candidate Verification"
+        subtitle="Please confirm your candidate name and roll number before starting the examination."
+        confirmLabel="Confirm & Continue"
+      />
     </div>
   );
 }

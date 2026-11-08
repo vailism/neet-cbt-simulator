@@ -13,7 +13,14 @@ import {
   Zap,
   HelpCircle,
   User,
+  Edit2,
 } from 'lucide-react';
+import {
+  getClientCandidate,
+  CandidateInfo,
+  DEFAULT_CANDIDATE,
+} from '@/lib/candidateClient';
+import { CandidateModal } from '@/components/CandidateModal';
 
 interface SubjectWithChapters {
   id: string;
@@ -38,20 +45,21 @@ export default function PracticeModePage() {
   const [isTimed, setIsTimed] = useState<boolean>(true);
   const [instantFeedback, setInstantFeedback] = useState<boolean>(true);
 
-  const [candidateRoll, setCandidateRoll] = useState('240410012345');
-  const [candidateName, setCandidateName] = useState('KUMAR ADITYA');
-  const [candidateId, setCandidateId] = useState<string | null>(null);
+  const [candidate, setCandidate] = useState<CandidateInfo>(DEFAULT_CANDIDATE);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const roll = localStorage.getItem('neet_candidate_roll');
-    const name = localStorage.getItem('neet_candidate_name');
-    const id = localStorage.getItem('neet_candidate_id');
-    if (roll) setCandidateRoll(roll);
-    if (name) setCandidateName(name);
-    if (id) setCandidateId(id);
+    const current = getClientCandidate();
+    setCandidate(current);
+
+    const handleUpdate = (e: any) => {
+      setCandidate(e.detail || getClientCandidate());
+    };
+
+    window.addEventListener('neet_candidate_updated', handleUpdate);
 
     // Fetch subjects & chapters
     fetch('/api/meta/chapters')
@@ -60,39 +68,26 @@ export default function PracticeModePage() {
         if (data.subjects) setSubjects(data.subjects);
       })
       .catch((e) => console.error(e));
+
+    return () => window.removeEventListener('neet_candidate_updated', handleUpdate);
   }, []);
 
   const activeSubjectObj = subjects.find((s) => s.code === selectedSubject);
   const availableChapters = activeSubjectObj?.chapters || [];
 
-  const handleStartPractice = async () => {
+  const handleConfirmedPractice = async (c: CandidateInfo) => {
     setLoading(true);
     setError(null);
 
     try {
-      let cId = candidateId;
-      if (!cId) {
-        const loginRes = await fetch('/api/candidate/login', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            name: candidateName,
-            rollNumber: candidateRoll,
-          }),
-        });
-        const loginData = await loginRes.json();
-        if (!loginRes.ok) throw new Error(loginData.error || 'Failed to authenticate');
-        cId = loginData.candidate.id;
-        localStorage.setItem('neet_candidate_id', cId!);
-      }
-
       const durationMinutes = isTimed ? Math.max(10, Math.round(questionCount * 1.5)) : 180;
 
       const res = await fetch('/api/exam/create', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          candidateId: cId,
+          rollNumber: c.rollNumber,
+          candidateName: c.name,
           mode: 'PRACTICE',
           subjectFilter: selectedSubject !== 'ALL' ? selectedSubject : undefined,
           chapterFilter: selectedChapter || undefined,
@@ -114,118 +109,139 @@ export default function PracticeModePage() {
   return (
     <div className="flex-1 bg-gray-50 py-8 px-4">
       <div className="max-w-4xl mx-auto space-y-6">
-        {/* Practice Hero Banner */}
-        <div className="bg-gradient-to-r from-emerald-800 to-teal-900 text-white rounded-2xl p-6 sm:p-8 shadow-sm">
-          <div className="inline-flex items-center gap-1.5 bg-emerald-700/60 border border-emerald-400/30 px-3 py-1 rounded-full text-xs font-semibold mb-3">
-            <Sparkles className="w-3.5 h-3.5 text-emerald-300" />
-            <span>Targeted Topic Mastery</span>
+        {/* Header */}
+        <div className="bg-gradient-to-r from-emerald-800 to-teal-900 text-white rounded-2xl p-6 sm:p-8 shadow-sm flex flex-wrap items-center justify-between gap-4">
+          <div>
+            <div className="inline-flex items-center gap-1.5 bg-emerald-700/80 border border-emerald-400/30 px-3 py-1 rounded-full text-xs font-semibold mb-3">
+              <Sparkles className="w-3.5 h-3.5 text-amber-300" />
+              <span>Targeted Subject & Chapter Practice</span>
+            </div>
+            <h1 className="text-xl sm:text-3xl font-black mb-2">NEET Practice Lab</h1>
+            <p className="text-emerald-100 text-xs sm:text-sm max-w-xl leading-relaxed">
+              Customize practice questions by subject, specific NCERT chapter, volume, and timing.
+              Instant KaTeX step-by-step explanations available for every problem.
+            </p>
           </div>
-          <h1 className="text-xl sm:text-3xl font-black mb-2">NEET Practice Mode</h1>
-          <p className="text-emerald-100 text-xs sm:text-sm max-w-xl leading-relaxed">
-            Strengthen your weak chapters with custom question sets. Practice with instant answer
-            feedback, step-by-step KaTeX explanations, and customized timers.
-          </p>
+
+          <button
+            type="button"
+            onClick={() => setIsModalOpen(true)}
+            className="flex items-center gap-2.5 bg-emerald-950/60 hover:bg-emerald-950 border border-emerald-400/40 px-3 py-2 rounded-xl text-xs text-left transition-colors cursor-pointer group"
+            title="Click to rename candidate"
+          >
+            <User className="w-4 h-4 text-emerald-300" />
+            <div>
+              <div className="font-bold flex items-center gap-1">
+                <span>{candidate.name}</span>
+                <Edit2 className="w-2.5 h-2.5 text-emerald-400 opacity-70 group-hover:opacity-100" />
+              </div>
+              <div className="text-[10px] text-emerald-200 font-mono">{candidate.rollNumber}</div>
+            </div>
+          </button>
         </div>
 
-        {error && (
-          <div className="bg-red-50 border border-red-200 text-red-700 text-xs p-3 rounded-lg">
-            {error}
-          </div>
-        )}
-
         {/* Configuration Card */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 space-y-6">
-          {/* 1. Subject Selection */}
+        <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6 space-y-6">
+          {error && (
+            <div className="bg-red-50 border border-red-200 text-red-700 text-xs p-3.5 rounded-lg">
+              {error}
+            </div>
+          )}
+
+          {/* 1. Select Subject */}
           <div>
-            <label className="block text-xs font-bold text-gray-800 uppercase tracking-wider mb-2">
+            <label className="block text-xs font-bold text-gray-700 mb-2 uppercase tracking-wider">
               1. Select Subject
             </label>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-              {(
-                [
-                  { code: 'PHYSICS', label: 'Physics' },
-                  { code: 'CHEMISTRY', label: 'Chemistry' },
-                  { code: 'BOTANY', label: 'Botany' },
-                  { code: 'ZOOLOGY', label: 'Zoology' },
-                ] as const
-              ).map((sub) => {
-                const isSelected = selectedSubject === sub.code;
-                return (
-                  <button
-                    key={sub.code}
-                    type="button"
-                    onClick={() => {
-                      setSelectedSubject(sub.code);
-                      setSelectedChapter('');
-                    }}
-                    className={`p-3.5 rounded-xl border text-left transition-all ${
-                      isSelected
-                        ? 'border-emerald-600 bg-emerald-50 text-emerald-950 font-bold shadow-xs ring-1 ring-emerald-600'
-                        : 'border-gray-200 bg-white text-gray-700 hover:bg-gray-50'
-                    }`}
-                  >
-                    <div className="text-sm">{sub.label}</div>
-                    <div className="text-[10px] text-gray-500 font-normal mt-0.5">
-                      {subjects.find((s) => s.code === sub.code)?._count.questions || 60}+ Questions
-                    </div>
-                  </button>
-                );
-              })}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+              {[
+                { code: 'PHYSICS', name: 'Physics' },
+                { code: 'CHEMISTRY', name: 'Chemistry' },
+                { code: 'BOTANY', name: 'Botany' },
+                { code: 'ZOOLOGY', name: 'Zoology' },
+              ].map((s) => (
+                <button
+                  key={s.code}
+                  type="button"
+                  onClick={() => {
+                    setSelectedSubject(s.code);
+                    setSelectedChapter('');
+                  }}
+                  className={`p-3 rounded-xl border text-left transition-all ${
+                    selectedSubject === s.code
+                      ? 'border-emerald-600 bg-emerald-50 text-emerald-900 ring-1 ring-emerald-600 font-bold'
+                      : 'border-gray-200 bg-white text-gray-700 hover:bg-gray-50'
+                  }`}
+                >
+                  <div className="text-xs font-bold">{s.name}</div>
+                  <div className="text-[10px] text-gray-500 mt-0.5">45 NTA Questions</div>
+                </button>
+              ))}
             </div>
           </div>
 
-          {/* 2. Chapter Selection (Optional) */}
+          {/* 2. Select Chapter */}
           <div>
-            <label className="block text-xs font-bold text-gray-800 uppercase tracking-wider mb-2">
-              2. Chapter (Optional - Leave blank for full subject)
+            <label className="block text-xs font-bold text-gray-700 mb-2 uppercase tracking-wider flex items-center justify-between">
+              <span>2. Select Specific Chapter (Optional)</span>
+              {selectedChapter && (
+                <button
+                  type="button"
+                  onClick={() => setSelectedChapter('')}
+                  className="text-xs text-emerald-700 hover:underline font-semibold"
+                >
+                  Clear Selection (All Chapters)
+                </button>
+              )}
             </label>
             <select
               value={selectedChapter}
               onChange={(e) => setSelectedChapter(e.target.value)}
-              className="w-full px-3 py-2.5 text-xs sm:text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-600 text-gray-800 font-medium"
+              className="w-full p-2.5 rounded-lg border border-gray-300 text-xs text-gray-800 bg-white focus:outline-none focus:ring-1 focus:ring-emerald-600"
             >
-              <option value="">All Chapters in {selectedSubject}</option>
+              <option value="">All Chapters ({selectedSubject})</option>
               {availableChapters.map((ch) => (
                 <option key={ch.id} value={ch.name}>
-                  {ch.name} ({ch._count.questions} Qs)
+                  {ch.name} ({ch._count.questions} Questions)
                 </option>
               ))}
             </select>
           </div>
 
-          {/* 3. Question Volume & Difficulty */}
+          {/* 3. Number of Questions & Difficulty */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-bold text-gray-800 uppercase tracking-wider mb-2">
+              <label className="block text-xs font-bold text-gray-700 mb-2 uppercase tracking-wider">
                 3. Number of Questions
               </label>
               <div className="grid grid-cols-4 gap-2">
-                {[10, 20, 30, 45].map((count) => (
+                {[10, 20, 30, 45].map((cnt) => (
                   <button
-                    key={count}
+                    key={cnt}
                     type="button"
-                    onClick={() => setQuestionCount(count)}
+                    onClick={() => setQuestionCount(cnt)}
                     className={`py-2 rounded-lg border text-xs font-bold transition-all ${
-                      questionCount === count
+                      questionCount === cnt
                         ? 'bg-emerald-600 text-white border-emerald-600 shadow-xs'
                         : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50'
                     }`}
                   >
-                    {count} Qs
+                    {cnt} Qs
                   </button>
                 ))}
               </div>
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-gray-800 uppercase tracking-wider mb-2">
+              <label className="block text-xs font-bold text-gray-700 mb-2 uppercase tracking-wider">
                 4. Difficulty Level
               </label>
-              <div className="grid grid-cols-3 gap-2">
+              <div className="grid grid-cols-4 gap-2">
                 {[
-                  { id: 'ALL', label: 'Balanced' },
+                  { id: 'ALL', label: 'All' },
                   { id: 'EASY', label: 'Easy' },
-                  { id: 'MODERATE', label: 'Moderate' },
+                  { id: 'MODERATE', label: 'Mod' },
+                  { id: 'DIFFICULT', label: 'Diff' },
                 ].map((d) => (
                   <button
                     key={d.id}
@@ -286,9 +302,9 @@ export default function PracticeModePage() {
           {/* Start Button */}
           <div className="pt-2">
             <button
-              onClick={handleStartPractice}
+              onClick={() => setIsModalOpen(true)}
               disabled={loading}
-              className="w-full bg-emerald-700 hover:bg-emerald-800 text-white font-bold py-3.5 px-4 rounded-xl shadow transition-colors flex items-center justify-center gap-2 text-sm"
+              className="w-full bg-emerald-700 hover:bg-emerald-800 text-white font-bold py-3.5 px-4 rounded-xl shadow transition-colors flex items-center justify-center gap-2 text-sm cursor-pointer"
             >
               {loading ? 'Preparing Practice Questions...' : `Start Practice Session (${questionCount} Questions)`}
               <ArrowRight className="w-4 h-4" />
@@ -296,7 +312,15 @@ export default function PracticeModePage() {
           </div>
         </div>
       </div>
+
+      <CandidateModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onConfirm={handleConfirmedPractice}
+        title="Candidate Verification"
+        subtitle="Confirm candidate name and roll number before starting practice."
+        confirmLabel="Start Practice Now"
+      />
     </div>
   );
 }
-

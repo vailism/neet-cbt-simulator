@@ -12,27 +12,35 @@ import {
   Shield,
   HelpCircle,
   Layers,
+  Edit2,
 } from 'lucide-react';
+import {
+  getClientCandidate,
+  CandidateInfo,
+  DEFAULT_CANDIDATE,
+} from '@/lib/candidateClient';
+import { CandidateModal } from '@/components/CandidateModal';
 
 export default function InstructionsPage() {
   const router = useRouter();
 
   const [selectedDuration, setSelectedDuration] = useState<number>(180);
-  const [candidateRoll, setCandidateRoll] = useState('240410012345');
-  const [candidateName, setCandidateName] = useState('KUMAR ADITYA');
-  const [candidateId, setCandidateId] = useState<string | null>(null);
+  const [candidate, setCandidate] = useState<CandidateInfo>(DEFAULT_CANDIDATE);
   const [declared, setDeclared] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   useEffect(() => {
-    const roll = localStorage.getItem('neet_candidate_roll');
-    const name = localStorage.getItem('neet_candidate_name');
-    const id = localStorage.getItem('neet_candidate_id');
+    const current = getClientCandidate();
+    setCandidate(current);
 
-    if (roll) setCandidateRoll(roll);
-    if (name) setCandidateName(name);
-    if (id) setCandidateId(id);
+    const handleUpdate = (e: any) => {
+      setCandidate(e.detail || getClientCandidate());
+    };
+
+    window.addEventListener('neet_candidate_updated', handleUpdate);
+    return () => window.removeEventListener('neet_candidate_updated', handleUpdate);
   }, []);
 
   const handleStartExam = async () => {
@@ -45,29 +53,13 @@ export default function InstructionsPage() {
     setError(null);
 
     try {
-      // If candidateId is missing, register first
-      let cId = candidateId;
-      if (!cId) {
-        const loginRes = await fetch('/api/candidate/login', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            name: candidateName,
-            rollNumber: candidateRoll,
-          }),
-        });
-        const loginData = await loginRes.json();
-        if (!loginRes.ok) throw new Error(loginData.error || 'Failed to authenticate');
-        cId = loginData.candidate.id;
-        localStorage.setItem('neet_candidate_id', cId!);
-      }
-
-      // Create new Exam Attempt
+      // Create new Exam Attempt with current candidate
       const res = await fetch('/api/exam/create', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          candidateId: cId,
+          rollNumber: candidate.rollNumber,
+          candidateName: candidate.name,
           mode: 'FULL_MOCK',
           configCode: 'NEET_UG_DEFAULT',
           durationMinutes: selectedDuration,
@@ -97,13 +89,22 @@ export default function InstructionsPage() {
             </div>
             <h1 className="text-lg sm:text-xl font-bold">General Examination Instructions</h1>
           </div>
-          <div className="flex items-center gap-3 bg-blue-950/60 border border-blue-400/30 px-3 py-1.5 rounded-lg text-xs">
+
+          <button
+            type="button"
+            onClick={() => setIsModalOpen(true)}
+            className="flex items-center gap-3 bg-blue-950/60 hover:bg-blue-950 border border-blue-400/30 px-3 py-1.5 rounded-lg text-xs text-left transition-colors cursor-pointer group"
+            title="Click to change candidate details"
+          >
             <User className="w-4 h-4 text-blue-300" />
             <div>
-              <div className="font-bold">{candidateName}</div>
-              <div className="font-mono text-blue-200 text-[11px]">{candidateRoll}</div>
+              <div className="font-bold flex items-center gap-1">
+                <span>{candidate.name}</span>
+                <Edit2 className="w-2.5 h-2.5 text-blue-400 opacity-70 group-hover:opacity-100" />
+              </div>
+              <div className="font-mono text-blue-200 text-[11px]">{candidate.rollNumber}</div>
             </div>
-          </div>
+          </button>
         </div>
 
         {/* Content Body */}
@@ -140,28 +141,23 @@ export default function InstructionsPage() {
                 time available for you to complete the examination.
               </li>
               <li>
-                When the timer reaches zero, the examination will end by itself. You are not required
-                to end or submit your examination manually at that point.
+                When the timer reaches zero, the examination will end automatically. You will NOT be
+                required to end or submit your examination manually.
               </li>
               <li>
-                The examination consists of four subjects: <strong>Physics (45 Qs)</strong>,{' '}
-                <strong>Chemistry (45 Qs)</strong>, <strong>Botany (45 Qs)</strong>, and{' '}
-                <strong>Zoology (45 Qs)</strong>.
-              </li>
-              <li>
-                You can freely navigate between questions and subjects at any time during the 180
-                minutes.
+                The examination consists of 180 questions across Physics (45), Chemistry (45), Botany
+                (45), and Zoology (45).
               </li>
             </ul>
           </div>
 
           {/* Section 2: Question Palette Color Legend */}
           <div>
-            <h2 className="font-bold text-base text-blue-900 mb-3 flex items-center gap-2">
+            <h2 className="font-bold text-base text-blue-900 mb-2 flex items-center gap-2">
               <HelpCircle className="w-4 h-4 text-blue-600" />
-              2. Question Palette Symbols and Status
+              2. Question Status Palette Legend
             </h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 text-xs">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
               <div className="flex items-center gap-3 p-2.5 rounded border border-gray-200 bg-gray-50">
                 <div className="w-7 h-7 rounded bg-gray-200 border border-gray-400 flex items-center justify-center font-bold text-gray-700 shrink-0">
                   1
@@ -173,14 +169,14 @@ export default function InstructionsPage() {
                 <div className="w-7 h-7 rounded bg-[#dc2626] flex items-center justify-center font-bold text-white shrink-0">
                   2
                 </div>
-                <span>You have visited but NOT answered the question.</span>
+                <span>You have not answered the question.</span>
               </div>
 
               <div className="flex items-center gap-3 p-2.5 rounded border border-green-200 bg-green-50/50">
                 <div className="w-7 h-7 rounded bg-[#16a34a] flex items-center justify-center font-bold text-white shrink-0">
                   3
                 </div>
-                <span>You have ANSWERED the question.</span>
+                <span>You have answered the question.</span>
               </div>
 
               <div className="flex items-center gap-3 p-2.5 rounded border border-purple-200 bg-purple-50/50">
@@ -370,7 +366,14 @@ export default function InstructionsPage() {
           </div>
         </div>
       </div>
+
+      <CandidateModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        title="Verify Candidate Profile"
+        subtitle="Confirm candidate name and roll number for this test attempt."
+        confirmLabel="Save Details"
+      />
     </div>
   );
 }
-

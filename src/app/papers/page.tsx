@@ -4,26 +4,30 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   BookOpen,
-  CheckCircle,
   Clock,
-  Award,
+  Sparkles,
+  CheckCircle,
   Play,
   RotateCcw,
-  FileCheck,
-  Sparkles,
-  Layers,
   Search,
   Filter,
-  ArrowRight,
-  TrendingUp,
+  FileCheck,
+  User,
+  Edit2,
 } from 'lucide-react';
+import {
+  getClientCandidate,
+  CandidateInfo,
+  DEFAULT_CANDIDATE,
+} from '@/lib/candidateClient';
+import { CandidateModal } from '@/components/CandidateModal';
 
-interface MockPaperCard {
+interface MockPaperSummary {
   id: string;
   paperNumber: number;
   code: string;
   title: string;
-  description?: string;
+  description: string | null;
   durationMinutes: number;
   totalQuestions: number;
   physicsCount: number;
@@ -34,36 +38,32 @@ interface MockPaperCard {
   moderateCount: number;
   difficultCount: number;
   syllabusVersion: string;
+  createdAt: string;
   attemptStatus: 'NOT_STARTED' | 'IN_PROGRESS' | 'COMPLETED';
   totalAttempts: number;
-  latestAttemptId?: string | null;
-  bestScore?: number | null;
-  bestAccuracy?: number | null;
-  lastAttemptDate?: string | null;
+  latestAttemptId: string | null;
+  bestScore: number | null;
+  bestAccuracy: number | null;
+  lastAttemptDate: string | null;
 }
 
-export default function MockPaperLibraryPage() {
+export default function MockPapersPage() {
   const router = useRouter();
-
-  const [papers, setPapers] = useState<MockPaperCard[]>([]);
+  const [papers, setPapers] = useState<MockPaperSummary[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const [statusFilter, setStatusFilter] = useState<'ALL' | 'UNATTEMPTED' | 'COMPLETED' | 'IN_PROGRESS'>('ALL');
   const [searchQuery, setSearchQuery] = useState('');
 
-  const [candidateRoll, setCandidateRoll] = useState('240410012345');
-  const [candidateName, setCandidateName] = useState('KUMAR ADITYA');
+  const [candidate, setCandidate] = useState<CandidateInfo>(DEFAULT_CANDIDATE);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [pendingLaunch, setPendingLaunch] = useState<{ paperId: string; forceNew: boolean } | null>(null);
 
-  const loadPapers = useCallback(async () => {
+  const loadPapers = useCallback(async (roll: string) => {
     setLoading(true);
     try {
-      const roll = localStorage.getItem('neet_candidate_roll') || '240410012345';
-      const name = localStorage.getItem('neet_candidate_name') || 'KUMAR ADITYA';
-      setCandidateRoll(roll);
-      setCandidateName(name);
-
-      const res = await fetch(`/api/papers?rollNumber=${roll}`);
+      const res = await fetch(`/api/papers?rollNumber=${encodeURIComponent(roll)}`);
       const json = await res.json();
       if (!res.ok) throw new Error(json.error || 'Failed to fetch mock papers.');
       setPapers(json.papers || []);
@@ -75,19 +75,36 @@ export default function MockPaperLibraryPage() {
   }, []);
 
   useEffect(() => {
-    loadPapers();
+    const current = getClientCandidate();
+    setCandidate(current);
+    loadPapers(current.rollNumber);
+
+    const handleUpdate = (e: any) => {
+      const c = e.detail || getClientCandidate();
+      setCandidate(c);
+      loadPapers(c.rollNumber);
+    };
+
+    window.addEventListener('neet_candidate_updated', handleUpdate);
+    return () => window.removeEventListener('neet_candidate_updated', handleUpdate);
   }, [loadPapers]);
 
-  const handleLaunchPaper = async (
-    paperId: string,
-    forceNew = false
-  ) => {
+  const triggerLaunchPaper = (paperId: string, forceNew = false) => {
+    setPendingLaunch({ paperId, forceNew });
+    setIsModalOpen(true);
+  };
+
+  const handleConfirmedLaunch = async (c: CandidateInfo) => {
+    if (!pendingLaunch) return;
+    const { paperId, forceNew } = pendingLaunch;
+
     try {
       const res = await fetch(`/api/papers/${paperId}/start`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          rollNumber: candidateRoll,
+          rollNumber: c.rollNumber,
+          candidateName: c.name,
           forceNewAttempt: forceNew,
           mode: 'FULL_MOCK',
         }),
@@ -99,6 +116,8 @@ export default function MockPaperLibraryPage() {
       router.push(`/exam/${json.attemptId}`);
     } catch (e: any) {
       alert(e.message || 'Failed to launch paper.');
+    } finally {
+      setPendingLaunch(null);
     }
   };
 
@@ -141,7 +160,7 @@ export default function MockPaperLibraryPage() {
           </div>
         </div>
 
-        {/* Filter and Search Bar */}
+        {/* Candidate Bar & Filter Bar */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 flex flex-wrap items-center justify-between gap-3 text-xs">
           <div className="flex flex-wrap items-center gap-2">
             <span className="font-bold text-gray-700 flex items-center gap-1 mr-1">
@@ -167,9 +186,9 @@ export default function MockPaperLibraryPage() {
               <button
                 key={f.id}
                 onClick={() => setStatusFilter(f.id)}
-                className={`px-3 py-1 rounded-full font-semibold transition-colors ${
+                className={`px-3 py-1.5 rounded-lg font-bold transition-colors ${
                   statusFilter === f.id
-                    ? 'bg-blue-800 text-white shadow-xs'
+                    ? 'bg-blue-700 text-white shadow-xs'
                     : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                 }`}
               >
@@ -178,23 +197,45 @@ export default function MockPaperLibraryPage() {
             ))}
           </div>
 
-          <div className="relative min-w-[220px]">
-            <Search className="w-3.5 h-3.5 text-gray-400 absolute left-3 top-2.5" />
-            <input
-              type="text"
-              placeholder="Search by test number or code..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-9 pr-3 py-1.5 border border-gray-300 rounded-lg text-xs focus:ring-2 focus:ring-blue-600"
-            />
+          <div className="flex items-center gap-3 w-full sm:w-auto">
+            {/* Active Candidate Badge with Rename Trigger */}
+            <button
+              type="button"
+              onClick={() => {
+                setPendingLaunch(null);
+                setIsModalOpen(true);
+              }}
+              className="flex items-center gap-1.5 bg-blue-50 hover:bg-blue-100 text-blue-900 border border-blue-200 px-3 py-1.5 rounded-lg font-medium text-xs transition-colors"
+              title="Click to rename candidate"
+            >
+              <User className="w-3.5 h-3.5 text-blue-700" />
+              <span>Candidate: <strong className="uppercase">{candidate.name}</strong></span>
+              <span className="text-[10px] text-blue-600 font-mono">({candidate.rollNumber})</span>
+              <Edit2 className="w-2.5 h-2.5 text-blue-500 ml-1" />
+            </button>
+
+            {/* Search Input */}
+            <div className="relative flex-1 sm:w-64">
+              <Search className="w-3.5 h-3.5 text-gray-400 absolute left-3 top-2.5" />
+              <input
+                type="text"
+                placeholder="Search by test number or code..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full pl-9 pr-3 py-1.5 rounded-lg border border-gray-300 focus:outline-none focus:ring-1 focus:ring-blue-600 text-xs text-gray-800"
+              />
+            </div>
           </div>
         </div>
 
-        {/* Mock Papers Grid */}
+        {/* Papers Grid */}
         {loading ? (
-          <div className="py-16 text-center text-xs text-gray-500">
-            <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-800 mx-auto mb-3"></div>
-            Loading Mock Papers Library...
+          <div className="text-center py-20 text-gray-500 text-sm">
+            Loading official 100 NEET CBT mock test series...
+          </div>
+        ) : error ? (
+          <div className="bg-red-50 border border-red-200 text-red-700 p-4 rounded-xl text-center text-xs">
+            {error}
           </div>
         ) : filteredPapers.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
@@ -205,68 +246,66 @@ export default function MockPaperLibraryPage() {
               return (
                 <div
                   key={paper.id}
-                  className={`bg-white rounded-xl shadow-xs border p-5 flex flex-col justify-between transition-all hover:shadow-md ${
+                  className={`bg-white rounded-xl border p-5 shadow-xs flex flex-col justify-between transition-all hover:shadow-md ${
                     isCompleted
-                      ? 'border-green-300 bg-green-50/20'
+                      ? 'border-green-200 bg-green-50/10'
                       : isInProgress
-                      ? 'border-amber-400 bg-amber-50/20'
+                      ? 'border-amber-200 bg-amber-50/10'
                       : 'border-gray-200'
                   }`}
                 >
                   <div>
-                    {/* Badge & Status Strip */}
+                    {/* Header Code & Badge */}
                     <div className="flex items-center justify-between mb-2">
-                      <span className="font-mono font-bold text-xs bg-blue-100 text-blue-900 px-2 py-0.5 rounded">
+                      <span className="text-xs font-mono font-bold text-blue-700 bg-blue-50 px-2 py-0.5 rounded border border-blue-200">
                         {paper.code}
                       </span>
-                      {isCompleted && (
-                        <span className="bg-green-100 text-green-800 text-[10px] font-bold px-2 py-0.5 rounded flex items-center gap-1">
+                      {isCompleted ? (
+                        <span className="text-[11px] font-bold text-green-700 bg-green-50 border border-green-200 px-2 py-0.5 rounded-full flex items-center gap-1">
                           <CheckCircle className="w-3 h-3" /> Attempted ({paper.totalAttempts}x)
                         </span>
-                      )}
-                      {isInProgress && (
-                        <span className="bg-amber-100 text-amber-800 text-[10px] font-bold px-2 py-0.5 rounded animate-pulse flex items-center gap-1">
+                      ) : isInProgress ? (
+                        <span className="text-[11px] font-bold text-amber-700 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-full flex items-center gap-1">
                           <Clock className="w-3 h-3" /> In Progress
                         </span>
-                      )}
-                      {!isCompleted && !isInProgress && (
-                        <span className="text-gray-400 text-[10px] font-semibold">Not Attempted</span>
+                      ) : (
+                        <span className="text-[11px] font-medium text-gray-400">Not Attempted</span>
                       )}
                     </div>
 
                     {/* Paper Title */}
-                    <h3 className="font-bold text-base text-gray-900 leading-snug mb-1">
+                    <h3 className="text-sm font-bold text-gray-900 mb-1 leading-snug">
                       {paper.title}
                     </h3>
-                    <p className="text-xs text-gray-500 mb-3 leading-relaxed">
-                      {paper.description || 'Full 180-Question Mock Test with Official NTA CBT layout'}
+                    <p className="text-[11px] text-gray-500 mb-3">
+                      Official NEET UG 2027 CBT Full-Length Simulation (180 Questions, 720 Marks)
                     </p>
 
-                    {/* Specifications Grid */}
-                    <div className="bg-gray-50 p-2.5 rounded-lg border border-gray-200 text-[11px] space-y-1 font-mono text-gray-700 mb-4">
+                    {/* Blueprint Specs */}
+                    <div className="bg-gray-50 rounded-lg p-3 text-[11px] text-gray-600 space-y-1 mb-4 border border-gray-100">
                       <div className="flex justify-between">
-                        <span>Total Questions:</span>
-                        <strong className="text-gray-900">{paper.totalQuestions} Questions (720 Marks)</strong>
+                        <span className="text-gray-400">Total Questions:</span>
+                        <span className="font-bold text-gray-800">180 Questions (720 Marks)</span>
                       </div>
                       <div className="flex justify-between">
-                        <span>Duration:</span>
-                        <strong className="text-gray-900">{paper.durationMinutes} Minutes (3 Hrs)</strong>
+                        <span className="text-gray-400">Duration:</span>
+                        <span className="font-bold text-gray-800">180 Minutes (3 Hrs)</span>
                       </div>
                       <div className="flex justify-between">
-                        <span>Subjects:</span>
-                        <strong className="text-blue-900">45 Phy • 45 Chem • 45 Bot • 45 Zoo</strong>
+                        <span className="text-gray-400">Subjects:</span>
+                        <span className="font-medium text-gray-700">45 Phy • 45 Chem • 45 Bot • 45 Zoo</span>
                       </div>
                       <div className="flex justify-between">
-                        <span>Difficulty:</span>
-                        <strong className="text-purple-900">{paper.easyCount} Easy • {paper.moderateCount} Mod • {paper.difficultCount} Diff</strong>
+                        <span className="text-gray-400">Difficulty:</span>
+                        <span className="font-medium text-gray-700">54 Easy • 90 Mod • 36 Diff</span>
                       </div>
                     </div>
 
-                    {/* Score preview if attempted */}
+                    {/* Previous Result (if attempted) */}
                     {isCompleted && paper.bestScore !== null && (
-                      <div className="mb-4 p-2.5 rounded bg-green-50 border border-green-200 flex items-center justify-between text-xs">
-                        <span className="font-semibold text-green-800">Previous Score:</span>
-                        <span className="font-black text-green-950 text-sm">
+                      <div className="mb-4 p-2.5 rounded-lg bg-green-50 border border-green-200 text-xs flex items-center justify-between">
+                        <span className="text-green-800 font-semibold">Previous Score:</span>
+                        <span className="text-green-950 font-black font-mono">
                           {paper.bestScore} / 720 ({paper.bestAccuracy}%)
                         </span>
                       </div>
@@ -277,8 +316,8 @@ export default function MockPaperLibraryPage() {
                   <div className="pt-2 border-t border-gray-100 flex flex-col gap-2">
                     {isInProgress ? (
                       <button
-                        onClick={() => handleLaunchPaper(paper.id, false)}
-                        className="w-full bg-amber-600 hover:bg-amber-700 text-white font-bold py-2 rounded-lg text-xs transition-colors flex items-center justify-center gap-1.5 shadow-xs"
+                        onClick={() => triggerLaunchPaper(paper.id, false)}
+                        className="w-full bg-amber-600 hover:bg-amber-700 text-white font-bold py-2 rounded-lg text-xs transition-colors flex items-center justify-center gap-1.5 shadow-xs cursor-pointer"
                       >
                         <Play className="w-3.5 h-3.5" /> Resume Examination
                       </button>
@@ -287,20 +326,20 @@ export default function MockPaperLibraryPage() {
                         <div className="flex items-center gap-2">
                           <button
                             onClick={() => router.push(`/exam/${paper.latestAttemptId}/result`)}
-                            className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-800 font-bold py-2 rounded-lg text-xs transition-colors border border-gray-300"
+                            className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-800 font-bold py-2 rounded-lg text-xs transition-colors border border-gray-300 cursor-pointer"
                           >
                             Result
                           </button>
                           <button
                             onClick={() => router.push(`/exam/${paper.latestAttemptId}/solutions`)}
-                            className="flex-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-900 font-bold py-2 rounded-lg text-xs transition-colors border border-indigo-200 flex items-center justify-center gap-1"
+                            className="flex-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-900 font-bold py-2 rounded-lg text-xs transition-colors border border-indigo-200 flex items-center justify-center gap-1 cursor-pointer"
                           >
                             <FileCheck className="w-3.5 h-3.5" /> Solutions
                           </button>
                         </div>
                         <button
-                          onClick={() => handleLaunchPaper(paper.id, true)}
-                          className="w-full bg-blue-700 hover:bg-blue-800 text-white font-bold py-2 rounded-lg text-xs transition-colors flex items-center justify-center gap-1.5 shadow-xs"
+                          onClick={() => triggerLaunchPaper(paper.id, true)}
+                          className="w-full bg-blue-700 hover:bg-blue-800 text-white font-bold py-2 rounded-lg text-xs transition-colors flex items-center justify-center gap-1.5 shadow-xs cursor-pointer"
                           title="Retake CBT examination"
                         >
                           <RotateCcw className="w-3.5 h-3.5" /> Retake Examination
@@ -308,8 +347,8 @@ export default function MockPaperLibraryPage() {
                       </>
                     ) : (
                       <button
-                        onClick={() => handleLaunchPaper(paper.id, false)}
-                        className="w-full bg-blue-700 hover:bg-blue-800 text-white font-bold py-2.5 rounded-lg text-xs transition-colors flex items-center justify-center gap-1.5 shadow-xs"
+                        onClick={() => triggerLaunchPaper(paper.id, false)}
+                        className="w-full bg-blue-700 hover:bg-blue-800 text-white font-bold py-2.5 rounded-lg text-xs transition-colors flex items-center justify-center gap-1.5 shadow-xs cursor-pointer"
                       >
                         <Play className="w-3.5 h-3.5" /> Start Examination
                       </button>
@@ -325,7 +364,22 @@ export default function MockPaperLibraryPage() {
           </div>
         )}
       </div>
+
+      <CandidateModal
+        isOpen={isModalOpen}
+        onClose={() => {
+          setIsModalOpen(false);
+          setPendingLaunch(null);
+        }}
+        onConfirm={handleConfirmedLaunch}
+        title={pendingLaunch ? 'Verify Candidate Details' : 'Rename Candidate Profile'}
+        subtitle={
+          pendingLaunch
+            ? 'Confirm or edit your candidate name and roll number before starting this examination.'
+            : 'Update your candidate profile for tracking your examination results and analytics.'
+        }
+        confirmLabel={pendingLaunch ? 'Start Examination Now' : 'Save Details'}
+      />
     </div>
   );
 }
-

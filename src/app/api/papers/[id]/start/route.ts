@@ -12,26 +12,23 @@ export async function POST(
     const body = await req.json();
     let candidateId = body.candidateId;
 
-    if (!candidateId && body.rollNumber) {
-      const candidate = await prisma.candidate.findUnique({
-        where: { rollNumber: body.rollNumber.toUpperCase() },
-      });
-      if (candidate) candidateId = candidate.id;
-    }
+    const rollNumber = (body.rollNumber || '240410012345').trim().toUpperCase();
+    const candidateName = (body.candidateName || body.name || 'KUMAR ADITYA').trim().toUpperCase();
 
-    if (!candidateId) {
-      const candidate = await prisma.candidate.findUnique({
-        where: { rollNumber: '240410012345' },
-      });
-      if (candidate) candidateId = candidate.id;
-    }
-
-    if (!candidateId) {
-      return NextResponse.json(
-        { error: 'Default candidate not found in database.' },
-        { status: 500 }
-      );
-    }
+    // Upsert candidate to support dynamic student names & roll numbers
+    const candidate = await prisma.candidate.upsert({
+      where: { rollNumber },
+      update: {
+        name: candidateName,
+      },
+      create: {
+        rollNumber,
+        name: candidateName,
+        email: `${rollNumber.toLowerCase()}@neet.nta.ac.in`,
+        avatarUrl: '/candidate-avatar.png',
+      },
+    });
+    candidateId = candidate.id;
 
     const examMode = body.mode === 'PRACTICE'
       ? ExamMode.PRACTICE
@@ -52,6 +49,11 @@ export async function POST(
       isResumed: result.isResumed,
       attemptNumber: result.attemptNumber,
       mode: result.mode,
+      candidate: {
+        id: candidate.id,
+        name: candidate.name,
+        rollNumber: candidate.rollNumber,
+      },
     });
   } catch (error: any) {
     console.error('Launch paper attempt error:', error);
@@ -61,4 +63,3 @@ export async function POST(
     );
   }
 }
-
