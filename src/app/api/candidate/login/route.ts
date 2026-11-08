@@ -1,41 +1,45 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { SINGLE_STUDENT } from '@/lib/auth';
 
 export async function POST(req: NextRequest) {
   try {
-    const { rollNumber, name, email } = await req.json();
-
-    if (!rollNumber || !name) {
-      return NextResponse.json(
-        { error: 'Roll number and Candidate Name are required.' },
-        { status: 400 }
-      );
+    let body: any = {};
+    try {
+      body = await req.json();
+    } catch {
+      // Body may be empty in automated single-student calls
     }
 
-    const cleanRollNumber = rollNumber.trim().toUpperCase();
-    const cleanName = name.trim().toUpperCase();
+    const cleanRollNumber = (body.rollNumber || SINGLE_STUDENT.rollNumber).trim().toUpperCase();
+    const cleanName = (body.name || SINGLE_STUDENT.name).trim().toUpperCase();
 
     const candidate = await prisma.candidate.upsert({
       where: { rollNumber: cleanRollNumber },
       update: {
         name: cleanName,
-        email: email ? email.trim() : null,
+        email: body.email ? body.email.trim() : SINGLE_STUDENT.email,
       },
       create: {
         rollNumber: cleanRollNumber,
         name: cleanName,
-        email: email ? email.trim() : null,
-        avatarUrl: '/candidate-avatar.png',
+        email: body.email ? body.email.trim() : SINGLE_STUDENT.email,
+        avatarUrl: SINGLE_STUDENT.avatarUrl,
       },
     });
 
     const response = NextResponse.json({ success: true, candidate });
 
-    // Store candidate rollNumber in cookie for persistence
     response.cookies.set('neet_candidate_roll', candidate.rollNumber, {
       path: '/',
       httpOnly: false,
-      maxAge: 60 * 60 * 24 * 30, // 30 days
+      maxAge: 60 * 60 * 24 * 365,
+    });
+
+    response.cookies.set('neet_candidate_name', candidate.name, {
+      path: '/',
+      httpOnly: false,
+      maxAge: 60 * 60 * 24 * 365,
     });
 
     return response;
@@ -47,4 +51,3 @@ export async function POST(req: NextRequest) {
     );
   }
 }
-

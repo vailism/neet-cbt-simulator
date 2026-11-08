@@ -6,7 +6,7 @@ export const dynamic = 'force-dynamic';
 export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
-    const candidateRoll = searchParams.get('rollNumber');
+    const candidateRoll = searchParams.get('rollNumber') || '240410012345';
 
     let candidateId: string | undefined;
     if (candidateRoll) {

@@ -2,15 +2,15 @@
 
 import React, { useEffect, useState } from 'react';
 import { usePathname } from 'next/navigation';
-import { BookOpen, CheckCircle, FileText, LayoutDashboard, Settings, User } from 'lucide-react';
+import { BookOpen, CheckCircle, FileText, LayoutDashboard, User } from 'lucide-react';
+import { SINGLE_STUDENT } from '@/lib/auth';
 
 export const SiteNav: React.FC = () => {
   const pathname = usePathname();
-  const [candidateRoll, setCandidateRoll] = useState<string | null>(null);
-  const [candidateName, setCandidateName] = useState<string | null>(null);
+  const [candidateRoll, setCandidateRoll] = useState<string>(SINGLE_STUDENT.rollNumber);
+  const [candidateName, setCandidateName] = useState<string>(SINGLE_STUDENT.name);
 
   useEffect(() => {
-    // Check localStorage or cookies for active candidate
     const roll = localStorage.getItem('neet_candidate_roll');
     const name = localStorage.getItem('neet_candidate_name');
     if (roll) setCandidateRoll(roll);
@@ -27,7 +27,6 @@ export const SiteNav: React.FC = () => {
     { href: '/papers', label: '100 Mock Papers', icon: BookOpen },
     { href: '/practice', label: 'Practice Mode', icon: CheckCircle },
     { href: '/dashboard', label: 'Student Dashboard', icon: LayoutDashboard },
-    { href: '/admin', label: 'Question Bank', icon: Settings },
   ];
 
   return (
@@ -73,7 +72,7 @@ export const SiteNav: React.FC = () => {
               <a
                 key={item.href}
                 href={item.href}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold transition-colors ${
+                className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-md text-xs font-semibold transition-colors ${
                   isActive
                     ? 'bg-blue-50 text-blue-700 font-bold'
                     : 'text-gray-600 hover:text-blue-700 hover:bg-gray-50'
@@ -88,32 +87,22 @@ export const SiteNav: React.FC = () => {
 
         {/* Candidate Profile Pill */}
         <div className="flex items-center gap-2">
-          {candidateRoll ? (
-            <a
-              href="/dashboard"
-              className="flex items-center gap-2 bg-blue-50 hover:bg-blue-100 border border-blue-200 px-2.5 py-1 rounded-full text-xs transition-colors"
-            >
-              <div className="w-6 h-6 rounded-full bg-blue-600 text-white flex items-center justify-center text-[10px] font-bold">
-                {candidateName ? candidateName.charAt(0) : 'C'}
+          <a
+            href="/dashboard"
+            className="flex items-center gap-2 bg-blue-50 hover:bg-blue-100 border border-blue-200 px-3 py-1 rounded-full text-xs transition-colors"
+          >
+            <div className="w-6 h-6 rounded-full bg-blue-600 text-white flex items-center justify-center text-[10px] font-bold">
+              {candidateName ? candidateName.charAt(0) : 'K'}
+            </div>
+            <div className="text-left hidden sm:block">
+              <div className="font-bold text-blue-900 text-[11px] leading-tight">
+                {candidateName}
               </div>
-              <div className="text-left hidden sm:block">
-                <div className="font-bold text-blue-900 text-[11px] leading-tight">
-                  {candidateName || 'Candidate'}
-                </div>
-                <div className="text-[9px] text-blue-600 font-mono">
-                  {candidateRoll}
-                </div>
+              <div className="text-[9px] text-blue-600 font-mono font-medium">
+                {candidateRoll}
               </div>
-            </a>
-          ) : (
-            <a
-              href="/"
-              className="flex items-center gap-1.5 text-xs bg-blue-600 hover:bg-blue-700 text-white font-semibold px-3 py-1.5 rounded-md transition-colors shadow-sm"
-            >
-              <User className="w-3.5 h-3.5" />
-              Candidate Login
-            </a>
-          )}
+            </div>
+          </a>
         </div>
       </div>
     </header>

@@ -7,9 +7,12 @@ export async function GET(
   { params }: { params: { rollNumber: string } }
 ) {
   try {
-    const rollNumber = params.rollNumber.trim().toUpperCase();
+    let rollNumber = params.rollNumber.trim().toUpperCase();
+    if (rollNumber === 'ME' || rollNumber === 'DEFAULT') {
+      rollNumber = '240410012345';
+    }
 
-    const candidate = await prisma.candidate.findUnique({
+    let candidate = await prisma.candidate.findUnique({
       where: { rollNumber },
       include: {
         attempts: {

@@ -1,12 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { prisma } from '@/lib/prisma';
 import { generateExamAttempt } from '@/lib/examEngine';
 import { ExamMode } from '@prisma/client';
 
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
+    let candidateId = body.candidateId;
     const {
-      candidateId,
       mode = 'FULL_MOCK',
       configCode = 'NEET_UG_DEFAULT',
       subjectFilter,
@@ -16,9 +17,16 @@ export async function POST(req: NextRequest) {
     } = body;
 
     if (!candidateId) {
+      const candidate = await prisma.candidate.findUnique({
+        where: { rollNumber: '240410012345' },
+      });
+      if (candidate) candidateId = candidate.id;
+    }
+
+    if (!candidateId) {
       return NextResponse.json(
-        { error: 'candidateId is required.' },
-        { status: 400 }
+        { error: 'Default candidate not found in database.' },
+        { status: 500 }
       );
     }
 
@@ -47,4 +55,3 @@ export async function POST(req: NextRequest) {
     );
   }
 }
-

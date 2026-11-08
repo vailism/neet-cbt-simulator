@@ -20,9 +20,16 @@ export async function POST(
     }
 
     if (!candidateId) {
+      const candidate = await prisma.candidate.findUnique({
+        where: { rollNumber: '240410012345' },
+      });
+      if (candidate) candidateId = candidate.id;
+    }
+
+    if (!candidateId) {
       return NextResponse.json(
-        { error: 'Valid candidate ID or roll number is required.' },
-        { status: 400 }
+        { error: 'Default candidate not found in database.' },
+        { status: 500 }
       );
     }
 

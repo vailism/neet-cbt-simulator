@@ -14,7 +14,6 @@ import {
   Layers,
   Search,
   Filter,
-  Plus,
   ArrowRight,
   TrendingUp,
 } from 'lucide-react';
@@ -52,7 +51,6 @@ export default function MockPaperLibraryPage() {
 
   const [statusFilter, setStatusFilter] = useState<'ALL' | 'UNATTEMPTED' | 'COMPLETED' | 'IN_PROGRESS'>('ALL');
   const [searchQuery, setSearchQuery] = useState('');
-  const [generatingMore, setGeneratingMore] = useState(false);
 
   const [candidateRoll, setCandidateRoll] = useState('240410012345');
   const [candidateName, setCandidateName] = useState('KUMAR ADITYA');
@@ -104,37 +102,6 @@ export default function MockPaperLibraryPage() {
     }
   };
 
-  const handleGenerateNextBatch = async () => {
-    setGeneratingMore(true);
-    try {
-      const currentHighest = papers.length > 0 ? Math.max(...papers.map((p) => p.paperNumber)) : 0;
-      const startNumber = currentHighest + 1;
-      const endNumber = Math.min(100, startNumber + 9);
-
-      if (startNumber > 100) {
-        alert('All 100 mock papers have already been generated!');
-        setGeneratingMore(false);
-        return;
-      }
-
-      const res = await fetch('/api/papers/generate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ startNumber, endNumber }),
-      });
-
-      const json = await res.json();
-      if (!res.ok) throw new Error(json.error || 'Failed to generate more papers.');
-
-      alert(`Successfully generated Mock Papers ${startNumber} to ${endNumber}!`);
-      loadPapers();
-    } catch (e: any) {
-      alert(e.message || 'Error generating papers.');
-    } finally {
-      setGeneratingMore(false);
-    }
-  };
-
   const filteredPapers = papers.filter((p) => {
     if (statusFilter === 'UNATTEMPTED' && p.attemptStatus !== 'NOT_STARTED') return false;
     if (statusFilter === 'COMPLETED' && p.attemptStatus !== 'COMPLETED') return false;
@@ -157,23 +124,19 @@ export default function MockPaperLibraryPage() {
                 <Sparkles className="w-3.5 h-3.5 text-amber-300" />
                 <span>NEET UG 2027 Official CBT Mock Examinations</span>
               </div>
-              <h1 className="text-xl sm:text-3xl font-black mb-2">NEET Mock Test Library (01 – 10)</h1>
+              <h1 className="text-xl sm:text-3xl font-black mb-2">NEET Mock Test Library (01 – 100)</h1>
               <p className="text-blue-100 text-xs sm:text-sm max-w-2xl leading-relaxed">
-                Complete 10 full-length, authentic 180-question NEET CBT mock examinations generated from our validated question bank.
+                Complete 100 full-length, authentic 180-question NEET CBT mock examinations generated from our validated question bank.
                 Each paper adheres strictly to NTA difficulty distribution (54 Easy, 90 Moderate, 36 Difficult)
                 and official 45-question subject partitions with zero question repetition.
               </p>
             </div>
 
             <div className="flex flex-col sm:flex-row items-center gap-2">
-              <button
-                onClick={handleGenerateNextBatch}
-                disabled={generatingMore || papers.length >= 100}
-                className="bg-amber-500 hover:bg-amber-600 disabled:opacity-50 text-blue-950 text-xs font-bold px-4 py-2.5 rounded-lg shadow transition-colors flex items-center gap-1.5"
-              >
-                <Plus className="w-4 h-4" />
-                {generatingMore ? 'Generating Papers...' : 'Generate Next 10 Mock Papers'}
-              </button>
+              <div className="bg-blue-800/80 border border-blue-400/40 text-blue-100 text-xs font-semibold px-4 py-2.5 rounded-lg flex items-center gap-2">
+                <BookOpen className="w-4 h-4 text-amber-300" />
+                <span>100 Full-Length Mocks Ready</span>
+              </div>
             </div>
           </div>
         </div>
