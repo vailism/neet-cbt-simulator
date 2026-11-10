@@ -14,6 +14,7 @@ import {
   Award,
   ChevronRight,
   ChevronLeft,
+  Printer,
 } from 'lucide-react';
 import { MathRenderer } from '@/components/MathRenderer';
 
@@ -172,12 +173,22 @@ export default function ExamSolutionsReviewPage() {
             </div>
           </div>
 
-          <button
-            onClick={() => router.push('/dashboard')}
-            className="text-xs bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold px-3 py-1.5 rounded-lg border border-gray-300"
-          >
-            Student Dashboard
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => router.push(`/exam/${attemptId}/print`)}
+              className="text-xs bg-blue-700 hover:bg-blue-800 text-white font-bold px-3 py-1.5 rounded-lg shadow-sm flex items-center gap-1.5 cursor-pointer transition-colors"
+              title="Print official test booklet or export PDF"
+            >
+              <Printer className="w-3.5 h-3.5" />
+              <span>Print Booklet / PDF</span>
+            </button>
+            <button
+              onClick={() => router.push('/dashboard')}
+              className="text-xs bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold px-3 py-1.5 rounded-lg border border-gray-300"
+            >
+              Student Dashboard
+            </button>
+          </div>
         </div>
 
         {/* Filter Pills Strip */}

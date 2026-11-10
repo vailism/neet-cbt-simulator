@@ -98,6 +98,7 @@ export default function ExamInterfacePage() {
   const [tabSwitchCount, setTabSwitchCount] = useState(0);
   const [showTabWarning, setShowTabWarning] = useState(false);
   const [questionLiveSeconds, setQuestionLiveSeconds] = useState(0);
+  const [pendingSyncCount, setPendingSyncCount] = useState(0);
 
   // Question Time Tracking
   const questionStartTimeRef = useRef<number>(Date.now());
@@ -273,26 +274,100 @@ export default function ExamInterfacePage() {
     }
   }, [activeQuestionIndex]);
 
-  // Save Answer to PostgreSQL via API
+  // 1b. Offline Sync Queue Helper
+  const getQueue = useCallback((): Array<any> => {
+    if (typeof window === 'undefined') return [];
+    try {
+      return JSON.parse(localStorage.getItem(`neet_queue_${attemptId}`) || '[]');
+    } catch {
+      return [];
+    }
+  }, [attemptId]);
+
+  const setQueue = useCallback((q: Array<any>) => {
+    if (typeof window === 'undefined') return;
+    try {
+      localStorage.setItem(`neet_queue_${attemptId}`, JSON.stringify(q));
+      setPendingSyncCount(q.length);
+    } catch (e) {
+      console.warn('LocalStorage queue write failed', e);
+    }
+  }, [attemptId]);
+
+  // Flush Queue to Server
+  const flushSyncQueue = useCallback(async () => {
+    const queue = getQueue();
+    if (queue.length === 0) return;
+
+    const remainingQueue: Array<any> = [];
+    for (const item of queue) {
+      try {
+        const res = await fetch(`/api/exam/${attemptId}/answer`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(item),
+        });
+        if (!res.ok) {
+          remainingQueue.push(item);
+        }
+      } catch {
+        remainingQueue.push(item);
+      }
+    }
+    setQueue(remainingQueue);
+  }, [attemptId, getQueue, setQueue]);
+
+  // Background queue flusher (every 4s and on online event)
+  useEffect(() => {
+    const interval = setInterval(flushSyncQueue, 4000);
+    window.addEventListener('online', flushSyncQueue);
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('online', flushSyncQueue);
+    };
+  }, [flushSyncQueue]);
+
+  // Save Answer to PostgreSQL via API with local caching fallback
   const saveAnswerToServer = async (
     attemptQuestionId: string,
     selectedOption: number | null,
     status: QuestionStatusType,
     timeDelta: number
   ) => {
+    const payload = {
+      attemptQuestionId,
+      selectedOption,
+      status,
+      timeSpentDeltaSeconds: timeDelta,
+    };
+
+    // Cache entire attempt in localStorage for disaster recovery
+    if (examData && typeof window !== 'undefined') {
+      try {
+        localStorage.setItem(`neet_attempt_cache_${attemptId}`, JSON.stringify(examData));
+      } catch (e) {
+        // Ignore cache storage overflow
+      }
+    }
+
     try {
-      await fetch(`/api/exam/${attemptId}/answer`, {
+      const res = await fetch(`/api/exam/${attemptId}/answer`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          attemptQuestionId,
-          selectedOption,
-          status,
-          timeSpentDeltaSeconds: timeDelta,
-        }),
+        body: JSON.stringify(payload),
       });
+
+      if (!res.ok) {
+        // Enqueue for background retry
+        const q = getQueue();
+        q.push(payload);
+        setQueue(q);
+      }
     } catch (e) {
-      console.error('Failed to sync answer with server:', e);
+      // Network failure / offline: enqueue safely
+      const q = getQueue();
+      q.push(payload);
+      setQueue(q);
     }
   };
 
@@ -605,6 +680,26 @@ export default function ExamInterfacePage() {
               {isFullscreen ? <Minimize className="w-3.5 h-3.5" /> : <Maximize className="w-3.5 h-3.5" />}
               <span className="hidden sm:inline">{isFullscreen ? 'Exit Kiosk' : 'Kiosk Mode'}</span>
             </button>
+
+            {/* Real-time Sync Indicator */}
+            <div className="hidden sm:flex items-center gap-1.5 px-2 py-1.5 rounded-md text-[11px] font-medium bg-blue-950/60 border border-blue-400/20">
+              {pendingSyncCount > 0 ? (
+                <>
+                  <span className="w-2 h-2 rounded-full bg-amber-400 animate-ping" />
+                  <span className="text-amber-300 font-mono text-[10px]">Syncing ({pendingSyncCount})</span>
+                </>
+              ) : isOffline ? (
+                <>
+                  <span className="w-2 h-2 rounded-full bg-red-400" />
+                  <span className="text-red-300 font-mono text-[10px]">Offline Saved</span>
+                </>
+              ) : (
+                <>
+                  <span className="w-2 h-2 rounded-full bg-emerald-400" />
+                  <span className="text-emerald-300 font-mono text-[10px]">Auto-Synced</span>
+                </>
+              )}
+            </div>
 
             {/* Countdown Timer Display */}
             <div

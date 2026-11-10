@@ -19,6 +19,9 @@ import {
   Edit2,
   Target,
   Play,
+  Layers,
+  Flame,
+  ChevronRight,
 } from 'lucide-react';
 import {
   getClientCandidate,
@@ -73,6 +76,17 @@ interface DashboardData {
     botanyScore: number | null;
     zoologyScore: number | null;
   }>;
+  chapterHeatmap?: Array<{
+    chapterId: string;
+    chapterName: string;
+    subjectCode: string;
+    subjectName: string;
+    totalAttempted: number;
+    correct: number;
+    incorrect: number;
+    accuracy: number | null;
+    status: 'MASTERED' | 'PRACTICE' | 'CRITICAL' | 'UNATTEMPTED';
+  }>;
 }
 
 export default function DashboardPage() {
@@ -84,6 +98,7 @@ export default function DashboardPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [mistakeCount, setMistakeCount] = useState<number>(0);
   const [drillLoading, setDrillLoading] = useState(false);
+  const [activeHeatmapSubject, setActiveHeatmapSubject] = useState<'ALL' | 'PHYSICS' | 'CHEMISTRY' | 'BOTANY' | 'ZOOLOGY'>('ALL');
 
   const fetchDashboard = useCallback(async (roll: string) => {
     setLoading(true);
@@ -291,6 +306,124 @@ export default function DashboardPage() {
             <div className="text-[11px] text-purple-600 mt-1">Precision rate</div>
           </div>
         </div>
+
+        {/* NCERT CHAPTER MASTER HEATMAP */}
+        {data.chapterHeatmap && data.chapterHeatmap.length > 0 && (
+          <div className="bg-white rounded-xl border border-gray-200 shadow-xs p-5">
+            <div className="flex flex-wrap items-center justify-between gap-3 pb-4 border-b border-gray-100">
+              <div>
+                <h2 className="font-bold text-sm text-gray-900 flex items-center gap-2">
+                  <Layers className="w-4 h-4 text-indigo-600" />
+                  NCERT Chapter Master Heatmap ({data.chapterHeatmap.length} Chapters)
+                </h2>
+                <p className="text-xs text-gray-500 mt-0.5">
+                  Real-time accuracy and mastery distribution tracked across all your official mock exam attempts.
+                </p>
+              </div>
+
+              {/* Status Pills Summary */}
+              <div className="flex flex-wrap items-center gap-2 text-[11px]">
+                <span className="px-2.5 py-1 rounded-md bg-emerald-100 text-emerald-800 font-bold border border-emerald-200">
+                  {data.chapterHeatmap.filter((c) => c.status === 'MASTERED').length} Mastered (≥75%)
+                </span>
+                <span className="px-2.5 py-1 rounded-md bg-amber-100 text-amber-800 font-bold border border-amber-200">
+                  {data.chapterHeatmap.filter((c) => c.status === 'PRACTICE').length} Needs Practice (50–74%)
+                </span>
+                <span className="px-2.5 py-1 rounded-md bg-rose-100 text-rose-800 font-bold border border-rose-200">
+                  {data.chapterHeatmap.filter((c) => c.status === 'CRITICAL').length} Critical Gap (&lt;50%)
+                </span>
+                <span className="px-2.5 py-1 rounded-md bg-gray-100 text-gray-700 font-medium border border-gray-200">
+                  {data.chapterHeatmap.filter((c) => c.status === 'UNATTEMPTED').length} Unattempted
+                </span>
+              </div>
+            </div>
+
+            {/* Subject Tabs */}
+            <div className="flex flex-wrap items-center gap-2 mt-4 mb-4">
+              {(['ALL', 'PHYSICS', 'CHEMISTRY', 'BOTANY', 'ZOOLOGY'] as const).map((sub) => (
+                <button
+                  key={sub}
+                  onClick={() => setActiveHeatmapSubject(sub)}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                    activeHeatmapSubject === sub
+                      ? 'bg-blue-900 text-white shadow-sm'
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }`}
+                >
+                  {sub === 'ALL' ? 'All 4 Subjects' : sub}
+                </button>
+              ))}
+            </div>
+
+            {/* Chapters Grid */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2.5 max-h-[460px] overflow-y-auto pr-1">
+              {data.chapterHeatmap
+                .filter((ch) => activeHeatmapSubject === 'ALL' || ch.subjectCode === activeHeatmapSubject)
+                .map((ch) => {
+                  const badgeConfig = {
+                    MASTERED: {
+                      bg: 'bg-emerald-50 border-emerald-200',
+                      badge: 'bg-emerald-600 text-white',
+                      text: 'text-emerald-950',
+                      label: `${ch.accuracy}% Mastered`,
+                    },
+                    PRACTICE: {
+                      bg: 'bg-amber-50 border-amber-200',
+                      badge: 'bg-amber-500 text-white',
+                      text: 'text-amber-950',
+                      label: `${ch.accuracy}% Review`,
+                    },
+                    CRITICAL: {
+                      bg: 'bg-rose-50 border-rose-200',
+                      badge: 'bg-rose-600 text-white',
+                      text: 'text-rose-950',
+                      label: `${ch.accuracy}% Critical`,
+                    },
+                    UNATTEMPTED: {
+                      bg: 'bg-gray-50 border-gray-200',
+                      badge: 'bg-gray-300 text-gray-700',
+                      text: 'text-gray-700',
+                      label: 'Unattempted',
+                    },
+                  }[ch.status];
+
+                  return (
+                    <div
+                      key={ch.chapterId}
+                      className={`p-3 rounded-lg border transition-all flex flex-col justify-between ${badgeConfig.bg}`}
+                    >
+                      <div>
+                        <div className="flex items-center justify-between gap-1 mb-1.5">
+                          <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">
+                            {ch.subjectName}
+                          </span>
+                          <span className={`text-[10px] font-black px-1.5 py-0.5 rounded ${badgeConfig.badge}`}>
+                            {badgeConfig.label}
+                          </span>
+                        </div>
+                        <div className={`text-xs font-bold line-clamp-2 ${badgeConfig.text}`} title={ch.chapterName}>
+                          {ch.chapterName}
+                        </div>
+                      </div>
+
+                      <div className="mt-2.5 pt-2 border-t border-black/5 flex items-center justify-between text-[11px]">
+                        <span className="text-gray-500 font-mono text-[10px]">
+                          {ch.totalAttempted > 0 ? `${ch.correct}/${ch.totalAttempted} Qs` : '0 Qs taken'}
+                        </span>
+                        <button
+                          onClick={() => router.push('/practice')}
+                          className="text-[11px] font-bold text-blue-700 hover:text-blue-900 flex items-center gap-0.5 cursor-pointer"
+                        >
+                          Practice
+                          <ChevronRight className="w-3 h-3" />
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+            </div>
+          </div>
+        )}
 
         {/* RECENT ATTEMPTS & HISTORY */}
         <div className="bg-white rounded-xl border border-gray-200 shadow-xs overflow-hidden">

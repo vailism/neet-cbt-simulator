@@ -26,6 +26,7 @@ import {
   Target,
   Flame,
   Play,
+  Printer,
 } from 'lucide-react';
 import {
   BarChart,
@@ -835,6 +836,15 @@ export default function ExamResultPage() {
           </button>
 
           <div className="flex flex-wrap items-center gap-3">
+            <button
+              onClick={() => router.push(`/exam/${attemptId}/print`)}
+              className="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 text-xs font-bold px-4 py-2 rounded-lg transition-colors flex items-center gap-1.5 cursor-pointer"
+              title="Print official NEET question paper booklet and solutions"
+            >
+              <Printer className="w-4 h-4 text-indigo-600" />
+              <span>Print Booklet / PDF</span>
+            </button>
+
             {overall.incorrectCount > 0 && (
               <button
                 onClick={handleLaunchMistakeDrill}
