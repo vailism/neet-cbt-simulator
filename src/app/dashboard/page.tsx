@@ -17,6 +17,8 @@ import {
   RotateCcw,
   Sparkles,
   Edit2,
+  Target,
+  Play,
 } from 'lucide-react';
 import {
   getClientCandidate,
@@ -24,6 +26,7 @@ import {
   DEFAULT_CANDIDATE,
 } from '@/lib/candidateClient';
 import { CandidateModal } from '@/components/CandidateModal';
+import { calculateNeetPrediction } from '@/lib/neetPredictor';
 
 interface DashboardData {
   candidate: {
@@ -79,6 +82,8 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [mistakeCount, setMistakeCount] = useState<number>(0);
+  const [drillLoading, setDrillLoading] = useState(false);
 
   const fetchDashboard = useCallback(async (roll: string) => {
     setLoading(true);
@@ -87,12 +92,38 @@ export default function DashboardPage() {
       const json = await res.json();
       if (!res.ok) throw new Error(json.error || 'Failed to fetch dashboard data.');
       setData(json);
+
+      // Also check mistake drill count
+      const mistakeRes = await fetch(`/api/exam/mistake-drill?rollNumber=${encodeURIComponent(roll)}`);
+      const mistakeJson = await mistakeRes.json();
+      if (mistakeJson.success) {
+        setMistakeCount(mistakeJson.mistakeCount || 0);
+      }
     } catch (e: any) {
       setError(e.message || 'Failed to fetch dashboard data.');
     } finally {
       setLoading(false);
     }
   }, []);
+
+  const handleLaunchMistakeDrill = async () => {
+    const current = getClientCandidate();
+    setDrillLoading(true);
+    try {
+      const res = await fetch('/api/exam/mistake-drill', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ rollNumber: current.rollNumber }),
+      });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error || 'Failed to start remedial drill.');
+      router.push(`/exam/${json.attemptId}`);
+    } catch (e: any) {
+      alert(e.message || 'Failed to start mistake drill.');
+    } finally {
+      setDrillLoading(false);
+    }
+  };
 
   useEffect(() => {
     const current = getClientCandidate();
@@ -145,6 +176,8 @@ export default function DashboardPage() {
     { subject: 'Zoology', avgScore: stats.subjectAverages.zoology, max: 180 },
   ];
 
+  const prediction = calculateNeetPrediction(stats.highestScore || stats.averageScore);
+
   return (
     <div className="flex-1 bg-gray-50 py-8 px-4">
       <div className="max-w-6xl mx-auto space-y-6">
@@ -163,7 +196,18 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-2.5">
+            {mistakeCount > 0 && (
+              <button
+                onClick={handleLaunchMistakeDrill}
+                disabled={drillLoading}
+                className="bg-amber-400 hover:bg-amber-300 disabled:opacity-50 text-blue-950 font-black text-xs px-3.5 py-2.5 rounded-lg shadow-sm transition-all flex items-center gap-1.5 cursor-pointer"
+                title="Launch a personalized test of past mistake questions"
+              >
+                <Target className="w-4 h-4 text-red-700" />
+                <span>{drillLoading ? 'Loading...' : `Mistake Drill (${mistakeCount} Qs)`}</span>
+              </button>
+            )}
             <button
               onClick={() => setIsModalOpen(true)}
               className="bg-blue-50 hover:bg-blue-100 text-blue-800 border border-blue-200 text-xs font-bold px-3.5 py-2.5 rounded-lg transition-colors flex items-center gap-1.5 cursor-pointer"
@@ -178,6 +222,28 @@ export default function DashboardPage() {
             </button>
           </div>
         </div>
+
+        {/* PROJECTED NEET UG STANDING & COLLEGE TARGET */}
+        {stats.totalAttempts > 0 && (
+          <div className="bg-gradient-to-r from-blue-900 to-indigo-950 text-white rounded-xl p-5 shadow-sm flex flex-wrap items-center justify-between gap-4">
+            <div>
+              <div className="text-[10px] font-bold uppercase tracking-wider text-blue-200 flex items-center gap-1.5">
+                <Target className="w-3.5 h-3.5 text-amber-300" />
+                <span>NTA Percentile & Cutoff Projection (Based on Best Score: {stats.highestScore}/720)</span>
+              </div>
+              <div className="text-xl font-black mt-1 flex items-center gap-2">
+                <span>{prediction.estimatedAirRange}</span>
+                <span className="text-xs font-semibold text-emerald-300">({prediction.estimatedPercentile}%ile)</span>
+              </div>
+              <p className="text-xs text-blue-100 mt-1 max-w-xl">
+                {prediction.admissionOutlook}
+              </p>
+            </div>
+            <div className={`px-3 py-1.5 rounded-lg text-xs font-bold border ${prediction.tierColor}`}>
+              {prediction.badge}
+            </div>
+          </div>
+        )}
 
         {/* METRICS SUMMARY CARDS */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">

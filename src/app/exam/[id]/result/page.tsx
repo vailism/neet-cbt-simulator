@@ -23,6 +23,9 @@ import {
   ChevronDown,
   ChevronUp,
   Search,
+  Target,
+  Flame,
+  Play,
 } from 'lucide-react';
 import {
   BarChart,
@@ -41,6 +44,7 @@ import {
 } from 'recharts';
 import confetti from 'canvas-confetti';
 import { MathRenderer } from '@/components/MathRenderer';
+import { calculateNeetPrediction } from '@/lib/neetPredictor';
 
 interface ResultData {
   attemptId: string;
@@ -129,6 +133,14 @@ interface ResultData {
     slowestQuestions: Array<{ order: number; subject: string; timeSpent: number; isCorrect: boolean | null }>;
     fastestQuestions: Array<{ order: number; subject: string; timeSpent: number; isCorrect: boolean | null }>;
   };
+  questions?: Array<{
+    id: string;
+    questionOrder: number;
+    subjectCode: string;
+    timeSpentSeconds: number;
+    isCorrect: boolean | null;
+    status: string;
+  }>;
 }
 
 export default function ExamResultPage() {
@@ -168,6 +180,26 @@ export default function ExamResultPage() {
     }
     loadResult();
   }, [attemptId]);
+
+  const [drillLoading, setDrillLoading] = useState(false);
+
+  const handleLaunchMistakeDrill = async () => {
+    if (!data?.candidate?.rollNumber) return;
+    setDrillLoading(true);
+    try {
+      const res = await fetch('/api/exam/mistake-drill', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ rollNumber: data.candidate.rollNumber }),
+      });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error || 'Failed to start remedial drill.');
+      router.push(`/exam/${json.attemptId}`);
+    } catch (e: any) {
+      alert(e.message || 'Error launching drill.');
+      setDrillLoading(false);
+    }
+  };
 
   const toggleBookmark = (id: string) => {
     setBookmarkedIds((prev) => {
@@ -249,6 +281,16 @@ export default function ExamResultPage() {
     return c.chapter.toLowerCase().includes(q) || c.subject.toLowerCase().includes(q);
   });
 
+  const prediction = calculateNeetPrediction(overall.totalScore, overall.maxScore);
+
+  const timeTraps = (data.questions || []).filter(
+    (q: any) => (q.timeSpentSeconds || 0) >= 150 && q.isCorrect !== true
+  );
+  const totalTimeTrapSeconds = timeTraps.reduce(
+    (acc: number, q: any) => acc + (q.timeSpentSeconds || 0),
+    0
+  );
+
   return (
     <div className="flex-1 bg-gray-50 py-8 px-4">
       <div className="max-w-6xl mx-auto space-y-6">
@@ -283,6 +325,24 @@ export default function ExamResultPage() {
             </div>
           </div>
 
+          {/* Quick Mistake Drill Trigger */}
+          {overall.incorrectCount > 0 && (
+            <div className="mt-4 pt-4 border-t border-white/10 flex flex-wrap items-center justify-between gap-3">
+              <div className="text-xs text-blue-200">
+                You have <strong>{overall.incorrectCount} mistakes</strong> in this exam. Turn mistakes into mastery with an immediate remedial drill.
+              </div>
+              <button
+                onClick={handleLaunchMistakeDrill}
+                disabled={drillLoading}
+                className="bg-amber-400 hover:bg-amber-300 disabled:opacity-50 text-blue-950 font-black text-xs px-4 py-2 rounded-lg shadow-md transition-all flex items-center gap-2 cursor-pointer"
+              >
+                <Target className="w-4 h-4 text-red-700" />
+                <span>{drillLoading ? 'Building Drill...' : `Re-Test My ${overall.incorrectCount} Mistakes`}</span>
+                <Play className="w-3.5 h-3.5 fill-current" />
+              </button>
+            </div>
+          )}
+
           {/* Quick Metrics Strip */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-6 pt-6 border-t border-white/10 text-xs">
             <div className="bg-white/5 rounded-lg p-2.5">
@@ -308,6 +368,47 @@ export default function ExamResultPage() {
               <strong className="text-base text-amber-300 font-mono font-bold">
                 {formatSeconds(overall.totalTimeSpentSeconds)}
               </strong>
+            </div>
+          </div>
+        </div>
+
+        {/* NEET UG PREDICTED ALL INDIA RANK & COLLEGE TIER */}
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 overflow-hidden">
+          <div className="flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-gray-100">
+            <div>
+              <div className="text-[10px] font-bold uppercase tracking-wider text-blue-700 flex items-center gap-1.5">
+                <Target className="w-3.5 h-3.5 text-blue-600" />
+                <span>NTA Official Score vs Rank Calibration (NEET UG Standard)</span>
+              </div>
+              <h2 className="text-lg sm:text-xl font-black text-gray-900 mt-0.5">
+                Projected Standing: <span className="text-blue-900 font-mono">{prediction.estimatedAirRange}</span>
+              </h2>
+            </div>
+            <div className={`px-3 py-1 rounded-full text-xs font-bold border flex items-center gap-1.5 ${prediction.tierColor}`}>
+              <Award className="w-3.5 h-3.5" />
+              <span>{prediction.badge}</span>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+            <div className="p-3.5 bg-blue-50/70 border border-blue-200 rounded-xl">
+              <span className="text-[11px] font-bold text-blue-700 uppercase tracking-wide">Estimated Percentile</span>
+              <div className="text-2xl font-black text-blue-950 font-mono mt-1">
+                {prediction.estimatedPercentile}%ile
+              </div>
+              <p className="text-[10px] text-blue-700 mt-0.5">
+                Top {Math.max(0.01, Math.round((100 - prediction.estimatedPercentile) * 100) / 100)}% of candidates nationwide
+              </p>
+            </div>
+
+            <div className="p-3.5 bg-emerald-50/70 border border-emerald-200 rounded-xl md:col-span-2">
+              <span className="text-[11px] font-bold text-emerald-800 uppercase tracking-wide">Admission & College Outlook</span>
+              <div className="text-sm font-bold text-emerald-950 mt-1">
+                {prediction.admissionOutlook}
+              </div>
+              <p className="text-xs text-emerald-800 mt-1.5 leading-relaxed font-medium">
+                💡 <strong>Strategy:</strong> {prediction.guidance}
+              </p>
             </div>
           </div>
         </div>
@@ -357,6 +458,95 @@ export default function ExamResultPage() {
               <div className="text-[10px] text-amber-700">Percentage of earned score lost</div>
             </div>
           </div>
+        </div>
+
+        {/* 1b. TIME-MANAGEMENT & TIME-TRAP ANALYZER */}
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+          <div className="flex flex-wrap items-center justify-between pb-3 border-b border-gray-100 gap-2 mb-4">
+            <h3 className="font-bold text-gray-900 text-sm flex items-center gap-2">
+              <Clock className="w-4 h-4 text-amber-600" />
+              Time-Management & Pace Analyzer (Time Traps)
+            </h3>
+            <span className="text-xs text-gray-500 font-medium">
+              Average Pace: <strong>{overall.averageTimePerQuestion}s / Question</strong>
+            </span>
+          </div>
+
+          {/* Subject Speed Grid */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-5">
+            {[
+              {
+                sub: 'Physics',
+                target: '80–90s',
+                actual: Math.round(
+                  (subjectWise.find((s) => s.subject === 'PHYSICS')?.timeSpentSeconds || 0) / 45
+                ),
+                color: 'text-blue-700',
+              },
+              {
+                sub: 'Chemistry',
+                target: '50–60s',
+                actual: Math.round(
+                  (subjectWise.find((s) => s.subject === 'CHEMISTRY')?.timeSpentSeconds || 0) / 45
+                ),
+                color: 'text-purple-700',
+              },
+              {
+                sub: 'Botany',
+                target: '35–45s',
+                actual: Math.round(
+                  (subjectWise.find((s) => s.subject === 'BOTANY')?.timeSpentSeconds || 0) / 45
+                ),
+                color: 'text-emerald-700',
+              },
+              {
+                sub: 'Zoology',
+                target: '35–45s',
+                actual: Math.round(
+                  (subjectWise.find((s) => s.subject === 'ZOOLOGY')?.timeSpentSeconds || 0) / 45
+                ),
+                color: 'text-amber-700',
+              },
+            ].map((item) => (
+              <div key={item.sub} className="p-3 bg-gray-50 rounded-lg border border-gray-200 text-xs">
+                <div className="font-bold text-gray-800">{item.sub}</div>
+                <div className={`text-lg font-black font-mono mt-0.5 ${item.color}`}>
+                  {item.actual}s <span className="text-[10px] text-gray-500 font-normal">/ Q</span>
+                </div>
+                <div className="text-[10px] text-gray-500">Target Pace: {item.target}</div>
+              </div>
+            ))}
+          </div>
+
+          {/* Time Trap Summary Banner */}
+          {timeTraps.length > 0 ? (
+            <div className="p-3.5 bg-red-50 border border-red-200 rounded-lg text-xs space-y-2">
+              <div className="flex items-center gap-2 text-red-900 font-bold">
+                <AlertTriangle className="w-4 h-4 text-red-600" />
+                <span>
+                  {timeTraps.length} Time Trap Questions Identified ({formatSeconds(totalTimeTrapSeconds)} Wasted)
+                </span>
+              </div>
+              <p className="text-red-800 text-[11px] leading-relaxed">
+                You spent over 2.5 minutes on these questions and still got negative or zero marks. In NEET, avoiding these time traps frees up 10–15 minutes for scoring questions in Biology and Chemistry:
+              </p>
+              <div className="flex flex-wrap gap-2 pt-1">
+                {timeTraps.slice(0, 8).map((trap: any) => (
+                  <span
+                    key={trap.id}
+                    className="bg-white border border-red-300 text-red-800 px-2 py-0.5 rounded text-[10px] font-mono font-bold"
+                  >
+                    Q{trap.questionOrder} ({trap.subjectCode}) • {trap.timeSpentSeconds}s ({trap.status === 'NOT_ANSWERED' ? 'Skipped' : 'Incorrect'})
+                  </span>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <div className="p-3 bg-green-50 border border-green-200 rounded-lg text-xs text-green-900 flex items-center gap-2">
+              <CheckCircle className="w-4 h-4 text-green-600 shrink-0" />
+              <span>Flawless Time Discipline! Zero time traps (&gt; 2.5 mins on wrong answers) detected in this exam.</span>
+            </div>
+          )}
         </div>
 
         {/* 2. PREVIOUS MOCK COMPARISON (HISTORICAL TIMELINE) */}
@@ -644,16 +834,26 @@ export default function ExamResultPage() {
             Back to Home Portal
           </button>
 
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-3">
+            {overall.incorrectCount > 0 && (
+              <button
+                onClick={handleLaunchMistakeDrill}
+                disabled={drillLoading}
+                className="bg-amber-500 hover:bg-amber-600 disabled:opacity-50 text-blue-950 text-xs font-black px-4 py-2 rounded-lg shadow-sm transition-colors flex items-center gap-1.5 cursor-pointer"
+              >
+                <Target className="w-4 h-4 text-red-900" />
+                <span>{drillLoading ? 'Preparing Drill...' : `Mistake Drill (${overall.incorrectCount} Qs)`}</span>
+              </button>
+            )}
             <button
               onClick={() => router.push('/instructions')}
-              className="bg-gray-100 hover:bg-gray-200 text-gray-800 text-xs font-bold px-4 py-2 rounded-lg transition-colors"
+              className="bg-gray-100 hover:bg-gray-200 text-gray-800 text-xs font-bold px-4 py-2 rounded-lg transition-colors cursor-pointer"
             >
               Take Another Mock Exam
             </button>
             <button
               onClick={() => router.push(`/exam/${attemptId}/solutions`)}
-              className="bg-blue-700 hover:bg-blue-800 text-white text-xs font-bold px-5 py-2 rounded-lg shadow transition-colors flex items-center gap-1.5"
+              className="bg-blue-700 hover:bg-blue-800 text-white text-xs font-bold px-5 py-2 rounded-lg shadow transition-colors flex items-center gap-1.5 cursor-pointer"
             >
               Review All 180 Solutions
               <ArrowRight className="w-4 h-4" />

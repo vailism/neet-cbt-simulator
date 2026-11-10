@@ -18,6 +18,9 @@ import {
   Shield,
   X,
   Keyboard,
+  Maximize,
+  Minimize,
+  AlertTriangle,
 } from 'lucide-react';
 import { MathRenderer } from '@/components/MathRenderer';
 import { getUpdatedQuestionStatus } from '@/lib/examEngine';
@@ -89,6 +92,12 @@ export default function ExamInterfacePage() {
   const [showPaperModal, setShowPaperModal] = useState(false);
   const [showInstructionsModal, setShowInstructionsModal] = useState(false);
   const [showShortcutsModal, setShowShortcutsModal] = useState(false);
+
+  // Kiosk & Pacing State
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [tabSwitchCount, setTabSwitchCount] = useState(0);
+  const [showTabWarning, setShowTabWarning] = useState(false);
+  const [questionLiveSeconds, setQuestionLiveSeconds] = useState(0);
 
   // Question Time Tracking
   const questionStartTimeRef = useRef<number>(Date.now());
@@ -178,6 +187,61 @@ export default function ExamInterfacePage() {
       window.removeEventListener('beforeunload', handleBeforeUnload);
     };
   }, []);
+
+  // 3b. NTA Kiosk Mode & Tab-Switch Detection
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      setIsFullscreen(Boolean(document.fullscreenElement));
+    };
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'hidden') {
+        setTabSwitchCount((prev) => {
+          const updated = prev + 1;
+          setShowTabWarning(true);
+          return updated;
+        });
+      }
+    };
+
+    const handleWindowBlur = () => {
+      setTabSwitchCount((prev) => {
+        const updated = prev + 1;
+        setShowTabWarning(true);
+        return updated;
+      });
+    };
+
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('blur', handleWindowBlur);
+
+    return () => {
+      document.removeEventListener('fullscreenchange', handleFullscreenChange);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('blur', handleWindowBlur);
+    };
+  }, []);
+
+  // 3c. Question Pace Live Timer
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setQuestionLiveSeconds(Math.floor((Date.now() - questionStartTimeRef.current) / 1000));
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [activeQuestionIndex]);
+
+  const toggleFullscreen = async () => {
+    try {
+      if (!document.fullscreenElement) {
+        await document.documentElement.requestFullscreen();
+      } else {
+        await document.exitFullscreen();
+      }
+    } catch (e) {
+      console.warn('Fullscreen request:', e);
+    }
+  };
 
   // Format Timer as HH:MM:SS
   const formatTime = (totalSecs: number) => {
@@ -368,15 +432,18 @@ export default function ExamInterfacePage() {
       } else if (e.key === '4' || key === 'd') {
         e.preventDefault();
         setCurrentSelectedOption(4);
-      } else if (e.key === 'Enter') {
+      } else if (e.key === 'Enter' || e.code === 'Space') {
         e.preventDefault();
         handleSaveAndNext();
       } else if (key === 'm') {
         e.preventDefault();
         handleMarkForReviewAndNext();
-      } else if (e.key === 'Backspace') {
+      } else if (e.key === 'Backspace' || key === 'c') {
         e.preventDefault();
         handleClearResponse();
+      } else if (key === 'f') {
+        e.preventDefault();
+        toggleFullscreen();
       } else if (e.key === 'ArrowLeft' || key === 'p') {
         if (activeQuestionIndex > 0) {
           e.preventDefault();
@@ -523,10 +590,20 @@ export default function ExamInterfacePage() {
             <button
               onClick={() => setShowShortcutsModal(true)}
               className="hidden lg:flex items-center gap-1.5 bg-blue-800 hover:bg-blue-700 border border-blue-400/30 text-white text-xs font-semibold px-2.5 py-1.5 rounded transition-colors"
-              title="Keyboard Shortcuts (1-4, Enter, M, Backspace, Arrows)"
+              title="Keyboard Shortcuts (1-4, Enter, Space, M, C, Arrows, F)"
             >
               <Keyboard className="w-3.5 h-3.5 text-amber-300" />
               Shortcuts
+            </button>
+
+            {/* NTA Kiosk Mode Toggle */}
+            <button
+              onClick={toggleFullscreen}
+              className="flex items-center gap-1.5 bg-blue-800 hover:bg-blue-700 border border-blue-400/30 text-white text-xs font-semibold px-2.5 py-1.5 rounded transition-colors cursor-pointer"
+              title={isFullscreen ? 'Exit Kiosk Fullscreen' : 'Enter Kiosk Fullscreen (Exam Hall Mode)'}
+            >
+              {isFullscreen ? <Minimize className="w-3.5 h-3.5" /> : <Maximize className="w-3.5 h-3.5" />}
+              <span className="hidden sm:inline">{isFullscreen ? 'Exit Kiosk' : 'Kiosk Mode'}</span>
             </button>
 
             {/* Countdown Timer Display */}
@@ -555,6 +632,29 @@ export default function ExamInterfacePage() {
         </div>
       </header>
 
+      {/* NTA DISCIPLINE WARNING POPUP */}
+      {showTabWarning && (
+        <div className="fixed top-14 left-1/2 -translate-x-1/2 z-50 bg-amber-500 text-blue-950 font-bold px-4 py-2.5 rounded-xl shadow-2xl border-2 border-amber-600 flex items-center gap-3 animate-in fade-in slide-in-from-top-4 text-xs max-w-lg">
+          <AlertTriangle className="w-5 h-5 text-red-900 shrink-0" />
+          <div className="flex-1">
+            <div className="font-extrabold uppercase text-[11px] tracking-wide">
+              Official Examination Advisory Notice
+            </div>
+            <div className="text-[11px] font-medium text-blue-950 leading-tight mt-0.5">
+              Window focus switch detected (Switch Count: <strong>{tabSwitchCount}</strong>).
+              In official NEET CBT, navigation outside the exam window can cause automated disqualification.
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={() => setShowTabWarning(false)}
+            className="bg-blue-950 hover:bg-blue-900 text-white text-[10px] font-bold px-2.5 py-1 rounded-md shrink-0 cursor-pointer"
+          >
+            Acknowledge
+          </button>
+        </div>
+      )}
+
       {/* CANDIDATE INFO BAR */}
       <div className="bg-white border-b border-gray-200 px-4 py-1.5 text-xs flex flex-wrap items-center justify-between text-gray-700 shrink-0">
         <div className="flex items-center gap-4">
@@ -564,6 +664,12 @@ export default function ExamInterfacePage() {
           <div className="text-gray-500">
             Roll No: <span className="font-mono font-bold text-gray-800">{examData.candidate.rollNumber}</span>
           </div>
+          {tabSwitchCount > 0 && (
+            <span className="bg-amber-50 text-amber-900 border border-amber-300 font-mono font-bold text-[10px] px-2 py-0.5 rounded flex items-center gap-1">
+              <AlertTriangle className="w-3 h-3 text-red-600" />
+              Window Focus Switches: {tabSwitchCount}
+            </span>
+          )}
         </div>
         <div className="text-[11px] text-gray-500 hidden sm:block">
           Language: <span className="font-bold text-gray-700">English</span> | Marking Scheme: <span className="font-bold text-green-700">+4</span> / <span className="font-bold text-red-600">-1</span>
@@ -629,8 +735,21 @@ export default function ExamInterfacePage() {
             </div>
 
             <div className="flex items-center gap-3 font-semibold text-[11px]">
-              <span className="text-green-700">Marks for correct: +4</span>
-              <span className="text-red-600">Negative marks: -1</span>
+              <span
+                className={`px-2 py-0.5 rounded text-[10px] font-mono font-bold flex items-center gap-1 border ${
+                  questionLiveSeconds > 150
+                    ? 'bg-red-100 text-red-800 border-red-300 animate-pulse'
+                    : questionLiveSeconds > 90
+                    ? 'bg-amber-100 text-amber-800 border-amber-300'
+                    : 'bg-gray-100 text-gray-700 border-gray-200'
+                }`}
+                title="Pace on this question (Target: < 90s Physics, < 45s Biology)"
+              >
+                <Clock className="w-3 h-3" />
+                Time on Q: {questionLiveSeconds}s {questionLiveSeconds > 150 ? '⚠️ Time Trap!' : ''}
+              </span>
+              <span className="text-green-700">Marks: +4</span>
+              <span className="text-red-600">Negative: -1</span>
             </div>
           </div>
 
@@ -1016,7 +1135,7 @@ export default function ExamInterfacePage() {
               </div>
               <div className="flex justify-between items-center py-1.5 border-b border-gray-100">
                 <span className="font-semibold text-gray-700">Save & Next Question</span>
-                <span className="font-mono bg-gray-100 px-2 py-0.5 rounded border border-gray-300 text-green-700 font-bold">Enter</span>
+                <span className="font-mono bg-gray-100 px-2 py-0.5 rounded border border-gray-300 text-green-700 font-bold">Enter / Space</span>
               </div>
               <div className="flex justify-between items-center py-1.5 border-b border-gray-100">
                 <span className="font-semibold text-gray-700">Mark for Review & Next</span>
@@ -1024,7 +1143,11 @@ export default function ExamInterfacePage() {
               </div>
               <div className="flex justify-between items-center py-1.5 border-b border-gray-100">
                 <span className="font-semibold text-gray-700">Clear Current Selection</span>
-                <span className="font-mono bg-gray-100 px-2 py-0.5 rounded border border-gray-300 text-red-700 font-bold">Backspace</span>
+                <span className="font-mono bg-gray-100 px-2 py-0.5 rounded border border-gray-300 text-red-700 font-bold">C / Backspace</span>
+              </div>
+              <div className="flex justify-between items-center py-1.5 border-b border-gray-100">
+                <span className="font-semibold text-gray-700">Toggle Fullscreen Kiosk Mode</span>
+                <span className="font-mono bg-gray-100 px-2 py-0.5 rounded border border-gray-300 text-blue-700 font-bold">F</span>
               </div>
               <div className="flex justify-between items-center py-1.5 border-b border-gray-100">
                 <span className="font-semibold text-gray-700">Previous / Next Question</span>

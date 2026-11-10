@@ -16,6 +16,7 @@ import {
   CheckCircle2,
   Zap,
   Edit3,
+  Target,
 } from 'lucide-react';
 import {
   getClientCandidate,
@@ -35,23 +36,55 @@ export default function HomePage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [mistakeCount, setMistakeCount] = useState<number>(0);
+  const [drillLoading, setDrillLoading] = useState(false);
+
+  const fetchMistakes = async (roll: string) => {
+    try {
+      const res = await fetch(`/api/exam/mistake-drill?rollNumber=${encodeURIComponent(roll)}`);
+      const json = await res.json();
+      if (json.success) setMistakeCount(json.mistakeCount || 0);
+    } catch (e) {
+      // Ignore
+    }
+  };
 
   useEffect(() => {
     const current = getClientCandidate();
     setCandidate(current);
     setEditName(current.name);
     setEditRoll(current.rollNumber);
+    fetchMistakes(current.rollNumber);
 
     const handleUpdate = (e: any) => {
       const c = e.detail || getClientCandidate();
       setCandidate(c);
       setEditName(c.name);
       setEditRoll(c.rollNumber);
+      fetchMistakes(c.rollNumber);
     };
 
     window.addEventListener('neet_candidate_updated', handleUpdate);
     return () => window.removeEventListener('neet_candidate_updated', handleUpdate);
   }, []);
+
+  const handleLaunchMistakeDrill = async () => {
+    setDrillLoading(true);
+    try {
+      const res = await fetch('/api/exam/mistake-drill', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ rollNumber: candidate.rollNumber }),
+      });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error || 'Failed to start mistake drill.');
+      router.push(`/exam/${json.attemptId}`);
+    } catch (e: any) {
+      alert(e.message || 'Error launching drill.');
+    } finally {
+      setDrillLoading(false);
+    }
+  };
 
   const handleInlineSave = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -226,6 +259,17 @@ export default function HomePage() {
             </div>
 
             <div className="space-y-2 pt-2 border-t border-gray-100">
+              {mistakeCount > 0 && (
+                <button
+                  type="button"
+                  onClick={handleLaunchMistakeDrill}
+                  disabled={drillLoading}
+                  className="w-full bg-amber-400 hover:bg-amber-300 text-blue-950 font-black py-2.5 px-4 rounded-lg shadow-sm transition-all flex items-center justify-center gap-2 text-xs cursor-pointer"
+                >
+                  <Target className="w-4 h-4 text-red-700" />
+                  <span>{drillLoading ? 'Loading Mistake Drill...' : `🎯 Launch Remedial Mistake Drill (${mistakeCount} Qs)`}</span>
+                </button>
+              )}
               <button
                 type="button"
                 onClick={handleLaunchInstantMock}
