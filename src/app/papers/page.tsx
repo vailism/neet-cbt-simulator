@@ -18,6 +18,8 @@ import {
   Layers,
   ChevronRight,
   Flame,
+  PlusCircle,
+  CheckCircle2,
 } from 'lucide-react';
 import {
   getClientCandidate,
@@ -63,6 +65,8 @@ export default function MockPapersPage() {
   const [candidate, setCandidate] = useState<CandidateInfo>(DEFAULT_CANDIDATE);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [pendingLaunch, setPendingLaunch] = useState<{ paperId: string; forceNew: boolean } | null>(null);
+  const [generatingBatch, setGeneratingBatch] = useState(false);
+  const [genNotification, setGenNotification] = useState<string | null>(null);
 
   const loadPapers = useCallback(async (roll: string) => {
     setLoading(true);
@@ -77,6 +81,26 @@ export default function MockPapersPage() {
       setLoading(false);
     }
   }, []);
+
+  const handleGenerateNextBatch = async () => {
+    setGeneratingBatch(true);
+    setGenNotification(null);
+    try {
+      const res = await fetch('/api/papers/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ count: 10 }),
+      });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error || 'Failed to generate mock papers.');
+      setGenNotification(`Successfully generated 10 new unique mock papers (Papers ${json.startNumber} – ${json.endNumber})!`);
+      await loadPapers(candidate.rollNumber);
+    } catch (err: any) {
+      alert(err.message || 'Error generating mock papers.');
+    } finally {
+      setGeneratingBatch(false);
+    }
+  };
 
   useEffect(() => {
     const current = getClientCandidate();
@@ -150,10 +174,10 @@ export default function MockPapersPage() {
                 <span>NTA NEET UG 2027 Full-Length Examination Series</span>
               </div>
               <h1 className="text-2xl sm:text-4xl font-black text-white tracking-tight mb-2">
-                NEET Mock Test Library (01 – 100)
+                NEET Mock Test Library (01 – {papers.length || 100})
               </h1>
               <p className="text-slate-300 text-xs sm:text-sm leading-relaxed">
-                100 full-length, authentic 180-question NEET CBT mock examinations generated from our validated question bank.
+                {papers.length || 100} full-length, authentic 180-question NEET CBT mock examinations generated from our validated question bank.
                 Each paper adheres strictly to NTA difficulty distribution (54 Easy, 90 Moderate, 36 Difficult)
                 and official 45-question subject partitions with zero question repetition.
               </p>
@@ -162,11 +186,38 @@ export default function MockPapersPage() {
             <div className="flex flex-col sm:flex-row items-center gap-2.5">
               <div className="bg-slate-900/80 border border-blue-400/30 text-blue-200 text-xs font-bold px-4 py-3 rounded-2xl flex items-center gap-2.5 shadow-sm backdrop-blur-md">
                 <Award className="w-4 h-4 text-amber-400" />
-                <span>100 Full-Length Mocks Ready</span>
+                <span>{papers.length || 100} Full Mocks Ready</span>
               </div>
+
+              <button
+                type="button"
+                onClick={handleGenerateNextBatch}
+                disabled={generatingBatch}
+                className="bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 disabled:opacity-60 text-slate-950 font-black px-4 py-3 rounded-2xl flex items-center gap-2 shadow-md transition-all cursor-pointer text-xs"
+                title="Generate 10 more unique full-length mock examinations"
+              >
+                <PlusCircle className={`w-4 h-4 ${generatingBatch ? 'animate-spin' : ''}`} />
+                <span>{generatingBatch ? 'Generating 10 Mocks...' : '+ Generate Next 10 Papers'}</span>
+              </button>
             </div>
           </div>
         </div>
+
+        {/* Generation Notification Toast */}
+        {genNotification && (
+          <div className="bg-emerald-50 border border-emerald-200 text-emerald-900 px-5 py-3 rounded-2xl flex items-center justify-between text-xs font-medium shadow-xs">
+            <div className="flex items-center gap-2">
+              <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+              <span>{genNotification}</span>
+            </div>
+            <button
+              onClick={() => setGenNotification(null)}
+              className="text-emerald-700 hover:text-emerald-900 font-bold ml-3 cursor-pointer"
+            >
+              ✕
+            </button>
+          </div>
+        )}
 
         {/* Candidate Bar & Filter Toolbar */}
         <div className="bg-white rounded-2xl shadow-card border border-slate-200 p-4 sm:p-5 flex flex-wrap items-center justify-between gap-3 text-xs">

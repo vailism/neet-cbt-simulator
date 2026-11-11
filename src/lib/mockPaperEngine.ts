@@ -172,11 +172,15 @@ export async function generateMockPaper(options: PaperGenerationOptions) {
       const poolToUse = freshQuestions.length >= target ? freshQuestions : unusedInPaper;
 
       const shuffled = seededShuffle(poolToUse, prng);
-      const picked = shuffled.slice(0, target);
-      for (const p of picked) {
-        paperQuestionIds.add(p.id);
-        if (p.statement) paperQuestionStatements.add(p.statement.trim().toLowerCase());
-        if (p.duplicateHash) paperQuestionHashes.add(p.duplicateHash);
+      const picked: any[] = [];
+      for (const candidate of shuffled) {
+        if (picked.length >= target) break;
+        if (!isAlreadyUsed(candidate)) {
+          picked.push(candidate);
+          paperQuestionIds.add(candidate.id);
+          if (candidate.statement) paperQuestionStatements.add(candidate.statement.trim().toLowerCase());
+          if (candidate.duplicateHash) paperQuestionHashes.add(candidate.duplicateHash);
+        }
       }
       return picked;
     };
@@ -202,11 +206,16 @@ export async function generateMockPaper(options: PaperGenerationOptions) {
       const unusedSub = allSubVerified.filter((q) => !isAlreadyUsed(q));
       const freshAll = unusedSub.filter((q) => !excludedSet.has(q.id));
       const poolToUse = freshAll.length >= (45 - subjectQuestions.length) ? freshAll : unusedSub;
-      const additional = seededShuffle(poolToUse, prng).slice(0, 45 - subjectQuestions.length);
-      for (const a of additional) {
-        paperQuestionIds.add(a.id);
-        if (a.statement) paperQuestionStatements.add(a.statement.trim().toLowerCase());
-        if (a.duplicateHash) paperQuestionHashes.add(a.duplicateHash);
+      const shuffledFallback = seededShuffle(poolToUse, prng);
+      const additional: any[] = [];
+      for (const candidate of shuffledFallback) {
+        if (subjectQuestions.length + additional.length >= 45) break;
+        if (!isAlreadyUsed(candidate)) {
+          additional.push(candidate);
+          paperQuestionIds.add(candidate.id);
+          if (candidate.statement) paperQuestionStatements.add(candidate.statement.trim().toLowerCase());
+          if (candidate.duplicateHash) paperQuestionHashes.add(candidate.duplicateHash);
+        }
       }
       subjectQuestions = [...subjectQuestions, ...additional];
     }
@@ -436,7 +445,7 @@ export async function generateHundredMockPapers(
   // Pre-fetch all verified questions in 1 lightweight query to avoid repeated network roundtrips over WAN
   const preloadedQuestions = await prisma.question.findMany({
     where: { verificationStatus: VerificationStatus.VERIFIED },
-    select: { id: true, subjectId: true, difficulty: true, correctAnswer: true },
+    select: { id: true, subjectId: true, difficulty: true, correctAnswer: true, statement: true, duplicateHash: true },
   });
 
   for (let num = startNumber; num <= endNumber; num++) {

@@ -42,3 +42,4 @@ async function checkPaperDuplicates() {
 }
 
 checkPaperDuplicates().then(() => prisma.$disconnect());
+

@@ -43,3 +43,4 @@ async function analyze() {
 }
 
 analyze().then(() => prisma.$disconnect());
+
