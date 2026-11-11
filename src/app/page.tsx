@@ -17,6 +17,15 @@ import {
   Zap,
   Edit3,
   Target,
+  Flame,
+  Check,
+  Layers,
+  FileText,
+  AlertCircle,
+  Keyboard,
+  Compass,
+  GraduationCap,
+  Activity,
 } from 'lucide-react';
 import {
   getClientCandidate,
@@ -113,75 +122,192 @@ export default function HomePage() {
   };
 
   return (
-    <div className="flex-1 bg-gray-50 pb-16">
-      {/* Hero Banner */}
-      <div className="bg-gradient-to-b from-blue-900 to-[#1e3a8a] text-white py-12 px-4 shadow-md">
-        <div className="max-w-6xl mx-auto text-center">
-          <div className="inline-flex items-center gap-2 bg-blue-800/80 border border-blue-400/30 text-blue-200 text-xs px-3 py-1 rounded-full mb-4">
-            <Sparkles className="w-3.5 h-3.5 text-amber-300" />
-            <span>NTA NEET UG 2027 Official CBT Simulation Environment</span>
+    <div className="flex-1 bg-slate-50/70 pb-20">
+      {/* 1. HERO SECTION - Ultra-Modern NTA Exam Command Header */}
+      <section className="relative overflow-hidden bg-gradient-to-b from-slate-950 via-blue-950 to-indigo-950 text-white pt-12 pb-24 px-4 sm:px-6 grain">
+        {/* Ambient Decorative Lighting */}
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-6xl h-80 bg-blue-500/10 blur-[100px] pointer-events-none rounded-full" />
+        <div className="absolute top-20 right-10 w-72 h-72 bg-indigo-500/10 blur-[80px] pointer-events-none rounded-full" />
+        <div className="absolute top-32 left-10 w-72 h-72 bg-amber-500/10 blur-[90px] pointer-events-none rounded-full" />
+
+        {/* Subtle grid pattern overlay */}
+        <div
+          className="absolute inset-0 opacity-[0.04] pointer-events-none"
+          style={{
+            backgroundImage:
+              'linear-gradient(to right, #ffffff 1px, transparent 1px), linear-gradient(to bottom, #ffffff 1px, transparent 1px)',
+            backgroundSize: '40px 40px',
+          }}
+        />
+
+        <div className="relative max-w-6xl mx-auto text-center space-y-6">
+          {/* Official Agency Badge Pill */}
+          <div className="inline-flex items-center gap-2 bg-gradient-to-r from-blue-900/60 to-indigo-900/60 border border-blue-400/30 text-blue-200 text-xs px-4 py-1.5 rounded-full shadow-lg backdrop-blur-md">
+            <span className="flex h-2 w-2 relative">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+            </span>
+            <span className="font-semibold tracking-wide uppercase text-[11px] text-slate-200">
+              National Testing Agency Standard CBT Environment
+            </span>
+            <span className="text-blue-400">|</span>
+            <span className="text-amber-300 font-bold text-[11px]">NEET (UG) 2027</span>
           </div>
 
-          <h1 className="text-2xl sm:text-4xl font-extrabold tracking-tight mb-3">
-            National Eligibility Cum Entrance Test (UG) Simulator
-          </h1>
-          <p className="text-blue-100 max-w-2xl mx-auto text-sm sm:text-base leading-relaxed">
-            Authentic Computer-Based Examination Platform for NEET (UG) 2027. Full NTA question palette,
-            180-minute countdown timer, official +4/-1 marking scheme, and immediate performance analysis.
-          </p>
+          {/* Main Hero Headline */}
+          <div className="space-y-3 max-w-4xl mx-auto">
+            <h1 className="text-3xl sm:text-5xl lg:text-6xl font-black tracking-tight text-balance leading-tight sm:leading-none">
+              Master NEET UG 2027 with{' '}
+              <span className="bg-gradient-to-r from-blue-200 via-sky-300 to-amber-200 bg-clip-text text-transparent">
+                True NTA CBT Fidelity
+              </span>
+            </h1>
+            <p className="text-slate-300 max-w-2xl mx-auto text-sm sm:text-base leading-relaxed font-normal">
+              Zero distractions. 100 authentic full-length mock examinations, full NTA question palette,
+              strict 180-minute countdown, +4/-1 scoring engine, and AI-powered mistake remediation.
+            </p>
+          </div>
 
-          <div className="mt-6 flex flex-wrap justify-center gap-3 text-xs">
-            <span className="bg-blue-950/60 border border-blue-600/40 px-3 py-1.5 rounded-md flex items-center gap-1.5">
-              <Clock className="w-3.5 h-3.5 text-amber-400" /> 180 Minutes (3 Hours)
-            </span>
-            <span className="bg-blue-950/60 border border-blue-600/40 px-3 py-1.5 rounded-md flex items-center gap-1.5">
-              <BookOpen className="w-3.5 h-3.5 text-green-400" /> 180 Questions (4 Core Subjects)
-            </span>
-            <span className="bg-blue-950/60 border border-blue-600/40 px-3 py-1.5 rounded-md flex items-center gap-1.5">
-              <Award className="w-3.5 h-3.5 text-yellow-400" /> Maximum 720 Marks (+4 / -1)
-            </span>
+          {/* Primary Action Buttons */}
+          <div className="flex flex-wrap items-center justify-center gap-3.5 pt-2">
+            <button
+              type="button"
+              onClick={handleLaunchInstantMock}
+              className="group relative inline-flex items-center gap-2.5 bg-gradient-to-r from-blue-600 via-blue-500 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold text-sm px-6 py-3.5 rounded-xl shadow-xl shadow-blue-900/40 hover:shadow-blue-600/30 transition-all duration-200 hover:-translate-y-0.5 cursor-pointer"
+            >
+              <Zap className="w-4 h-4 text-amber-300 group-hover:scale-110 transition-transform" />
+              <span>Start Full Mock CBT Exam</span>
+              <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+            </button>
+
+            {mistakeCount > 0 ? (
+              <button
+                type="button"
+                onClick={handleLaunchMistakeDrill}
+                disabled={drillLoading}
+                className="inline-flex items-center gap-2 bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-sm px-5 py-3.5 rounded-xl shadow-lg transition-all duration-200 hover:-translate-y-0.5 cursor-pointer"
+              >
+                <Target className="w-4 h-4 text-red-700" />
+                <span>
+                  {drillLoading ? 'Preparing Drill...' : `Mistake Drill (${mistakeCount} Qs)`}
+                </span>
+              </button>
+            ) : (
+              <Link
+                href="/papers"
+                className="inline-flex items-center gap-2 bg-white/10 hover:bg-white/15 text-white font-semibold text-sm px-5 py-3.5 rounded-xl border border-white/20 backdrop-blur-md transition-all duration-200 hover:-translate-y-0.5"
+              >
+                <BookOpen className="w-4 h-4 text-blue-300" />
+                <span>Browse 100 Mock Papers</span>
+              </Link>
+            )}
+
+            <Link
+              href="/dashboard"
+              className="inline-flex items-center gap-2 bg-slate-900/80 hover:bg-slate-900 text-slate-200 font-semibold text-sm px-4 py-3.5 rounded-xl border border-slate-700/80 transition-all duration-200"
+            >
+              <BarChart3 className="w-4 h-4 text-purple-400" />
+              <span>Student Analytics</span>
+            </Link>
+          </div>
+
+          {/* 4 Core Examination Pillars HUD */}
+          <div className="pt-6 grid grid-cols-2 md:grid-cols-4 gap-3 max-w-4xl mx-auto text-left">
+            <div className="bg-slate-900/60 backdrop-blur-md border border-slate-700/50 p-3.5 rounded-xl flex items-center gap-3">
+              <div className="w-9 h-9 rounded-lg bg-blue-600/20 border border-blue-400/30 flex items-center justify-center text-blue-400 shrink-0">
+                <Clock className="w-4 h-4" />
+              </div>
+              <div>
+                <div className="text-[11px] text-slate-400 font-medium">Standard Duration</div>
+                <div className="text-sm font-bold text-white font-mono">180 Mins (3 Hrs)</div>
+              </div>
+            </div>
+
+            <div className="bg-slate-900/60 backdrop-blur-md border border-slate-700/50 p-3.5 rounded-xl flex items-center gap-3">
+              <div className="w-9 h-9 rounded-lg bg-emerald-600/20 border border-emerald-400/30 flex items-center justify-center text-emerald-400 shrink-0">
+                <BookOpen className="w-4 h-4" />
+              </div>
+              <div>
+                <div className="text-[11px] text-slate-400 font-medium">Questions Blueprint</div>
+                <div className="text-sm font-bold text-white font-mono">180 Questions</div>
+              </div>
+            </div>
+
+            <div className="bg-slate-900/60 backdrop-blur-md border border-slate-700/50 p-3.5 rounded-xl flex items-center gap-3">
+              <div className="w-9 h-9 rounded-lg bg-amber-600/20 border border-amber-400/30 flex items-center justify-center text-amber-400 shrink-0">
+                <Award className="w-4 h-4" />
+              </div>
+              <div>
+                <div className="text-[11px] text-slate-400 font-medium">Marking Engine</div>
+                <div className="text-sm font-bold text-white font-mono">+4, -1, 0 Scheme</div>
+              </div>
+            </div>
+
+            <div className="bg-slate-900/60 backdrop-blur-md border border-slate-700/50 p-3.5 rounded-xl flex items-center gap-3">
+              <div className="w-9 h-9 rounded-lg bg-purple-600/20 border border-purple-400/30 flex items-center justify-center text-purple-400 shrink-0">
+                <Layers className="w-4 h-4" />
+              </div>
+              <div>
+                <div className="text-[11px] text-slate-400 font-medium">Mock Papers Library</div>
+                <div className="text-sm font-bold text-white font-mono">100 Full Mocks</div>
+              </div>
+            </div>
           </div>
         </div>
-      </div>
+      </section>
 
-      <div className="max-w-6xl mx-auto px-4 -mt-6">
+      {/* 2. COMMAND CENTER - Candidate Profile & Feature Action Matrix */}
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 -mt-12 relative z-10">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-          {/* Dynamic Candidate Card & Rename Form */}
-          <div className="lg:col-span-5 bg-white rounded-xl shadow-lg border border-gray-200 p-6 flex flex-col justify-between">
+          {/* Active Candidate Command Card */}
+          <div className="lg:col-span-5 bg-white rounded-2xl shadow-elevated border border-slate-200/90 p-6 flex flex-col justify-between relative overflow-hidden">
+            {/* Top accent line */}
+            <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700" />
+
             <div>
-              <div className="flex items-center justify-between pb-3 border-b border-gray-100 mb-4">
-                <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 rounded-xl bg-blue-700 text-white font-black text-lg flex items-center justify-center shadow-sm">
-                    {candidate.name ? candidate.name.charAt(0) : 'S'}
+              {/* Profile Header */}
+              <div className="flex items-center justify-between pb-4 border-b border-slate-100 mb-5">
+                <div className="flex items-center gap-3.5">
+                  <div className="relative">
+                    <div className="w-13 h-13 rounded-2xl bg-gradient-to-br from-blue-700 to-indigo-900 text-white font-black text-xl flex items-center justify-center shadow-md">
+                      {candidate.name ? candidate.name.charAt(0) : 'S'}
+                    </div>
+                    <span className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-emerald-500 border-2 border-white flex items-center justify-center text-[8px] text-white font-bold" title="Candidate Active">
+                      ✓
+                    </span>
                   </div>
                   <div>
-                    <div className="text-[10px] font-bold uppercase tracking-wider text-blue-600">
-                      Active Candidate Profile
+                    <div className="text-[10px] font-bold uppercase tracking-wider text-blue-700 flex items-center gap-1">
+                      <span>Active Candidate Profile</span>
                     </div>
-                    <h2 className="text-base font-bold text-gray-900">{candidate.name}</h2>
-                    <p className="text-xs text-gray-500 font-mono">Roll: {candidate.rollNumber}</p>
+                    <h2 className="text-lg font-black text-slate-900 leading-snug">{candidate.name}</h2>
+                    <p className="text-xs text-slate-500 font-mono">Roll: {candidate.rollNumber}</p>
                   </div>
                 </div>
+
                 <button
                   type="button"
                   onClick={() => setIsEditing(!isEditing)}
-                  className="text-xs text-blue-700 hover:text-blue-900 font-bold flex items-center gap-1 bg-blue-50 px-2.5 py-1 rounded-md border border-blue-200 hover:bg-blue-100 transition-colors"
+                  className="text-xs text-blue-700 hover:text-blue-900 font-bold flex items-center gap-1.5 bg-blue-50/80 hover:bg-blue-100 border border-blue-200 px-3 py-1.5 rounded-lg transition-colors cursor-pointer"
                 >
-                  <Edit3 className="w-3 h-3" />
-                  <span>{isEditing ? 'Close' : 'Rename'}</span>
+                  <Edit3 className="w-3.5 h-3.5" />
+                  <span>{isEditing ? 'Cancel' : 'Rename'}</span>
                 </button>
               </div>
 
-              {/* Inline Rename Form */}
+              {/* Inline Rename Form or Quick Specs */}
               {isEditing ? (
-                <form onSubmit={handleInlineSave} className="bg-blue-50/70 border border-blue-200 rounded-lg p-3.5 mb-4 space-y-3">
+                <form
+                  onSubmit={handleInlineSave}
+                  className="bg-blue-50/70 border border-blue-200 rounded-xl p-4 mb-5 space-y-3.5 animate-in fade-in"
+                >
                   <div className="text-xs font-bold text-blue-950 flex items-center gap-1.5">
                     <Edit3 className="w-3.5 h-3.5 text-blue-700" />
                     <span>Change Candidate Name & Roll Number</span>
                   </div>
 
                   <div>
-                    <label className="block text-[11px] font-bold text-gray-700 mb-1 uppercase">
+                    <label className="block text-[11px] font-bold text-slate-700 mb-1 uppercase tracking-wide">
                       Student Full Name:
                     </label>
                     <input
@@ -190,13 +316,13 @@ export default function HomePage() {
                       value={editName}
                       onChange={(e) => setEditName(e.target.value)}
                       placeholder="e.g. PRIYA SHARMA"
-                      className="w-full px-2.5 py-1.5 text-xs border border-gray-300 rounded bg-white font-semibold uppercase text-gray-900 focus:ring-2 focus:ring-blue-600 focus:outline-none"
+                      className="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg bg-white font-semibold uppercase text-slate-900 focus:ring-2 focus:ring-blue-600 focus:outline-none"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-[11px] font-bold text-gray-700 mb-1 uppercase">
-                      Roll Number:
+                    <label className="block text-[11px] font-bold text-slate-700 mb-1 uppercase tracking-wide">
+                      Roll Number / Candidate ID:
                     </label>
                     <input
                       type="text"
@@ -204,7 +330,7 @@ export default function HomePage() {
                       value={editRoll}
                       onChange={(e) => setEditRoll(e.target.value)}
                       placeholder="e.g. 240410012345"
-                      className="w-full px-2.5 py-1.5 text-xs border border-gray-300 rounded bg-white font-mono text-gray-900 focus:ring-2 focus:ring-blue-600 focus:outline-none"
+                      className="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg bg-white font-mono text-slate-900 focus:ring-2 focus:ring-blue-600 focus:outline-none"
                     />
                   </div>
 
@@ -212,236 +338,324 @@ export default function HomePage() {
                     <button
                       type="button"
                       onClick={() => setIsEditing(false)}
-                      className="px-2.5 py-1 text-xs text-gray-600 hover:text-gray-900 font-medium"
+                      className="px-3 py-1.5 text-xs text-slate-600 hover:text-slate-900 font-medium"
                     >
                       Cancel
                     </button>
                     <button
                       type="submit"
                       disabled={saving}
-                      className="bg-blue-700 hover:bg-blue-800 disabled:opacity-50 text-white font-bold px-3 py-1 rounded text-xs transition-colors"
+                      className="bg-blue-700 hover:bg-blue-800 disabled:opacity-50 text-white font-bold px-4 py-1.5 rounded-lg text-xs transition-colors shadow-xs"
                     >
-                      {saving ? 'Saving...' : 'Save Name'}
+                      {saving ? 'Saving...' : 'Save Profile'}
                     </button>
                   </div>
                 </form>
               ) : (
-                <div className="bg-slate-50 border border-slate-200 rounded-lg p-3 text-xs space-y-2 mb-4 font-medium text-slate-700">
-                  <div className="flex justify-between">
-                    <span className="text-gray-500">Student Name:</span>
-                    <span className="font-bold text-gray-900">{candidate.name}</span>
+                <div className="bg-slate-50/90 border border-slate-200/80 rounded-xl p-4 text-xs space-y-2.5 mb-5 font-medium text-slate-700">
+                  <div className="flex justify-between items-center">
+                    <span className="text-slate-500">Student Name:</span>
+                    <span className="font-bold text-slate-900 uppercase">{candidate.name}</span>
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-500">Roll Number:</span>
-                    <span className="font-mono text-gray-900">{candidate.rollNumber}</span>
+                  <div className="flex justify-between items-center">
+                    <span className="text-slate-500">Roll Number:</span>
+                    <span className="font-mono font-bold text-slate-900">{candidate.rollNumber}</span>
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-500">Examination:</span>
-                    <span className="font-bold text-gray-900">NEET (UG) 2027</span>
+                  <div className="flex justify-between items-center">
+                    <span className="text-slate-500">Target Examination:</span>
+                    <span className="font-bold text-blue-900">NEET (UG) 2027</span>
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-500">Available Mock Papers:</span>
-                    <span className="font-bold text-blue-900">100 Full-Length Mocks</span>
+                  <div className="flex justify-between items-center">
+                    <span className="text-slate-500">Full Mock Papers:</span>
+                    <span className="font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+                      100 Full Mocks Ready
+                    </span>
                   </div>
                 </div>
               )}
 
               {saveSuccess && (
-                <div className="p-2 mb-3 bg-green-50 border border-green-200 text-green-800 text-xs rounded flex items-center gap-1.5 font-medium animate-in fade-in">
-                  <CheckCircle2 className="w-3.5 h-3.5 text-green-600" />
+                <div className="p-2.5 mb-4 bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs rounded-lg flex items-center gap-2 font-medium animate-in fade-in">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-600" />
                   <span>Candidate profile updated successfully!</span>
                 </div>
               )}
 
-              <p className="text-xs text-gray-500 leading-relaxed mb-4">
-                You can change the student name at any time. The simulator will ask you to confirm your name and roll number before starting each examination.
+              <p className="text-xs text-slate-500 leading-relaxed mb-4">
+                Single-student private environment. The platform automatically tracks your test scores,
+                time-traps, and chapter mastery under this candidate profile.
               </p>
             </div>
 
-            <div className="space-y-2 pt-2 border-t border-gray-100">
+            {/* Candidate Quick Action Stack */}
+            <div className="space-y-2.5 pt-3 border-t border-slate-100">
               {mistakeCount > 0 && (
                 <button
                   type="button"
                   onClick={handleLaunchMistakeDrill}
                   disabled={drillLoading}
-                  className="w-full bg-amber-400 hover:bg-amber-300 text-blue-950 font-black py-2.5 px-4 rounded-lg shadow-sm transition-all flex items-center justify-center gap-2 text-xs cursor-pointer"
+                  className="w-full bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 text-slate-950 font-black py-2.5 px-4 rounded-xl shadow-xs transition-all flex items-center justify-center gap-2 text-xs cursor-pointer"
                 >
                   <Target className="w-4 h-4 text-red-700" />
-                  <span>{drillLoading ? 'Loading Mistake Drill...' : `🎯 Launch Remedial Mistake Drill (${mistakeCount} Qs)`}</span>
+                  <span>
+                    {drillLoading
+                      ? 'Loading Drill...'
+                      : `🎯 Launch Mistake Drill (${mistakeCount} Questions)`}
+                  </span>
                 </button>
               )}
+
               <button
                 type="button"
                 onClick={handleLaunchInstantMock}
-                className="w-full bg-[#1e3a8a] hover:bg-blue-800 text-white font-bold py-2.5 px-4 rounded-lg shadow transition-all flex items-center justify-center gap-2 text-xs cursor-pointer"
+                className="w-full bg-gradient-to-r from-blue-700 to-indigo-800 hover:from-blue-800 hover:to-indigo-900 text-white font-bold py-2.5 px-4 rounded-xl shadow-md transition-all flex items-center justify-center gap-2 text-xs cursor-pointer group"
               >
                 <span>Confirm Name & Read Instructions</span>
-                <ArrowRight className="w-4 h-4" />
+                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
               </button>
+
               <Link
                 href="/dashboard"
-                className="w-full bg-blue-50 hover:bg-blue-100 text-blue-900 font-bold py-2 px-4 rounded-lg border border-blue-200 transition-colors flex items-center justify-center gap-2 text-xs"
+                className="w-full bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold py-2.5 px-4 rounded-xl border border-slate-300 transition-colors flex items-center justify-center gap-2 text-xs"
               >
                 <BarChart3 className="w-3.5 h-3.5 text-blue-700" />
-                <span>Open Student Analytics Dashboard</span>
+                <span>Open Student Analytics & Heatmap</span>
               </Link>
             </div>
           </div>
 
-          {/* Quick Action Modes */}
+          {/* Quick Action Modes - 4 Feature Cards */}
           <div className="lg:col-span-7 grid grid-cols-1 sm:grid-cols-2 gap-4">
             {/* 100 Mock Papers Card */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-5 flex flex-col justify-between hover:shadow-md transition-shadow border-l-4 border-l-blue-600">
+            <div className="bg-white rounded-2xl shadow-card border border-slate-200 p-5 flex flex-col justify-between hover:shadow-elevated transition-all border-l-4 border-l-blue-600 group">
               <div>
-                <div className="flex items-center justify-between mb-2">
-                  <span className="bg-blue-100 text-blue-800 text-[10px] font-bold px-2 py-0.5 rounded uppercase">
-                    100 Mock Papers
+                <div className="flex items-center justify-between mb-3">
+                  <span className="bg-blue-100 text-blue-900 text-[10px] font-black px-2.5 py-0.5 rounded-full uppercase tracking-wider">
+                    Official 100 Papers
                   </span>
-                  <Clock className="w-4 h-4 text-blue-600" />
+                  <div className="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center text-blue-700 group-hover:bg-blue-600 group-hover:text-white transition-colors">
+                    <Clock className="w-4 h-4" />
+                  </div>
                 </div>
-                <h3 className="font-bold text-gray-900 text-base mb-1">
+
+                <h3 className="font-extrabold text-slate-900 text-base mb-1.5 group-hover:text-blue-700 transition-colors">
                   100 Full-Length Mocks
                 </h3>
-                <p className="text-xs text-gray-600 mb-3 leading-relaxed">
-                  100 authentic 180-question mock exams covering Physics (45), Chemistry (45), Botany (45), and Zoology (45).
+                <p className="text-xs text-slate-600 mb-3.5 leading-relaxed">
+                  Authentic 180-question mock exams adhering strictly to NTA difficulty ratio (54 Easy, 90 Moderate, 36 Difficult) with zero question repetition.
                 </p>
-                <div className="text-[11px] text-gray-500 space-y-1 mb-4 font-mono bg-gray-50 p-2.5 rounded border border-gray-200">
-                  <div>• Physics: 45 Questions (180 Marks)</div>
-                  <div>• Chemistry: 45 Questions (180 Marks)</div>
-                  <div>• Botany: 45 Questions (180 Marks)</div>
-                  <div>• Zoology: 45 Questions (180 Marks)</div>
+
+                <div className="text-[11px] text-slate-600 space-y-1 mb-4 font-mono bg-slate-50 p-2.5 rounded-lg border border-slate-200">
+                  <div className="flex justify-between">
+                    <span>• Physics (45 Qs)</span>
+                    <span className="font-bold text-slate-900">180 M</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>• Chemistry (45 Qs)</span>
+                    <span className="font-bold text-slate-900">180 M</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>• Botany (45 Qs)</span>
+                    <span className="font-bold text-slate-900">180 M</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>• Zoology (45 Qs)</span>
+                    <span className="font-bold text-slate-900">180 M</span>
+                  </div>
                 </div>
               </div>
 
               <Link
                 href="/papers"
-                className="w-full bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold py-2 rounded-md transition-colors flex items-center justify-center gap-1.5 shadow-sm"
+                className="w-full bg-blue-700 hover:bg-blue-800 text-white text-xs font-bold py-2.5 rounded-xl transition-all flex items-center justify-center gap-1.5 shadow-xs"
               >
-                Browse 100 Mock Papers
+                <span>Browse All 100 Papers</span>
                 <ArrowRight className="w-3.5 h-3.5" />
               </Link>
             </div>
 
-            {/* Targeted Practice Card */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-5 flex flex-col justify-between hover:shadow-md transition-shadow border-l-4 border-l-emerald-600">
+            {/* Targeted Chapter Practice Card */}
+            <div className="bg-white rounded-2xl shadow-card border border-slate-200 p-5 flex flex-col justify-between hover:shadow-elevated transition-all border-l-4 border-l-emerald-600 group">
               <div>
-                <div className="flex items-center justify-between mb-2">
-                  <span className="bg-emerald-100 text-emerald-800 text-[10px] font-bold px-2 py-0.5 rounded uppercase">
+                <div className="flex items-center justify-between mb-3">
+                  <span className="bg-emerald-100 text-emerald-900 text-[10px] font-black px-2.5 py-0.5 rounded-full uppercase tracking-wider">
                     Self-Paced Practice
                   </span>
-                  <BookOpen className="w-4 h-4 text-emerald-600" />
+                  <div className="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center text-emerald-700 group-hover:bg-emerald-600 group-hover:text-white transition-colors">
+                    <BookOpen className="w-4 h-4" />
+                  </div>
                 </div>
-                <h3 className="font-bold text-gray-900 text-base mb-1">
-                  Chapter Practice Mode
+
+                <h3 className="font-extrabold text-slate-900 text-base mb-1.5 group-hover:text-emerald-700 transition-colors">
+                  NCERT Chapter Practice
                 </h3>
-                <p className="text-xs text-gray-600 mb-3 leading-relaxed">
-                  Practice specific subjects or chapters with customized question counts (10, 20, 30, 45) and instant KaTeX solutions.
+                <p className="text-xs text-slate-600 mb-3.5 leading-relaxed">
+                  Focus on specific weak chapters across 75 NCERT topics with customizable question counts (10 to 45 questions) and instant KaTeX explanations.
                 </p>
-                <div className="text-[11px] text-gray-500 space-y-1 mb-4 bg-gray-50 p-2.5 rounded border border-gray-200">
-                  <div>• 75 NCERT Chapters supported</div>
-                  <div>• Custom volume (10–45 questions)</div>
-                  <div>• Instant feedback & explanations</div>
-                  <div>• Timed or untimed practice</div>
+
+                <div className="text-[11px] text-slate-600 space-y-1 mb-4 bg-slate-50 p-2.5 rounded-lg border border-slate-200">
+                  <div className="flex items-center gap-1.5">
+                    <Check className="w-3.5 h-3.5 text-emerald-600" />
+                    <span>75 NCERT Chapters supported</span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <Check className="w-3.5 h-3.5 text-emerald-600" />
+                    <span>Custom volume (10–45 questions)</span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <Check className="w-3.5 h-3.5 text-emerald-600" />
+                    <span>Instant solutions with formulas</span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <Check className="w-3.5 h-3.5 text-emerald-600" />
+                    <span>Timed or untimed practice</span>
+                  </div>
                 </div>
               </div>
 
               <Link
                 href="/practice"
-                className="w-full bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold py-2 rounded-md transition-colors flex items-center justify-center gap-1.5 shadow-sm"
+                className="w-full bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold py-2.5 rounded-xl transition-all flex items-center justify-center gap-1.5 shadow-xs"
               >
-                Configure Practice Mode
+                <span>Configure Practice Mode</span>
                 <ArrowRight className="w-3.5 h-3.5" />
               </Link>
             </div>
 
-            {/* Student Dashboard Card */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-5 flex flex-col justify-between hover:shadow-md transition-shadow border-l-4 border-l-purple-600">
+            {/* Performance & Mistake Notebook */}
+            <div className="bg-white rounded-2xl shadow-card border border-slate-200 p-5 flex flex-col justify-between hover:shadow-elevated transition-all border-l-4 border-l-purple-600 group">
               <div>
-                <div className="flex items-center justify-between mb-2">
-                  <span className="bg-purple-100 text-purple-800 text-[10px] font-bold px-2 py-0.5 rounded uppercase">
-                    Performance Analytics
+                <div className="flex items-center justify-between mb-3">
+                  <span className="bg-purple-100 text-purple-900 text-[10px] font-black px-2.5 py-0.5 rounded-full uppercase tracking-wider">
+                    Diagnostics & AIR
                   </span>
-                  <BarChart3 className="w-4 h-4 text-purple-600" />
+                  <div className="w-8 h-8 rounded-lg bg-purple-50 flex items-center justify-center text-purple-700 group-hover:bg-purple-600 group-hover:text-white transition-colors">
+                    <BarChart3 className="w-4 h-4" />
+                  </div>
                 </div>
-                <h3 className="font-bold text-gray-900 text-base mb-1">
-                  Mistake Notebook & Stats
+
+                <h3 className="font-extrabold text-slate-900 text-base mb-1.5 group-hover:text-purple-700 transition-colors">
+                  Mistake Notebook & AIR
                 </h3>
-                <p className="text-xs text-gray-600 mb-3 leading-relaxed">
-                  Track historical exam scores, accuracy trends over time, subject strengths, and review past incorrect questions.
+                <p className="text-xs text-slate-600 mb-3.5 leading-relaxed">
+                  Track historical exam attempts, All India Rank predictions, college cutoff tier chances, time-traps, and NCERT chapter mastery heatmap.
                 </p>
+
+                <div className="text-[11px] text-slate-600 space-y-1 mb-4 bg-slate-50 p-2.5 rounded-lg border border-slate-200">
+                  <div className="flex items-center gap-1.5">
+                    <Check className="w-3.5 h-3.5 text-purple-600" />
+                    <span>NEET AIR & Percentile Predictor</span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <Check className="w-3.5 h-3.5 text-purple-600" />
+                    <span>Time-Trap Pace Analyzer (&gt;120s)</span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <Check className="w-3.5 h-3.5 text-purple-600" />
+                    <span>NCERT 75-Chapter Heatmap</span>
+                  </div>
+                </div>
               </div>
 
               <Link
                 href="/dashboard"
-                className="w-full bg-purple-700 hover:bg-purple-800 text-white text-xs font-bold py-2 rounded-md transition-colors flex items-center justify-center gap-1.5 shadow-sm"
+                className="w-full bg-purple-700 hover:bg-purple-800 text-white text-xs font-bold py-2.5 rounded-xl transition-all flex items-center justify-center gap-1.5 shadow-xs"
               >
-                View Analytics & Trends
+                <span>View Analytics & Heatmap</span>
                 <ArrowRight className="w-3.5 h-3.5" />
               </Link>
             </div>
 
-            {/* Quick Exam Launch Card */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-5 flex flex-col justify-between hover:shadow-md transition-shadow border-l-4 border-l-amber-600">
+            {/* Instant Exam Launcher Card */}
+            <div className="bg-white rounded-2xl shadow-card border border-slate-200 p-5 flex flex-col justify-between hover:shadow-elevated transition-all border-l-4 border-l-amber-500 group">
               <div>
-                <div className="flex items-center justify-between mb-2">
-                  <span className="bg-amber-100 text-amber-800 text-[10px] font-bold px-2 py-0.5 rounded uppercase">
+                <div className="flex items-center justify-between mb-3">
+                  <span className="bg-amber-100 text-amber-900 text-[10px] font-black px-2.5 py-0.5 rounded-full uppercase tracking-wider">
                     Quick Start
                   </span>
-                  <Zap className="w-4 h-4 text-amber-600" />
+                  <div className="w-8 h-8 rounded-lg bg-amber-50 flex items-center justify-center text-amber-600 group-hover:bg-amber-500 group-hover:text-white transition-colors">
+                    <Zap className="w-4 h-4" />
+                  </div>
                 </div>
-                <h3 className="font-bold text-gray-900 text-base mb-1">
+
+                <h3 className="font-extrabold text-slate-900 text-base mb-1.5 group-hover:text-amber-600 transition-colors">
                   Instant Mock Exam
                 </h3>
-                <p className="text-xs text-gray-600 mb-3 leading-relaxed">
-                  Jump straight into a standardized 180-question NEET CBT mock examination with official 180-minute timer.
+                <p className="text-xs text-slate-600 mb-3.5 leading-relaxed">
+                  Jump directly into an official 180-question NEET CBT mock exam with official NTA instructions, kiosk mode, and 180-minute countdown.
                 </p>
+
+                <div className="text-[11px] text-slate-600 space-y-1 mb-4 bg-slate-50 p-2.5 rounded-lg border border-slate-200">
+                  <div className="flex items-center gap-1.5">
+                    <Check className="w-3.5 h-3.5 text-amber-600" />
+                    <span>Immediate start with 1-click</span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <Check className="w-3.5 h-3.5 text-amber-600" />
+                    <span>NTA Kiosk Fullscreen Lock</span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <Check className="w-3.5 h-3.5 text-amber-600" />
+                    <span>Zero-Data-Loss Offline Sync</span>
+                  </div>
+                </div>
               </div>
 
               <button
                 type="button"
                 onClick={handleLaunchInstantMock}
-                className="w-full bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold py-2 rounded-md transition-colors flex items-center justify-center gap-1.5 shadow-sm cursor-pointer"
+                className="w-full bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold py-2.5 rounded-xl transition-all flex items-center justify-center gap-1.5 shadow-xs cursor-pointer"
               >
-                Launch Mock Exam
+                <span>Launch Mock Exam Now</span>
                 <ArrowRight className="w-3.5 h-3.5" />
               </button>
             </div>
           </div>
         </div>
 
-        {/* NTA CBT Color Legend & Scheme Showcase */}
-        <div className="mt-8 bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-          <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wider mb-4 pb-2 border-b border-gray-100 flex items-center gap-2">
-            <HelpCircle className="w-4 h-4 text-blue-600" />
-            Official NTA Question Palette Status Legend
-          </h3>
+        {/* 3. NTA OFFICIAL QUESTION PALETTE STATUS LEGEND */}
+        <div className="mt-8 bg-white rounded-2xl shadow-card border border-slate-200 p-6 sm:p-7">
+          <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-slate-100 mb-5">
+            <div>
+              <h3 className="text-sm font-black text-slate-900 uppercase tracking-wider flex items-center gap-2">
+                <HelpCircle className="w-4 h-4 text-blue-700" />
+                Official NTA Question Status Palette Legend
+              </h3>
+              <p className="text-xs text-slate-500 mt-0.5">
+                Standard color-coded status indicators used in the actual NEET (UG) computer-based examination.
+              </p>
+            </div>
+            <span className="text-[11px] font-semibold text-slate-500 bg-slate-100 px-2.5 py-1 rounded-full">
+              NTA Guideline 2027
+            </span>
+          </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-3">
-            {/* Not Visited */}
-            <div className="flex items-center gap-2.5 p-2.5 rounded-lg border border-gray-200 bg-gray-50">
-              <div className="w-7 h-7 rounded bg-gray-200 border border-gray-400 flex items-center justify-center font-bold text-xs text-gray-700 shrink-0">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-3.5">
+            {/* 1. Not Visited */}
+            <div className="flex items-center gap-3 p-3 rounded-xl border border-slate-200 bg-slate-50/70 hover:bg-slate-100 transition-colors">
+              <div className="w-8 h-8 rounded bg-slate-200 border border-slate-400 flex items-center justify-center font-bold text-xs text-slate-700 shrink-0 shadow-xs">
                 01
               </div>
               <div className="text-xs">
-                <div className="font-bold text-gray-800">Not Visited</div>
-                <div className="text-[10px] text-gray-500">You have not visited question yet</div>
+                <div className="font-bold text-slate-800">Not Visited</div>
+                <div className="text-[10px] text-slate-500">Question not yet viewed</div>
               </div>
             </div>
 
-            {/* Not Answered */}
-            <div className="flex items-center gap-2.5 p-2.5 rounded-lg border border-red-200 bg-red-50/50">
-              <div className="w-7 h-7 rounded bg-[#dc2626] flex items-center justify-center font-bold text-xs text-white shrink-0">
+            {/* 2. Not Answered */}
+            <div className="flex items-center gap-3 p-3 rounded-xl border border-red-200 bg-red-50/50 hover:bg-red-50 transition-colors">
+              <div className="w-8 h-8 rounded bg-[#dc2626] flex items-center justify-center font-bold text-xs text-white shrink-0 shadow-xs">
                 02
               </div>
               <div className="text-xs">
                 <div className="font-bold text-red-900">Not Answered</div>
-                <div className="text-[10px] text-red-700">Visited but not answered</div>
+                <div className="text-[10px] text-red-700">Visited but unanswered</div>
               </div>
             </div>
 
-            {/* Answered */}
-            <div className="flex items-center gap-2.5 p-2.5 rounded-lg border border-green-200 bg-green-50/50">
-              <div className="w-7 h-7 rounded bg-[#16a34a] flex items-center justify-center font-bold text-xs text-white shrink-0">
+            {/* 3. Answered */}
+            <div className="flex items-center gap-3 p-3 rounded-xl border border-green-200 bg-green-50/50 hover:bg-green-50 transition-colors">
+              <div className="w-8 h-8 rounded bg-[#16a34a] flex items-center justify-center font-bold text-xs text-white shrink-0 shadow-xs">
                 03
               </div>
               <div className="text-xs">
@@ -450,27 +664,126 @@ export default function HomePage() {
               </div>
             </div>
 
-            {/* Marked for Review */}
-            <div className="flex items-center gap-2.5 p-2.5 rounded-lg border border-purple-200 bg-purple-50/50">
-              <div className="w-7 h-7 rounded-full bg-[#7c3aed] flex items-center justify-center font-bold text-xs text-white shrink-0">
+            {/* 4. Marked for Review */}
+            <div className="flex items-center gap-3 p-3 rounded-xl border border-purple-200 bg-purple-50/50 hover:bg-purple-50 transition-colors">
+              <div className="w-8 h-8 rounded-full bg-[#7c3aed] flex items-center justify-center font-bold text-xs text-white shrink-0 shadow-xs">
                 04
               </div>
               <div className="text-xs">
                 <div className="font-bold text-purple-900">Marked for Review</div>
-                <div className="text-[10px] text-purple-700">Not answered, marked for review</div>
+                <div className="text-[10px] text-purple-700">Unanswered; not evaluated</div>
               </div>
             </div>
 
-            {/* Answered & Marked */}
-            <div className="flex items-center gap-2.5 p-2.5 rounded-lg border border-purple-200 bg-purple-50/50">
-              <div className="relative w-7 h-7 rounded-full bg-[#7c3aed] flex items-center justify-center font-bold text-xs text-white shrink-0">
+            {/* 5. Answered & Marked */}
+            <div className="flex items-center gap-3 p-3 rounded-xl border border-purple-200 bg-purple-50/50 hover:bg-purple-50 transition-colors">
+              <div className="relative w-8 h-8 rounded-full bg-[#7c3aed] flex items-center justify-center font-bold text-xs text-white shrink-0 shadow-xs">
                 05
-                <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-green-500 border border-white rounded-full"></span>
+                <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-500 border-2 border-white rounded-full"></span>
               </div>
               <div className="text-xs">
                 <div className="font-bold text-purple-900">Answered & Marked</div>
                 <div className="text-[10px] text-purple-700">Evaluated in final scoring</div>
               </div>
+            </div>
+          </div>
+
+          {/* Official Evaluation Rule Alert */}
+          <div className="mt-4 p-3 bg-amber-50/80 border border-amber-200 rounded-xl text-xs text-amber-950 flex items-start gap-2.5">
+            <AlertCircle className="w-4 h-4 text-amber-700 shrink-0 mt-0.5" />
+            <div className="leading-relaxed">
+              <strong>Official NTA Evaluation Note:</strong> Questions answered and marked for review{' '}
+              <span className="font-bold text-emerald-800 underline">WILL be evaluated</span> in calculation
+              of final marks (+4 or -1). Questions flagged for review without an answer selected will NOT be evaluated.
+            </div>
+          </div>
+        </div>
+
+        {/* 4. KEYBOARD SHORTCUTS & CBT FEATURES STRIP */}
+        <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-5">
+          {/* Keyboard Shortcuts Deck */}
+          <div className="bg-white rounded-2xl shadow-card border border-slate-200 p-6">
+            <div className="flex items-center gap-2 mb-3 pb-2 border-b border-slate-100">
+              <Keyboard className="w-4 h-4 text-blue-700" />
+              <h4 className="font-bold text-xs uppercase tracking-wider text-slate-900">
+                CBT Hotkeys & Rapid Navigation
+              </h4>
+            </div>
+            <p className="text-xs text-slate-500 mb-3.5">
+              Speed up your test attempt without touching the mouse:
+            </p>
+            <div className="grid grid-cols-2 gap-2 text-xs font-mono">
+              <div className="flex items-center justify-between p-2 rounded-lg bg-slate-50 border border-slate-200">
+                <span className="text-slate-600">Select Option</span>
+                <span className="font-bold text-blue-900 bg-white px-2 py-0.5 rounded border border-slate-300">
+                  1 • 2 • 3 • 4
+                </span>
+              </div>
+              <div className="flex items-center justify-between p-2 rounded-lg bg-slate-50 border border-slate-200">
+                <span className="text-slate-600">Save & Next</span>
+                <span className="font-bold text-blue-900 bg-white px-2 py-0.5 rounded border border-slate-300">
+                  Enter
+                </span>
+              </div>
+              <div className="flex items-center justify-between p-2 rounded-lg bg-slate-50 border border-slate-200">
+                <span className="text-slate-600">Mark for Review</span>
+                <span className="font-bold text-blue-900 bg-white px-2 py-0.5 rounded border border-slate-300">
+                  M
+                </span>
+              </div>
+              <div className="flex items-center justify-between p-2 rounded-lg bg-slate-50 border border-slate-200">
+                <span className="text-slate-600">Clear Answer</span>
+                <span className="font-bold text-blue-900 bg-white px-2 py-0.5 rounded border border-slate-300">
+                  C / Space
+                </span>
+              </div>
+              <div className="flex items-center justify-between p-2 rounded-lg bg-slate-50 border border-slate-200">
+                <span className="text-slate-600">Next / Prev Q</span>
+                <span className="font-bold text-blue-900 bg-white px-2 py-0.5 rounded border border-slate-300">
+                  ← • →
+                </span>
+              </div>
+              <div className="flex items-center justify-between p-2 rounded-lg bg-slate-50 border border-slate-200">
+                <span className="text-slate-600">Fullscreen Kiosk</span>
+                <span className="font-bold text-blue-900 bg-white px-2 py-0.5 rounded border border-slate-300">
+                  F
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* Exam Resilience & Offline Guard */}
+          <div className="bg-white rounded-2xl shadow-card border border-slate-200 p-6 flex flex-col justify-between">
+            <div>
+              <div className="flex items-center gap-2 mb-3 pb-2 border-b border-slate-100">
+                <ShieldCheck className="w-4 h-4 text-emerald-600" />
+                <h4 className="font-bold text-xs uppercase tracking-wider text-slate-900">
+                  Zero-Data-Loss Offline Architecture
+                </h4>
+              </div>
+              <p className="text-xs text-slate-600 leading-relaxed mb-4">
+                Your responses are cached continuously in browser local storage. Even if your internet connection
+                temporarily disconnects, answers are queued locally and automatically synced with PostgreSQL as soon as connectivity resumes.
+              </p>
+              <div className="space-y-2 text-xs text-slate-600">
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 rounded-full bg-emerald-500"></div>
+                  <span>Instant LocalStorage Answer Mirroring</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 rounded-full bg-emerald-500"></div>
+                  <span>Background sync queue worker running every 4 seconds</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 rounded-full bg-emerald-500"></div>
+                  <span>Tab-switch proctoring alert counter with advisory notice</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="pt-4 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500 font-mono">
+              <span>Syllabus: NMC NEET UG 2027</span>
+              <span>100% Client-Side Safe</span>
             </div>
           </div>
         </div>
