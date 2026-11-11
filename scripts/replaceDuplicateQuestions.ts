@@ -175,46 +175,43 @@ export async function runControlledBatchReplacement(options: ReplacementOptions 
             continue;
           }
 
-          // Update question record in PostgreSQL
-          await prisma.$transaction(async (tx) => {
-            await tx.question.update({
-              where: { id: oldQuestion.id },
-              data: {
-                statement: newCandidate.statement,
-                option1: newCandidate.option1,
-                option2: newCandidate.option2,
-                option3: newCandidate.option3,
-                option4: newCandidate.option4,
-                correctAnswer: newCandidate.correctAnswer,
-                explanation: newCandidate.explanation,
-                difficulty: newCandidate.difficulty as Difficulty,
-                duplicateHash: newHash,
-                topic: newCandidate.topic || oldQuestion.topic,
-                verificationStatus: VerificationStatus.VERIFIED,
-                source: 'Gemini AI (Independently Verified NCERT Replacement)',
-                verifiedAt: new Date(),
-                verifiedBy: 'Gemini Independent Verifier',
-                isVerifiedPYQ: false,
-              },
-            });
-
-            // Resynchronize any MockPaperQuestion option mappings if attached to mock exams
-            const mpqs = await tx.mockPaperQuestion.findMany({
-              where: { questionId: oldQuestion.id },
-            });
-
-            for (const mpq of mpqs) {
-              // Find which shuffled option slot maps to the new correctAnswer
-              const mapping = [mpq.optionAMapping, mpq.optionBMapping, mpq.optionCMapping, mpq.optionDMapping];
-              const shuffledCorrect = mapping.indexOf(newCandidate.correctAnswer) + 1;
-              if (shuffledCorrect > 0) {
-                await tx.mockPaperQuestion.update({
-                  where: { id: mpq.id },
-                  data: { shuffledCorrectAnswer: shuffledCorrect },
-                });
-              }
-            }
+          // Update question record in PostgreSQL directly (avoid long interactive transactions on pooler)
+          await prisma.question.update({
+            where: { id: oldQuestion.id },
+            data: {
+              statement: newCandidate.statement,
+              option1: newCandidate.option1,
+              option2: newCandidate.option2,
+              option3: newCandidate.option3,
+              option4: newCandidate.option4,
+              correctAnswer: newCandidate.correctAnswer,
+              explanation: newCandidate.explanation,
+              difficulty: newCandidate.difficulty as Difficulty,
+              duplicateHash: newHash,
+              topic: newCandidate.topic || oldQuestion.topic,
+              verificationStatus: VerificationStatus.VERIFIED,
+              source: 'Gemini AI (Independently Verified NCERT Replacement)',
+              verifiedAt: new Date(),
+              verifiedBy: 'Gemini Independent Verifier',
+              isVerifiedPYQ: false,
+            },
           });
+
+          // Resynchronize any MockPaperQuestion option mappings if attached to mock exams
+          const mpqs = await prisma.mockPaperQuestion.findMany({
+            where: { questionId: oldQuestion.id },
+          });
+
+          for (const mpq of mpqs) {
+            const mapping = [mpq.optionAMapping, mpq.optionBMapping, mpq.optionCMapping, mpq.optionDMapping];
+            const shuffledCorrect = mapping.indexOf(newCandidate.correctAnswer) + 1;
+            if (shuffledCorrect > 0) {
+              await prisma.mockPaperQuestion.update({
+                where: { id: mpq.id },
+                data: { shuffledCorrectAnswer: shuffledCorrect },
+              });
+            }
+          }
 
           if (oldQuestion.duplicateHash) existingHashes.delete(oldQuestion.duplicateHash);
           existingHashes.add(newHash);

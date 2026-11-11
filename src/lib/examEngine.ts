@@ -1,5 +1,5 @@
 import { prisma } from './prisma';
-import { SubjectType, Difficulty, ExamMode, AttemptStatus, QuestionStatus } from '@prisma/client';
+import { SubjectType, Difficulty, ExamMode, AttemptStatus, QuestionStatus, VerificationStatus } from '@prisma/client';
 
 export interface ExamGenerationOptions {
   candidateId: string;
@@ -102,24 +102,61 @@ export async function generateExamAttempt(options: ExamGenerationOptions) {
   const now = new Date();
   const expiresAt = new Date(now.getTime() + durationMinutes * 60 * 1000);
 
-  // 3. Find recently attempted question IDs for this candidate to avoid repetitions
-  const recentAttempts = await prisma.examAttempt.findMany({
+  // 3. Find ALL previously attempted questions for this candidate to eliminate repetition across attempts
+  const pastAttempts = await prisma.examAttempt.findMany({
     where: { candidateId },
     select: {
       questions: {
-        select: { questionId: true },
+        select: {
+          questionId: true,
+          question: {
+            select: {
+              statement: true,
+              duplicateHash: true,
+            },
+          },
+        },
       },
     },
-    take: 3,
     orderBy: { createdAt: 'desc' },
   });
 
-  const recentQuestionIds = new Set<string>();
-  for (const attempt of recentAttempts) {
+  const attemptedQuestionIds = new Set<string>();
+  const attemptedStatements = new Set<string>();
+  const attemptedHashes = new Set<string>();
+
+  for (const attempt of pastAttempts) {
     for (const q of attempt.questions) {
-      recentQuestionIds.add(q.questionId);
+      attemptedQuestionIds.add(q.questionId);
+      if (q.question?.statement) attemptedStatements.add(q.question.statement.trim().toLowerCase());
+      if (q.question?.duplicateHash) attemptedHashes.add(q.question.duplicateHash);
     }
   }
+
+  // Tracking sets for questions in the current attempt to guarantee 0 intra-exam duplicates
+  const attemptQuestionIds = new Set<string>();
+  const attemptQuestionStatements = new Set<string>();
+  const attemptQuestionHashes = new Set<string>();
+
+  const isDuplicateInAttempt = (q: { id: string; statement?: string; duplicateHash?: string | null }) => {
+    if (attemptQuestionIds.has(q.id)) return true;
+    if (q.statement && attemptQuestionStatements.has(q.statement.trim().toLowerCase())) return true;
+    if (q.duplicateHash && attemptQuestionHashes.has(q.duplicateHash)) return true;
+    return false;
+  };
+
+  const isCandidateAttempted = (q: { id: string; statement?: string; duplicateHash?: string | null }) => {
+    if (attemptedQuestionIds.has(q.id)) return true;
+    if (q.statement && attemptedStatements.has(q.statement.trim().toLowerCase())) return true;
+    if (q.duplicateHash && attemptedHashes.has(q.duplicateHash)) return true;
+    return false;
+  };
+
+  const registerInAttempt = (q: { id: string; statement?: string; duplicateHash?: string | null }) => {
+    attemptQuestionIds.add(q.id);
+    if (q.statement) attemptQuestionStatements.add(q.statement.trim().toLowerCase());
+    if (q.duplicateHash) attemptQuestionHashes.add(q.duplicateHash);
+  };
 
   // 4. Question Selection Strategy
   let selectedQuestions: Array<{
@@ -150,28 +187,34 @@ export async function generateExamAttempt(options: ExamGenerationOptions) {
       const targetDiff = Math.round((targetCount * diffPct) / 100); // ~9
       const targetMod = targetCount - targetEasy - targetDiff; // ~22
 
-      // Fetch questions by difficulty
+      // Fetch questions by difficulty with statements & hashes
       const [easyPool, modPool, diffPool] = await Promise.all([
         prisma.question.findMany({
-          where: { subjectId: subject.id, difficulty: Difficulty.EASY },
-          select: { id: true },
+          where: { subjectId: subject.id, difficulty: Difficulty.EASY, verificationStatus: VerificationStatus.VERIFIED },
+          select: { id: true, statement: true, duplicateHash: true },
         }),
         prisma.question.findMany({
-          where: { subjectId: subject.id, difficulty: Difficulty.MODERATE },
-          select: { id: true },
+          where: { subjectId: subject.id, difficulty: Difficulty.MODERATE, verificationStatus: VerificationStatus.VERIFIED },
+          select: { id: true, statement: true, duplicateHash: true },
         }),
         prisma.question.findMany({
-          where: { subjectId: subject.id, difficulty: Difficulty.DIFFICULT },
-          select: { id: true },
+          where: { subjectId: subject.id, difficulty: Difficulty.DIFFICULT, verificationStatus: VerificationStatus.VERIFIED },
+          select: { id: true, statement: true, duplicateHash: true },
         }),
       ]);
 
-      const pickFromPool = (pool: Array<{ id: string }>, count: number) => {
-        // Prioritize questions not in recentQuestionIds
-        const fresh = pool.filter((q) => !recentQuestionIds.has(q.id));
-        const used = pool.filter((q) => recentQuestionIds.has(q.id));
-        const combined = [...shuffleArray(fresh), ...shuffleArray(used)];
-        return combined.slice(0, count);
+      const pickFromPool = (pool: Array<{ id: string; statement: string; duplicateHash: string | null }>, count: number) => {
+        // Exclude anything already placed into this attempt
+        const unusedInAttempt = pool.filter((q) => !isDuplicateInAttempt(q));
+        // Prioritize questions not yet attempted by candidate in any previous exam
+        const fresh = unusedInAttempt.filter((q) => !isCandidateAttempted(q));
+        const poolToUse = fresh.length >= count ? fresh : unusedInAttempt;
+        const shuffled = shuffleArray(poolToUse);
+        const picked = shuffled.slice(0, count);
+        for (const p of picked) {
+          registerInAttempt(p);
+        }
+        return picked;
       };
 
       const pickedEasy = pickFromPool(easyPool, targetEasy);
@@ -180,18 +223,24 @@ export async function generateExamAttempt(options: ExamGenerationOptions) {
 
       let subjectSelected = [...pickedEasy, ...pickedMod, ...pickedDiff];
 
-      // If any bucket fell short, fill from remaining questions of that subject
+      // If any bucket fell short, fill from remaining verified questions of that subject
       if (subjectSelected.length < targetCount) {
-        const selectedIds = new Set(subjectSelected.map((q) => q.id));
         const fallbackPool = await prisma.question.findMany({
           where: {
             subjectId: subject.id,
-            id: { notIn: Array.from(selectedIds) },
+            verificationStatus: VerificationStatus.VERIFIED,
+            id: { notIn: Array.from(attemptQuestionIds) },
           },
-          select: { id: true },
-          take: targetCount - subjectSelected.length,
+          select: { id: true, statement: true, duplicateHash: true },
         });
-        subjectSelected = [...subjectSelected, ...fallbackPool];
+        const unusedFallback = fallbackPool.filter((q) => !isDuplicateInAttempt(q));
+        const freshFallback = unusedFallback.filter((q) => !isCandidateAttempted(q));
+        const poolToUse = freshFallback.length >= (targetCount - subjectSelected.length) ? freshFallback : unusedFallback;
+        const additional = shuffleArray(poolToUse).slice(0, targetCount - subjectSelected.length);
+        for (const a of additional) {
+          registerInAttempt(a);
+        }
+        subjectSelected = [...subjectSelected, ...additional];
       }
 
       // Shuffle order of questions within the subject
@@ -206,7 +255,9 @@ export async function generateExamAttempt(options: ExamGenerationOptions) {
     }
   } else {
     // PRACTICE MODE: filter by subject / chapter / count
-    const whereClause: any = {};
+    const whereClause: any = {
+      verificationStatus: VerificationStatus.VERIFIED,
+    };
     if (subjectFilter) {
       const subject = await prisma.subject.findUnique({
         where: { code: subjectFilter },
@@ -222,8 +273,15 @@ export async function generateExamAttempt(options: ExamGenerationOptions) {
       include: { subject: true },
     });
 
+    // Exclude intra-attempt duplicates and prioritize fresh questions candidate hasn't attempted
+    const unusedInAttempt = pool.filter((q) => !isDuplicateInAttempt(q));
+    const fresh = unusedInAttempt.filter((q) => !isCandidateAttempted(q));
     const targetCount = questionCount || Math.min(30, pool.length);
-    const shuffled = shuffleArray(pool).slice(0, targetCount);
+    const poolToUse = fresh.length >= targetCount ? fresh : unusedInAttempt;
+    const shuffled = shuffleArray(poolToUse).slice(0, targetCount);
+    for (const q of shuffled) {
+      registerInAttempt(q);
+    }
 
     selectedQuestions = shuffled.map((q) => ({
       id: q.id,

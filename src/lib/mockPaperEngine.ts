@@ -11,7 +11,14 @@ export interface PaperGenerationOptions {
   difficultCount?: number; // default 36
   syllabusVersion?: string;
   excludeQuestionIds?: string[]; // IDs used in previous papers to minimize repetition
-  questionPool?: Array<{ id: string; subjectId: string; difficulty: Difficulty; correctAnswer: number }>;
+  questionPool?: Array<{
+    id: string;
+    subjectId: string;
+    difficulty: Difficulty;
+    correctAnswer: number;
+    statement?: string;
+    duplicateHash?: string | null;
+  }>;
 }
 
 /**
@@ -103,6 +110,8 @@ export async function generateMockPaper(options: PaperGenerationOptions) {
 
   let globalOrder = 1;
   const paperQuestionIds = new Set<string>();
+  const paperQuestionStatements = new Set<string>();
+  const paperQuestionHashes = new Set<string>();
 
   for (const subCode of subjects) {
     const subject = await prisma.subject.findUnique({
@@ -127,7 +136,7 @@ export async function generateMockPaper(options: PaperGenerationOptions) {
             verificationStatus: VerificationStatus.VERIFIED,
             difficulty: Difficulty.EASY,
           },
-          select: { id: true, correctAnswer: true },
+          select: { id: true, correctAnswer: true, statement: true, duplicateHash: true },
         }),
         prisma.question.findMany({
           where: {
@@ -135,7 +144,7 @@ export async function generateMockPaper(options: PaperGenerationOptions) {
             verificationStatus: VerificationStatus.VERIFIED,
             difficulty: Difficulty.MODERATE,
           },
-          select: { id: true, correctAnswer: true },
+          select: { id: true, correctAnswer: true, statement: true, duplicateHash: true },
         }),
         prisma.question.findMany({
           where: {
@@ -143,15 +152,22 @@ export async function generateMockPaper(options: PaperGenerationOptions) {
             verificationStatus: VerificationStatus.VERIFIED,
             difficulty: Difficulty.DIFFICULT,
           },
-          select: { id: true, correctAnswer: true },
+          select: { id: true, correctAnswer: true, statement: true, duplicateHash: true },
         }),
       ]);
     }
 
     const excludedSet = new Set(excludeQuestionIds);
 
+    const isAlreadyUsed = (q: any) => {
+      if (paperQuestionIds.has(q.id)) return true;
+      if (q.statement && paperQuestionStatements.has(q.statement.trim().toLowerCase())) return true;
+      if (q.duplicateHash && paperQuestionHashes.has(q.duplicateHash)) return true;
+      return false;
+    };
+
     const pickQuestions = (pool: any[], target: number) => {
-      const unusedInPaper = pool.filter((q) => !paperQuestionIds.has(q.id));
+      const unusedInPaper = pool.filter((q) => !isAlreadyUsed(q));
       const freshQuestions = unusedInPaper.filter((q) => !excludedSet.has(q.id));
       const poolToUse = freshQuestions.length >= target ? freshQuestions : unusedInPaper;
 
@@ -159,6 +175,8 @@ export async function generateMockPaper(options: PaperGenerationOptions) {
       const picked = shuffled.slice(0, target);
       for (const p of picked) {
         paperQuestionIds.add(p.id);
+        if (p.statement) paperQuestionStatements.add(p.statement.trim().toLowerCase());
+        if (p.duplicateHash) paperQuestionHashes.add(p.duplicateHash);
       }
       return picked;
     };
@@ -172,20 +190,23 @@ export async function generateMockPaper(options: PaperGenerationOptions) {
     // Fallback if difficulty bucket ran short
     if (subjectQuestions.length < 45) {
       const allSubVerified = subPool
-        ? subPool.filter((q) => !paperQuestionIds.has(q.id))
+        ? subPool.filter((q) => !isAlreadyUsed(q))
         : await prisma.question.findMany({
             where: {
               subjectId: subject.id,
               verificationStatus: VerificationStatus.VERIFIED,
               id: { notIn: Array.from(paperQuestionIds) },
             },
-            select: { id: true, correctAnswer: true },
+            select: { id: true, correctAnswer: true, statement: true, duplicateHash: true },
           });
-      const freshAll = allSubVerified.filter((q) => !excludedSet.has(q.id));
-      const poolToUse = freshAll.length >= (45 - subjectQuestions.length) ? freshAll : allSubVerified;
+      const unusedSub = allSubVerified.filter((q) => !isAlreadyUsed(q));
+      const freshAll = unusedSub.filter((q) => !excludedSet.has(q.id));
+      const poolToUse = freshAll.length >= (45 - subjectQuestions.length) ? freshAll : unusedSub;
       const additional = seededShuffle(poolToUse, prng).slice(0, 45 - subjectQuestions.length);
       for (const a of additional) {
         paperQuestionIds.add(a.id);
+        if (a.statement) paperQuestionStatements.add(a.statement.trim().toLowerCase());
+        if (a.duplicateHash) paperQuestionHashes.add(a.duplicateHash);
       }
       subjectQuestions = [...subjectQuestions, ...additional];
     }

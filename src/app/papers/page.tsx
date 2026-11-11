@@ -315,10 +315,20 @@ export default function MockPapersPage() {
                     {/* Previous Result (if attempted) */}
                     {isCompleted && paper.bestScore !== null && (
                       <div className="mb-4 p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-xs flex items-center justify-between">
-                        <span className="text-emerald-800 font-semibold">Previous Best Score:</span>
-                        <span className="text-emerald-950 font-black font-mono text-sm">
-                          {paper.bestScore} / 720 ({paper.bestAccuracy}%)
-                        </span>
+                        <div className="flex flex-col">
+                          <span className="text-[10px] uppercase font-bold text-emerald-700 tracking-wider">Previous Best Score</span>
+                          <span className="text-emerald-950 font-black font-mono text-sm">
+                            {paper.bestScore} <span className="text-xs text-slate-500 font-normal">/ 720</span>
+                          </span>
+                        </div>
+                        {paper.bestAccuracy !== null && (
+                          <div className="flex flex-col items-end">
+                            <span className="text-[10px] uppercase font-bold text-emerald-700 tracking-wider">Attempt Accuracy</span>
+                            <span className="text-emerald-800 font-bold font-mono text-xs">
+                              {paper.bestAccuracy}%
+                            </span>
+                          </div>
+                        )}
                       </div>
                     )}
                   </div>
