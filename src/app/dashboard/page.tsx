@@ -33,6 +33,7 @@ import {
 } from '@/lib/candidateClient';
 import { CandidateModal } from '@/components/CandidateModal';
 import { calculateNeetPrediction } from '@/lib/neetPredictor';
+import { CollegePredictorCard } from '@/components/CollegePredictorCard';
 
 interface DashboardData {
   candidate: {
@@ -101,6 +102,7 @@ export default function DashboardPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [mistakeCount, setMistakeCount] = useState<number>(0);
   const [drillLoading, setDrillLoading] = useState(false);
+  const [remedialLoading, setRemedialLoading] = useState(false);
   const [activeHeatmapSubject, setActiveHeatmapSubject] = useState<'ALL' | 'PHYSICS' | 'CHEMISTRY' | 'BOTANY' | 'ZOOLOGY'>('ALL');
 
   const fetchDashboard = useCallback(async (roll: string) => {
@@ -140,6 +142,25 @@ export default function DashboardPage() {
       alert(e.message || 'Failed to start mistake drill.');
     } finally {
       setDrillLoading(false);
+    }
+  };
+
+  const handleLaunchRemedialMock = async () => {
+    const current = getClientCandidate();
+    setRemedialLoading(true);
+    try {
+      const res = await fetch('/api/exam/remedial', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ rollNumber: current.rollNumber }),
+      });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error || 'Failed to generate remedial mock test.');
+      router.push(`/exam/${json.attemptId}`);
+    } catch (e: any) {
+      alert(e.message || 'Error generating remedial mock test.');
+    } finally {
+      setRemedialLoading(false);
     }
   };
 
@@ -223,6 +244,15 @@ export default function DashboardPage() {
               </button>
             )}
             <button
+              onClick={handleLaunchRemedialMock}
+              disabled={remedialLoading}
+              className="bg-gradient-to-r from-emerald-600 to-teal-700 hover:from-emerald-700 hover:to-teal-800 disabled:opacity-50 text-white font-bold text-xs px-4 py-2.5 rounded-xl shadow-xs transition-all flex items-center gap-1.5 cursor-pointer"
+              title="Target weak NCERT chapters with an automated 45-question remedial mock test"
+            >
+              <Zap className="w-4 h-4 text-emerald-200" />
+              <span>{remedialLoading ? 'Building Test...' : 'Remedial Mock (45 Qs)'}</span>
+            </button>
+            <button
               onClick={() => setIsModalOpen(true)}
               className="bg-blue-50/80 hover:bg-blue-100 text-blue-900 border border-blue-200 text-xs font-bold px-3.5 py-2.5 rounded-xl transition-colors flex items-center gap-1.5 cursor-pointer"
             >
@@ -237,32 +267,11 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* PROJECTED NEET UG STANDING & COLLEGE TARGET */}
-        {stats.totalAttempts > 0 && (
-          <div className="relative overflow-hidden bg-gradient-to-r from-slate-950 via-blue-950 to-indigo-950 text-white rounded-3xl p-6 sm:p-7 shadow-elevated border border-blue-900/40">
-            <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500/10 rounded-full blur-3xl pointer-events-none" />
-
-            <div className="relative z-10 flex flex-wrap items-center justify-between gap-5">
-              <div className="max-w-2xl">
-                <div className="text-[10px] font-bold uppercase tracking-wider text-blue-300 flex items-center gap-1.5 mb-1">
-                  <Target className="w-3.5 h-3.5 text-amber-300" />
-                  <span>NTA Percentile & Cutoff Projection (Based on Best Score: {stats.highestScore}/720)</span>
-                </div>
-                <div className="text-2xl sm:text-3xl font-black text-white mt-1 flex items-center gap-2.5 font-mono">
-                  <span>{prediction.estimatedAirRange}</span>
-                  <span className="text-sm font-semibold text-emerald-300">({prediction.estimatedPercentile}%ile)</span>
-                </div>
-                <p className="text-xs text-slate-300 mt-1.5 leading-relaxed">
-                  {prediction.admissionOutlook}
-                </p>
-              </div>
-
-              <div className={`px-4 py-2.5 rounded-2xl text-xs font-bold border backdrop-blur-md shadow-xs ${prediction.tierColor}`}>
-                {prediction.badge}
-              </div>
-            </div>
-          </div>
-        )}
+        {/* AIIMS & GOVERNMENT MEDICAL COLLEGE CUTOFF PREDICTOR (INTERACTIVE) */}
+        <CollegePredictorCard
+          score={stats.highestScore || stats.averageScore || 0}
+          maxScore={720}
+        />
 
         {/* METRICS SUMMARY CARDS */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
@@ -341,6 +350,26 @@ export default function DashboardPage() {
                 </span>
               </div>
             </div>
+
+            {/* Remedial Mock Trigger for Critical Gaps */}
+            {data.chapterHeatmap.some((c) => c.status === 'CRITICAL') && (
+              <div className="mt-4 p-3.5 bg-rose-50 border border-rose-200 rounded-2xl flex flex-wrap items-center justify-between gap-3 text-xs">
+                <div className="flex items-center gap-2">
+                  <Flame className="w-4 h-4 text-rose-600 shrink-0" />
+                  <span className="text-rose-950 font-medium">
+                    You have <strong>{data.chapterHeatmap.filter((c) => c.status === 'CRITICAL').length} chapters</strong> with critical score drag (&lt;50% accuracy). Plug these leaks immediately.
+                  </span>
+                </div>
+                <button
+                  onClick={handleLaunchRemedialMock}
+                  disabled={remedialLoading}
+                  className="bg-rose-600 hover:bg-rose-700 disabled:opacity-50 text-white font-bold text-xs px-3.5 py-1.5 rounded-xl shadow-xs transition-all flex items-center gap-1.5 cursor-pointer"
+                >
+                  <Zap className="w-3.5 h-3.5 text-amber-300" />
+                  <span>{remedialLoading ? 'Preparing...' : 'Target Weak Chapters (45 Qs)'}</span>
+                </button>
+              </div>
+            )}
 
             {/* Subject Tabs */}
             <div className="flex flex-wrap items-center gap-2 mt-4 mb-4">

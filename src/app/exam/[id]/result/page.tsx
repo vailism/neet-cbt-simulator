@@ -46,6 +46,7 @@ import {
 import confetti from 'canvas-confetti';
 import { MathRenderer } from '@/components/MathRenderer';
 import { calculateNeetPrediction } from '@/lib/neetPredictor';
+import { CollegePredictorCard } from '@/components/CollegePredictorCard';
 
 interface ResultData {
   attemptId: string;
@@ -183,6 +184,7 @@ export default function ExamResultPage() {
   }, [attemptId]);
 
   const [drillLoading, setDrillLoading] = useState(false);
+  const [remedialLoading, setRemedialLoading] = useState(false);
 
   const handleLaunchMistakeDrill = async () => {
     if (!data?.candidate?.rollNumber) return;
@@ -199,6 +201,24 @@ export default function ExamResultPage() {
     } catch (e: any) {
       alert(e.message || 'Error launching drill.');
       setDrillLoading(false);
+    }
+  };
+
+  const handleLaunchRemedialMock = async () => {
+    if (!data?.candidate?.rollNumber) return;
+    setRemedialLoading(true);
+    try {
+      const res = await fetch('/api/exam/remedial', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ rollNumber: data.candidate.rollNumber }),
+      });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error || 'Failed to generate remedial mock test.');
+      router.push(`/exam/${json.attemptId}`);
+    } catch (e: any) {
+      alert(e.message || 'Error generating remedial mock test.');
+      setRemedialLoading(false);
     }
   };
 
@@ -326,23 +346,43 @@ export default function ExamResultPage() {
             </div>
           </div>
 
-          {/* Quick Mistake Drill Trigger */}
-          {overall.incorrectCount > 0 && (
-            <div className="mt-4 pt-4 border-t border-white/10 flex flex-wrap items-center justify-between gap-3">
-              <div className="text-xs text-blue-200">
-                You have <strong>{overall.incorrectCount} mistakes</strong> in this exam. Turn mistakes into mastery with an immediate remedial drill.
-              </div>
+          {/* Quick Mistake Drill & Remedial Mock Triggers */}
+          <div className="mt-4 pt-4 border-t border-white/10 flex flex-wrap items-center justify-between gap-3">
+            <div className="text-xs text-blue-200">
+              {overall.incorrectCount > 0 ? (
+                <span>
+                  You have <strong>{overall.incorrectCount} mistakes</strong> in this exam. Retest your errors or launch a 45-question remedial mock targeting weak chapters.
+                </span>
+              ) : (
+                <span>
+                  Mastery achieved! Launch a 45-question remedial mock targeting your lowest-scoring NCERT chapters.
+                </span>
+              )}
+            </div>
+            <div className="flex flex-wrap items-center gap-2">
+              {overall.incorrectCount > 0 && (
+                <button
+                  onClick={handleLaunchMistakeDrill}
+                  disabled={drillLoading}
+                  className="bg-amber-400 hover:bg-amber-300 disabled:opacity-50 text-blue-950 font-black text-xs px-3.5 py-2 rounded-lg shadow-md transition-all flex items-center gap-2 cursor-pointer"
+                >
+                  <Target className="w-4 h-4 text-red-700" />
+                  <span>{drillLoading ? 'Building Drill...' : `Re-Test Mistakes (${overall.incorrectCount})`}</span>
+                  <Play className="w-3.5 h-3.5 fill-current" />
+                </button>
+              )}
               <button
-                onClick={handleLaunchMistakeDrill}
-                disabled={drillLoading}
-                className="bg-amber-400 hover:bg-amber-300 disabled:opacity-50 text-blue-950 font-black text-xs px-4 py-2 rounded-lg shadow-md transition-all flex items-center gap-2 cursor-pointer"
+                onClick={handleLaunchRemedialMock}
+                disabled={remedialLoading}
+                className="bg-gradient-to-r from-emerald-400 to-teal-400 hover:from-emerald-300 hover:to-teal-300 disabled:opacity-50 text-slate-950 font-black text-xs px-3.5 py-2 rounded-lg shadow-md transition-all flex items-center gap-2 cursor-pointer"
+                title="Auto-generates a 45-question mock test targeting your weak chapters"
               >
-                <Target className="w-4 h-4 text-red-700" />
-                <span>{drillLoading ? 'Building Drill...' : `Re-Test My ${overall.incorrectCount} Mistakes`}</span>
+                <Zap className="w-4 h-4 text-emerald-950" />
+                <span>{remedialLoading ? 'Generating...' : 'Launch Remedial Mock (45 Qs)'}</span>
                 <Play className="w-3.5 h-3.5 fill-current" />
               </button>
             </div>
-          )}
+          </div>
 
           {/* Quick Metrics Strip */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-6 pt-6 border-t border-white/10 text-xs">
@@ -373,46 +413,49 @@ export default function ExamResultPage() {
           </div>
         </div>
 
-        {/* NEET UG PREDICTED ALL INDIA RANK & COLLEGE TIER */}
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 overflow-hidden">
-          <div className="flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-gray-100">
-            <div>
-              <div className="text-[10px] font-bold uppercase tracking-wider text-blue-700 flex items-center gap-1.5">
-                <Target className="w-3.5 h-3.5 text-blue-600" />
-                <span>NTA Official Score vs Rank Calibration (NEET UG Standard)</span>
+        {/* AIIMS & GOVERNMENT MEDICAL COLLEGE CUTOFF PREDICTOR (INTERACTIVE) */}
+        <CollegePredictorCard score={overall.totalScore} maxScore={overall.maxScore} />
+
+        {/* WEAK CHAPTER SCORE LEAK PLUGGER */}
+        {weakChapters && weakChapters.length > 0 && (
+          <div className="bg-gradient-to-br from-rose-50/90 via-orange-50/50 to-amber-50/60 rounded-2xl shadow-sm border border-rose-200 p-5 sm:p-6 space-y-3">
+            <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-rose-200/60">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-xl bg-rose-600 text-white flex items-center justify-center shadow-xs">
+                  <Flame className="w-4 h-4" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-gray-900 text-sm">
+                    Identified Score Leaks & Weak NCERT Chapters ({weakChapters.length})
+                  </h3>
+                  <p className="text-[11px] text-gray-600">
+                    High-yield negative marking leak detected. Plug these gaps with an automated remedial mock test.
+                  </p>
+                </div>
               </div>
-              <h2 className="text-lg sm:text-xl font-black text-gray-900 mt-0.5">
-                Projected Standing: <span className="text-blue-900 font-mono">{prediction.estimatedAirRange}</span>
-              </h2>
+              <button
+                onClick={handleLaunchRemedialMock}
+                disabled={remedialLoading}
+                className="bg-rose-600 hover:bg-rose-700 disabled:opacity-50 text-white font-bold text-xs px-4 py-2 rounded-xl shadow-xs transition-all flex items-center gap-2 cursor-pointer"
+              >
+                <Zap className="w-3.5 h-3.5 text-amber-300" />
+                <span>{remedialLoading ? 'Building Test...' : 'Launch 45-Q Remedial Test'}</span>
+              </button>
             </div>
-            <div className={`px-3 py-1 rounded-full text-xs font-bold border flex items-center gap-1.5 ${prediction.tierColor}`}>
-              <Award className="w-3.5 h-3.5" />
-              <span>{prediction.badge}</span>
+
+            <div className="flex flex-wrap gap-2 pt-1">
+              {weakChapters.map((ch, idx) => (
+                <span
+                  key={idx}
+                  className="bg-white border border-rose-300 text-rose-900 px-3 py-1 rounded-lg text-xs font-semibold shadow-2xs flex items-center gap-1.5"
+                >
+                  <span className="w-1.5 h-1.5 rounded-full bg-rose-500" />
+                  {ch}
+                </span>
+              ))}
             </div>
           </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
-            <div className="p-3.5 bg-blue-50/70 border border-blue-200 rounded-xl">
-              <span className="text-[11px] font-bold text-blue-700 uppercase tracking-wide">Estimated Percentile</span>
-              <div className="text-2xl font-black text-blue-950 font-mono mt-1">
-                {prediction.estimatedPercentile}%ile
-              </div>
-              <p className="text-[10px] text-blue-700 mt-0.5">
-                Top {Math.max(0.01, Math.round((100 - prediction.estimatedPercentile) * 100) / 100)}% of candidates nationwide
-              </p>
-            </div>
-
-            <div className="p-3.5 bg-emerald-50/70 border border-emerald-200 rounded-xl md:col-span-2">
-              <span className="text-[11px] font-bold text-emerald-800 uppercase tracking-wide">Admission & College Outlook</span>
-              <div className="text-sm font-bold text-emerald-950 mt-1">
-                {prediction.admissionOutlook}
-              </div>
-              <p className="text-xs text-emerald-800 mt-1.5 leading-relaxed font-medium">
-                💡 <strong>Strategy:</strong> {prediction.guidance}
-              </p>
-            </div>
-          </div>
-        </div>
+        )}
 
         {/* 1. NEGATIVE MARKING DEEP-DIVE ANALYSIS */}
         <div className="bg-white rounded-xl shadow-sm border border-red-200 p-6">
@@ -855,6 +898,15 @@ export default function ExamResultPage() {
                 <span>{drillLoading ? 'Preparing Drill...' : `Mistake Drill (${overall.incorrectCount} Qs)`}</span>
               </button>
             )}
+            <button
+              onClick={handleLaunchRemedialMock}
+              disabled={remedialLoading}
+              className="bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white text-xs font-black px-4 py-2 rounded-lg shadow-sm transition-colors flex items-center gap-1.5 cursor-pointer"
+              title="Auto-generates a 45-question test focusing on your lowest accuracy NCERT chapters"
+            >
+              <Zap className="w-4 h-4 text-emerald-200" />
+              <span>{remedialLoading ? 'Preparing Test...' : 'Remedial Mock (45 Qs)'}</span>
+            </button>
             <button
               onClick={() => router.push('/instructions')}
               className="bg-gray-100 hover:bg-gray-200 text-gray-800 text-xs font-bold px-4 py-2 rounded-lg transition-colors cursor-pointer"
