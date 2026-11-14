@@ -249,3 +249,4 @@ reseed()
     prisma.$disconnect();
     process.exit(1);
   });
+

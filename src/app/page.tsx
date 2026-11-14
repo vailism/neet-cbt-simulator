@@ -47,6 +47,8 @@ export default function HomePage() {
   const [saving, setSaving] = useState(false);
   const [mistakeCount, setMistakeCount] = useState<number>(0);
   const [drillLoading, setDrillLoading] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
+  const [countdown, setCountdown] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
 
   const fetchMistakes = async (roll: string) => {
     try {
@@ -57,6 +59,26 @@ export default function HomePage() {
       // Ignore
     }
   };
+
+  useEffect(() => {
+    setIsMounted(true);
+    // Target: First Sunday of May 2027 (May 2, 2027 14:00:00 IST)
+    const targetDate = new Date('2027-05-02T14:00:00+05:30').getTime();
+
+    const updateCountdown = () => {
+      const now = Date.now();
+      const diff = Math.max(0, targetDate - now);
+      const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+      const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+      const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+      const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+      setCountdown({ days, hours, minutes, seconds });
+    };
+
+    updateCountdown();
+    const interval = setInterval(updateCountdown, 1000);
+    return () => clearInterval(interval);
+  }, []);
 
   useEffect(() => {
     const current = getClientCandidate();
@@ -166,6 +188,38 @@ export default function HomePage() {
               Zero distractions. 100 authentic full-length mock examinations strictly calibrated to the 2015–2026 NEET pattern — featuring Assertion-Reason, Statement I & II, Match the Following, official 180-minute countdown, and +4/-1 scoring engine.
             </p>
           </div>
+
+          {/* Live Countdown to NEET Examination */}
+          {isMounted && (
+            <div className="pt-1 pb-1">
+              <div className="inline-flex flex-wrap items-center justify-center gap-2 sm:gap-3 bg-slate-900/80 border border-blue-400/30 px-5 py-3 rounded-2xl backdrop-blur-md shadow-xl text-center">
+                <div className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mr-1 hidden sm:block">
+                  NEET UG Official Countdown:
+                </div>
+                <div className="flex items-center gap-1.5 sm:gap-2 font-mono">
+                  <div className="bg-blue-950/90 border border-blue-400/30 px-3 py-1.5 rounded-xl min-w-[54px]">
+                    <div className="text-base sm:text-xl font-black text-amber-300">{countdown.days}</div>
+                    <div className="text-[9px] text-slate-400 uppercase font-sans">Days</div>
+                  </div>
+                  <span className="text-blue-400 font-bold">:</span>
+                  <div className="bg-blue-950/90 border border-blue-400/30 px-3 py-1.5 rounded-xl min-w-[46px]">
+                    <div className="text-base sm:text-xl font-black text-white">{String(countdown.hours).padStart(2, '0')}</div>
+                    <div className="text-[9px] text-slate-400 uppercase font-sans">Hours</div>
+                  </div>
+                  <span className="text-blue-400 font-bold">:</span>
+                  <div className="bg-blue-950/90 border border-blue-400/30 px-3 py-1.5 rounded-xl min-w-[46px]">
+                    <div className="text-base sm:text-xl font-black text-white">{String(countdown.minutes).padStart(2, '0')}</div>
+                    <div className="text-[9px] text-slate-400 uppercase font-sans">Mins</div>
+                  </div>
+                  <span className="text-blue-400 font-bold">:</span>
+                  <div className="bg-blue-950/90 border border-blue-400/30 px-3 py-1.5 rounded-xl min-w-[46px]">
+                    <div className="text-base sm:text-xl font-black text-emerald-400">{String(countdown.seconds).padStart(2, '0')}</div>
+                    <div className="text-[9px] text-slate-400 uppercase font-sans">Secs</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Primary Action Buttons */}
           <div className="flex flex-wrap items-center justify-center gap-3.5 pt-2">
@@ -783,6 +837,180 @@ export default function HomePage() {
             <div className="pt-4 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500 font-mono">
               <span>Syllabus: NMC NEET UG 2027</span>
               <span>100% Client-Side Safe</span>
+            </div>
+          </div>
+        </div>
+
+        {/* 5. SYLLABUS & BLUEPRINT COVERAGE BREAKDOWN */}
+        <div className="mt-8 bg-white rounded-2xl shadow-card border border-slate-200 p-6 sm:p-7">
+          <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-slate-100 mb-6">
+            <div>
+              <div className="inline-flex items-center gap-1.5 bg-blue-50 text-blue-700 border border-blue-200 px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider mb-1">
+                <BookOpen className="w-3 h-3" />
+                <span>NMC / NTA Prescribed Blueprint</span>
+              </div>
+              <h3 className="text-base font-black text-slate-900 tracking-tight">
+                NEET (UG) 180-Question Syllabus & Subject Weightage
+              </h3>
+              <p className="text-xs text-slate-500 mt-0.5">
+                All 100 mock tests on Vailism CBT strictly adhere to this subject distribution and modern pattern question taxonomy.
+              </p>
+            </div>
+            <Link
+              href="/papers"
+              className="text-xs text-blue-700 hover:text-blue-900 font-bold flex items-center gap-1"
+            >
+              <span>Explore 100 Papers</span>
+              <ArrowRight className="w-3.5 h-3.5" />
+            </Link>
+          </div>
+
+          {/* 4 Subjects Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+            {/* Physics */}
+            <div className="p-4 rounded-xl border border-blue-200 bg-blue-50/30 flex flex-col justify-between">
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-xs font-black text-blue-900 uppercase tracking-wider">Physics</span>
+                  <span className="text-xs font-mono font-bold bg-blue-100 text-blue-800 px-2 py-0.5 rounded">45 Qs • 180 M</span>
+                </div>
+                <ul className="text-[11px] text-slate-600 space-y-1.5 pt-1">
+                  <li className="flex items-center justify-between">
+                    <span>Mechanics & Kinematics</span>
+                    <span className="font-mono font-semibold text-slate-800">~14 Qs</span>
+                  </li>
+                  <li className="flex items-center justify-between">
+                    <span>Electrodynamics & Magnetism</span>
+                    <span className="font-mono font-semibold text-slate-800">~12 Qs</span>
+                  </li>
+                  <li className="flex items-center justify-between">
+                    <span>Optics & Modern Physics</span>
+                    <span className="font-mono font-semibold text-slate-800">~11 Qs</span>
+                  </li>
+                  <li className="flex items-center justify-between">
+                    <span>Thermodynamics & Waves</span>
+                    <span className="font-mono font-semibold text-slate-800">~8 Qs</span>
+                  </li>
+                </ul>
+              </div>
+              <div className="pt-3 mt-3 border-t border-blue-200/60 text-[10px] text-blue-700 font-semibold">
+                Target Pace: &lt; 90 seconds / question
+              </div>
+            </div>
+
+            {/* Chemistry */}
+            <div className="p-4 rounded-xl border border-emerald-200 bg-emerald-50/30 flex flex-col justify-between">
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-xs font-black text-emerald-900 uppercase tracking-wider">Chemistry</span>
+                  <span className="text-xs font-mono font-bold bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded">45 Qs • 180 M</span>
+                </div>
+                <ul className="text-[11px] text-slate-600 space-y-1.5 pt-1">
+                  <li className="flex items-center justify-between">
+                    <span>Organic Chemistry & Mechanisms</span>
+                    <span className="font-mono font-semibold text-slate-800">~16 Qs</span>
+                  </li>
+                  <li className="flex items-center justify-between">
+                    <span>Inorganic Chemistry & Coordination</span>
+                    <span className="font-mono font-semibold text-slate-800">~15 Qs</span>
+                  </li>
+                  <li className="flex items-center justify-between">
+                    <span>Physical Chemistry & Equilibrium</span>
+                    <span className="font-mono font-semibold text-slate-800">~14 Qs</span>
+                  </li>
+                </ul>
+              </div>
+              <div className="pt-3 mt-3 border-t border-emerald-200/60 text-[10px] text-emerald-700 font-semibold">
+                Target Pace: &lt; 60 seconds / question
+              </div>
+            </div>
+
+            {/* Botany */}
+            <div className="p-4 rounded-xl border border-purple-200 bg-purple-50/30 flex flex-col justify-between">
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-xs font-black text-purple-900 uppercase tracking-wider">Botany</span>
+                  <span className="text-xs font-mono font-bold bg-purple-100 text-purple-800 px-2 py-0.5 rounded">45 Qs • 180 M</span>
+                </div>
+                <ul className="text-[11px] text-slate-600 space-y-1.5 pt-1">
+                  <li className="flex items-center justify-between">
+                    <span>Genetics & Molecular Biology</span>
+                    <span className="font-mono font-semibold text-slate-800">~15 Qs</span>
+                  </li>
+                  <li className="flex items-center justify-between">
+                    <span>Plant Physiology & Photosynthesis</span>
+                    <span className="font-mono font-semibold text-slate-800">~12 Qs</span>
+                  </li>
+                  <li className="flex items-center justify-between">
+                    <span>Ecology & Environment</span>
+                    <span className="font-mono font-semibold text-slate-800">~10 Qs</span>
+                  </li>
+                  <li className="flex items-center justify-between">
+                    <span>Cell Structure & Division</span>
+                    <span className="font-mono font-semibold text-slate-800">~8 Qs</span>
+                  </li>
+                </ul>
+              </div>
+              <div className="pt-3 mt-3 border-t border-purple-200/60 text-[10px] text-purple-700 font-semibold">
+                Target Pace: &lt; 40 seconds / question
+              </div>
+            </div>
+
+            {/* Zoology */}
+            <div className="p-4 rounded-xl border border-amber-200 bg-amber-50/30 flex flex-col justify-between">
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-xs font-black text-amber-900 uppercase tracking-wider">Zoology</span>
+                  <span className="text-xs font-mono font-bold bg-amber-100 text-amber-900 px-2 py-0.5 rounded">45 Qs • 180 M</span>
+                </div>
+                <ul className="text-[11px] text-slate-600 space-y-1.5 pt-1">
+                  <li className="flex items-center justify-between">
+                    <span>Human Physiology</span>
+                    <span className="font-mono font-semibold text-slate-800">~18 Qs</span>
+                  </li>
+                  <li className="flex items-center justify-between">
+                    <span>Reproduction & Reproductive Health</span>
+                    <span className="font-mono font-semibold text-slate-800">~11 Qs</span>
+                  </li>
+                  <li className="flex items-center justify-between">
+                    <span>Biotechnology Principles & Apps</span>
+                    <span className="font-mono font-semibold text-slate-800">~8 Qs</span>
+                  </li>
+                  <li className="flex items-center justify-between">
+                    <span>Animal Kingdom & Evolution</span>
+                    <span className="font-mono font-semibold text-slate-800">~8 Qs</span>
+                  </li>
+                </ul>
+              </div>
+              <div className="pt-3 mt-3 border-t border-amber-200/60 text-[10px] text-amber-800 font-semibold">
+                Target Pace: &lt; 40 seconds / question
+              </div>
+            </div>
+          </div>
+
+          {/* 2015-2026 Question Format Evolution Breakdown */}
+          <div className="p-4 rounded-xl bg-slate-50 border border-slate-200">
+            <div className="text-xs font-bold text-slate-800 mb-2 flex items-center gap-2">
+              <Sparkles className="w-4 h-4 text-amber-500" />
+              <span>2015–2026 Modern Pattern Question Formats Calibrated in All 100 Tests:</span>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs text-slate-600">
+              <div className="bg-white p-3 rounded-lg border border-slate-200">
+                <div className="font-bold text-purple-900 mb-0.5">Assertion & Reason (A/R)</div>
+                <div className="text-[11px] text-slate-500">Evaluates whether Reason explains Assertion with 4 standard options.</div>
+              </div>
+              <div className="bg-white p-3 rounded-lg border border-slate-200">
+                <div className="font-bold text-sky-900 mb-0.5">Statement I & II</div>
+                <div className="text-[11px] text-slate-500">Dual statement validation testing line-by-line NCERT memory precision.</div>
+              </div>
+              <div className="bg-white p-3 rounded-lg border border-slate-200">
+                <div className="font-bold text-emerald-900 mb-0.5">Match List I with List II</div>
+                <div className="text-[11px] text-slate-500">Column matching across 4 biological or chemical concepts per question.</div>
+              </div>
+              <div className="bg-white p-3 rounded-lg border border-slate-200">
+                <div className="font-bold text-amber-900 mb-0.5">Multi-Statement Combinations</div>
+                <div className="text-[11px] text-slate-500">Multi-fact evaluation (&quot;A, B and C only&quot;) eliminating guesswork.</div>
+              </div>
             </div>
           </div>
         </div>

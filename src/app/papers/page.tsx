@@ -20,6 +20,9 @@ import {
   Flame,
   PlusCircle,
   CheckCircle2,
+  TrendingUp,
+  Target,
+  BarChart2,
 } from 'lucide-react';
 import {
   getClientCandidate,
@@ -27,6 +30,25 @@ import {
   DEFAULT_CANDIDATE,
 } from '@/lib/candidateClient';
 import { CandidateModal } from '@/components/CandidateModal';
+
+function getAcademicFocus(paperNum: number): { label: string; badgeClass: string } {
+  const mod = paperNum % 6;
+  switch (mod) {
+    case 0:
+      return { label: '⚡ Assertion-Reason Intensive', badgeClass: 'bg-purple-100 text-purple-900 border-purple-200' };
+    case 1:
+      return { label: '🎯 NCERT Line-by-Line', badgeClass: 'bg-emerald-100 text-emerald-900 border-emerald-200' };
+    case 2:
+      return { label: '🧩 Multi-Statement & Match', badgeClass: 'bg-sky-100 text-sky-900 border-sky-200' };
+    case 3:
+      return { label: '🔬 High-Yield Numericals', badgeClass: 'bg-blue-100 text-blue-900 border-blue-200' };
+    case 4:
+      return { label: '🧠 Rank Booster Simulation', badgeClass: 'bg-indigo-100 text-indigo-900 border-indigo-200' };
+    case 5:
+    default:
+      return { label: '🏆 All-India Grand Mock', badgeClass: 'bg-amber-100 text-amber-900 border-amber-200' };
+  }
+}
 
 interface MockPaperSummary {
   id: string;
@@ -220,6 +242,117 @@ export default function MockPapersPage() {
           </div>
         )}
 
+        {/* 100-PAPER COMPLETION HUD */}
+        {(() => {
+          const completedPapers = papers.filter((p) => p.attemptStatus === 'COMPLETED');
+          const completedCount = completedPapers.length;
+          const totalPapersCount = papers.length || 100;
+          const completionPercentage = Math.round((completedCount / totalPapersCount) * 100);
+
+          const averageScore =
+            completedCount > 0
+              ? Math.round(
+                  completedPapers.reduce((acc, p) => acc + (p.bestScore || 0), 0) / completedCount
+                )
+              : null;
+
+          const averageAccuracy =
+            completedCount > 0
+              ? Math.round(
+                  completedPapers.reduce((acc, p) => acc + (p.bestAccuracy || 0), 0) / completedCount
+                )
+              : null;
+
+          return (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              {/* Card 1: Library Mastery */}
+              <div className="bg-white rounded-2xl border border-slate-200 p-4 shadow-card flex items-center gap-3.5">
+                <div className="w-11 h-11 rounded-xl bg-blue-50 text-blue-700 flex items-center justify-center shrink-0 border border-blue-200">
+                  <BookOpen className="w-5 h-5" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                    Exam Series Progress
+                  </div>
+                  <div className="text-lg font-black text-slate-900 font-mono">
+                    {completedCount} <span className="text-xs text-slate-400 font-normal">/ {totalPapersCount} Done</span>
+                  </div>
+                  <div className="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden mt-1.5">
+                    <div
+                      className="bg-blue-600 h-full rounded-full transition-all duration-500"
+                      style={{ width: `${Math.max(completionPercentage, 3)}%` }}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Card 2: Average Score */}
+              <div className="bg-white rounded-2xl border border-slate-200 p-4 shadow-card flex items-center gap-3.5">
+                <div className="w-11 h-11 rounded-xl bg-emerald-50 text-emerald-700 flex items-center justify-center shrink-0 border border-emerald-200">
+                  <Award className="w-5 h-5" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                    Average Score
+                  </div>
+                  <div className="text-lg font-black text-slate-900 font-mono">
+                    {averageScore !== null ? (
+                      <>
+                        {averageScore} <span className="text-xs text-slate-400 font-normal">/ 720</span>
+                      </>
+                    ) : (
+                      <span className="text-sm font-semibold text-slate-400">Pending 1st Attempt</span>
+                    )}
+                  </div>
+                  <div className="text-[10px] text-slate-500 mt-1 truncate">
+                    Target: 650+ for Govt. Medical College
+                  </div>
+                </div>
+              </div>
+
+              {/* Card 3: Accuracy Benchmark */}
+              <div className="bg-white rounded-2xl border border-slate-200 p-4 shadow-card flex items-center gap-3.5">
+                <div className="w-11 h-11 rounded-xl bg-purple-50 text-purple-700 flex items-center justify-center shrink-0 border border-purple-200">
+                  <Target className="w-5 h-5" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                    Accuracy Benchmark
+                  </div>
+                  <div className="text-lg font-black text-slate-900 font-mono">
+                    {averageAccuracy !== null ? (
+                      `${averageAccuracy}%`
+                    ) : (
+                      <span className="text-sm font-semibold text-slate-400">--%</span>
+                    )}
+                  </div>
+                  <div className="text-[10px] text-slate-500 mt-1 truncate">
+                    Recommended Minimum: 85%+
+                  </div>
+                </div>
+              </div>
+
+              {/* Card 4: 2015-2026 Standard */}
+              <div className="bg-white rounded-2xl border border-slate-200 p-4 shadow-card flex items-center gap-3.5">
+                <div className="w-11 h-11 rounded-xl bg-amber-50 text-amber-700 flex items-center justify-center shrink-0 border border-amber-200">
+                  <Sparkles className="w-5 h-5" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                    Standard Pattern
+                  </div>
+                  <div className="text-sm font-black text-slate-900">
+                    17 PYQs + 83 Mocks
+                  </div>
+                  <div className="text-[10px] text-slate-500 mt-1 truncate">
+                    Zero repeated questions in entire bank
+                  </div>
+                </div>
+              </div>
+            </div>
+          );
+        })()}
+
         {/* Primary Category Selector Tabs */}
         <div className="flex flex-wrap items-center gap-2 border-b border-slate-200 pb-2">
           <button
@@ -339,12 +472,16 @@ export default function MockPapersPage() {
             {filteredPapers.map((paper) => {
               const isCompleted = paper.attemptStatus === 'COMPLETED';
               const isInProgress = paper.attemptStatus === 'IN_PROGRESS';
+              const isOfficialPYQ = paper.paperNumber <= 17;
+              const academicFocus = !isOfficialPYQ ? getAcademicFocus(paper.paperNumber) : null;
 
               return (
                 <div
                   key={paper.id}
                   className={`bg-white rounded-2xl border p-5 shadow-card flex flex-col justify-between transition-all hover:shadow-elevated hover:-translate-y-0.5 ${
-                    isCompleted
+                    isOfficialPYQ
+                      ? 'border-amber-300 ring-1 ring-amber-300/40 bg-gradient-to-br from-amber-50/20 via-white to-slate-50'
+                      : isCompleted
                       ? 'border-emerald-200 bg-emerald-50/10'
                       : isInProgress
                       ? 'border-amber-200 bg-amber-50/10'
@@ -353,8 +490,14 @@ export default function MockPapersPage() {
                 >
                   <div>
                     {/* Header Code & Badge */}
-                    <div className="flex items-center justify-between mb-2.5">
-                      <span className="text-xs font-mono font-bold text-blue-700 bg-blue-50 px-2.5 py-1 rounded-lg border border-blue-200 shadow-xs">
+                    <div className="flex items-center justify-between mb-2">
+                      <span
+                        className={`text-xs font-mono font-bold px-2.5 py-1 rounded-lg border shadow-xs ${
+                          isOfficialPYQ
+                            ? 'bg-amber-100 text-amber-950 border-amber-300'
+                            : 'bg-blue-50 text-blue-700 border-blue-200'
+                        }`}
+                      >
                         {paper.code}
                       </span>
                       {isCompleted ? (
@@ -369,6 +512,22 @@ export default function MockPapersPage() {
                         <span className="text-[11px] font-medium text-slate-400">Not Attempted</span>
                       )}
                     </div>
+
+                    {/* Official Crest or Academic Focus Pill */}
+                    {isOfficialPYQ ? (
+                      <div className="mb-2">
+                        <span className="inline-flex items-center gap-1 bg-gradient-to-r from-amber-500/20 via-amber-400/30 to-amber-500/20 text-amber-900 border border-amber-400/50 px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider shadow-2xs">
+                          <Sparkles className="w-3 h-3 text-amber-600" />
+                          ⭐ Official PYQ 2015–2026 Series
+                        </span>
+                      </div>
+                    ) : academicFocus ? (
+                      <div className="mb-2">
+                        <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold border shadow-2xs ${academicFocus.badgeClass}`}>
+                          {academicFocus.label}
+                        </span>
+                      </div>
+                    ) : null}
 
                     {/* Paper Title */}
                     <h3 className="text-sm font-extrabold text-slate-900 mb-1 leading-snug">
@@ -392,9 +551,21 @@ export default function MockPapersPage() {
                         <span className="text-slate-400">Subjects:</span>
                         <span className="font-medium text-slate-700">45 Phy • 45 Chem • 45 Bot • 45 Zoo</span>
                       </div>
-                      <div className="flex justify-between">
-                        <span className="text-slate-400">Difficulty:</span>
-                        <span className="font-medium text-slate-700">54 Easy • 90 Mod • 36 Diff</span>
+
+                      {/* Visual Segmented Difficulty Distribution Bar */}
+                      <div className="pt-2 mt-1 border-t border-slate-200/60 space-y-1">
+                        <div className="flex justify-between items-center text-[10px] text-slate-500 font-semibold">
+                          <span>Difficulty Breakdown:</span>
+                          <span className="font-mono text-slate-700 font-bold">54 Easy • 90 Mod • 36 Diff</span>
+                        </div>
+                        <div
+                          className="h-2 w-full bg-slate-200 rounded-full overflow-hidden flex"
+                          title="54 Easy (30%), 90 Moderate (50%), 36 Difficult (20%)"
+                        >
+                          <div className="h-full bg-emerald-500 transition-all" style={{ width: '30%' }} title="54 Easy Questions (30%)" />
+                          <div className="h-full bg-amber-500 transition-all" style={{ width: '50%' }} title="90 Moderate Questions (50%)" />
+                          <div className="h-full bg-rose-500 transition-all" style={{ width: '20%' }} title="36 Difficult Questions (20%)" />
+                        </div>
                       </div>
                     </div>
 

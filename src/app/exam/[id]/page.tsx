@@ -21,9 +21,74 @@ import {
   Maximize,
   Minimize,
   AlertTriangle,
+  Edit3,
+  Trash2,
+  Sparkles,
+  Layers,
+  CheckCircle2,
+  Scale,
 } from 'lucide-react';
 import { MathRenderer } from '@/components/MathRenderer';
 import { getUpdatedQuestionStatus } from '@/lib/examEngine';
+
+function detectQuestionType(statement: string): {
+  type: 'ASSERTION_REASON' | 'STATEMENT_I_II' | 'MATCH_LIST' | 'MULTI_STATEMENT' | 'STANDARD_MCQ';
+  label: string;
+  badgeClass: string;
+} {
+  const lower = statement.toLowerCase();
+  if (
+    (lower.includes('assertion') && lower.includes('reason')) ||
+    (statement.includes('Assertion (A)') && statement.includes('Reason (R)'))
+  ) {
+    return {
+      type: 'ASSERTION_REASON',
+      label: 'Assertion-Reason',
+      badgeClass: 'bg-purple-100 text-purple-900 border-purple-300',
+    };
+  }
+  if (
+    lower.includes('statement i') &&
+    (lower.includes('statement ii') || lower.includes('statement 2'))
+  ) {
+    return {
+      type: 'STATEMENT_I_II',
+      label: 'Statement I & II',
+      badgeClass: 'bg-sky-100 text-sky-900 border-sky-300',
+    };
+  }
+  if (
+    lower.includes('match list') ||
+    lower.includes('match column') ||
+    (statement.includes('List I') && statement.includes('List II')) ||
+    (statement.includes('List-I') && statement.includes('List-II'))
+  ) {
+    return {
+      type: 'MATCH_LIST',
+      label: 'Match List',
+      badgeClass: 'bg-emerald-100 text-emerald-900 border-emerald-300',
+    };
+  }
+  if (
+    lower.includes('which of the following statement') ||
+    lower.includes('choose the correct answer from the options') ||
+    lower.includes('a and b only') ||
+    lower.includes('b and c only') ||
+    lower.includes('statements are correct') ||
+    lower.includes('statements are incorrect')
+  ) {
+    return {
+      type: 'MULTI_STATEMENT',
+      label: 'Multi-Statement MCQ',
+      badgeClass: 'bg-amber-100 text-amber-900 border-amber-300',
+    };
+  }
+  return {
+    type: 'STANDARD_MCQ',
+    label: 'Standard MCQ',
+    badgeClass: 'bg-slate-100 text-slate-800 border-slate-300',
+  };
+}
 
 type QuestionStatusType =
   | 'NOT_VISITED'
@@ -92,6 +157,42 @@ export default function ExamInterfacePage() {
   const [showPaperModal, setShowPaperModal] = useState(false);
   const [showInstructionsModal, setShowInstructionsModal] = useState(false);
   const [showShortcutsModal, setShowShortcutsModal] = useState(false);
+
+  // Digital Rough Work Scratchpad & UI Scaler
+  const [showScratchpad, setShowScratchpad] = useState(false);
+  const [scratchpadNotes, setScratchpadNotes] = useState('');
+  const [fontSize, setFontSize] = useState<'normal' | 'large' | 'xlarge'>('normal');
+  const [paletteFilter, setPaletteFilter] = useState<'ALL' | 'ANSWERED' | 'NOT_ANSWERED' | 'NOT_VISITED' | 'MARKED'>('ALL');
+
+  // Load persisted font size and scratchpad on mount
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const savedFont = localStorage.getItem('vailism_font_size') as any;
+      if (savedFont && ['normal', 'large', 'xlarge'].includes(savedFont)) {
+        setFontSize(savedFont);
+      }
+      const savedNotes = localStorage.getItem(`vailism_scratchpad_${attemptId}`);
+      if (savedNotes) {
+        setScratchpadNotes(savedNotes);
+      }
+    }
+  }, [attemptId]);
+
+  // Persist font size changes
+  const handleFontSizeChange = (size: 'normal' | 'large' | 'xlarge') => {
+    setFontSize(size);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('vailism_font_size', size);
+    }
+  };
+
+  // Persist scratchpad notes
+  const handleScratchpadChange = (val: string) => {
+    setScratchpadNotes(val);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem(`vailism_scratchpad_${attemptId}`, val);
+    }
+  };
 
   // Kiosk & Pacing State
   const [isFullscreen, setIsFullscreen] = useState(false);
@@ -681,6 +782,21 @@ export default function ExamInterfacePage() {
               <span className="hidden sm:inline">{isFullscreen ? 'Exit Kiosk' : 'Kiosk Mode'}</span>
             </button>
 
+            {/* Digital Rough Work Scratchpad Drawer Button */}
+            <button
+              type="button"
+              onClick={() => setShowScratchpad(!showScratchpad)}
+              className={`flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1.5 rounded transition-colors cursor-pointer ${
+                showScratchpad
+                  ? 'bg-amber-400 text-slate-950 font-bold shadow-sm'
+                  : 'bg-blue-800 hover:bg-blue-700 border border-blue-400/30 text-white'
+              }`}
+              title="Digital Rough Work & Formulas Scratchpad"
+            >
+              <Edit3 className="w-3.5 h-3.5 text-amber-300" />
+              <span>Rough Work</span>
+            </button>
+
             {/* Real-time Sync Indicator */}
             <div className="hidden sm:flex items-center gap-1.5 px-2 py-1.5 rounded-md text-[11px] font-medium bg-blue-950/60 border border-blue-400/20">
               {pendingSyncCount > 0 ? (
@@ -726,6 +842,19 @@ export default function ExamInterfacePage() {
           </div>
         </div>
       </header>
+
+      {/* URGENT TIME ALERT BANNERS */}
+      {remainingSeconds <= 300 ? (
+        <div className="bg-red-600 text-white font-extrabold px-4 py-2 text-xs flex items-center justify-center gap-2 animate-pulse shadow-md shrink-0">
+          <AlertTriangle className="w-4 h-4 text-white" />
+          <span>CRITICAL TIME ALERT: Less than 5 minutes remaining! Final answers will be auto-submitted on timer expiration.</span>
+        </div>
+      ) : remainingSeconds <= 900 ? (
+        <div className="bg-amber-500 text-slate-950 font-bold px-4 py-1.5 text-xs flex items-center justify-center gap-2 shadow-xs shrink-0">
+          <Clock className="w-4 h-4 text-slate-950" />
+          <span>PACING ALERT: 15 minutes remaining. Review marked questions and complete pending responses.</span>
+        </div>
+      ) : null}
 
       {/* NTA DISCIPLINE WARNING POPUP */}
       {showTabWarning && (
@@ -814,92 +943,155 @@ export default function ExamInterfacePage() {
           </div>
 
           {/* QUESTION HEADER STRIP */}
-          <div className="px-5 py-2.5 bg-blue-50/50 border-b border-gray-200 flex items-center justify-between text-xs shrink-0">
-            <div className="flex items-center gap-3">
-              <span className="font-extrabold text-blue-950 text-sm">
-                Question No. {currentQuestion.questionOrder}
-              </span>
-              <span className="bg-blue-100 text-blue-800 font-semibold px-2 py-0.5 rounded text-[10px]">
-                {currentQuestion.chapter}
-              </span>
-              {currentQuestion.topic && (
-                <span className="text-gray-500 text-[11px] hidden sm:inline">
-                  • {currentQuestion.topic}
-                </span>
-              )}
-            </div>
+          {(() => {
+            const qTypeInfo = detectQuestionType(currentQuestion.statement);
+            const statementFontClass =
+              fontSize === 'xlarge'
+                ? 'text-lg sm:text-xl'
+                : fontSize === 'large'
+                ? 'text-base sm:text-lg'
+                : 'text-sm sm:text-base';
+            const optionFontClass =
+              fontSize === 'xlarge'
+                ? 'text-base sm:text-lg'
+                : fontSize === 'large'
+                ? 'text-sm sm:text-base'
+                : 'text-xs sm:text-sm';
 
-            <div className="flex items-center gap-3 font-semibold text-[11px]">
-              <span
-                className={`px-2 py-0.5 rounded text-[10px] font-mono font-bold flex items-center gap-1 border ${
-                  questionLiveSeconds > 150
-                    ? 'bg-red-100 text-red-800 border-red-300 animate-pulse'
-                    : questionLiveSeconds > 90
-                    ? 'bg-amber-100 text-amber-800 border-amber-300'
-                    : 'bg-gray-100 text-gray-700 border-gray-200'
-                }`}
-                title="Pace on this question (Target: < 90s Physics, < 45s Biology)"
-              >
-                <Clock className="w-3 h-3" />
-                Time on Q: {questionLiveSeconds}s {questionLiveSeconds > 150 ? '⚠️ Time Trap!' : ''}
-              </span>
-              <span className="text-green-700">Marks: +4</span>
-              <span className="text-red-600">Negative: -1</span>
-            </div>
-          </div>
-
-          {/* QUESTION STATEMENT & OPTIONS (SCROLLABLE) */}
-          <div className="flex-1 overflow-y-auto p-5 sm:p-7 space-y-6">
-            {/* Question Statement */}
-            <div className="text-sm sm:text-base font-medium text-gray-900 leading-relaxed border-b border-gray-100 pb-5">
-              <MathRenderer text={currentQuestion.statement} />
-              {currentQuestion.imageUrl && (
-                <div className="mt-4 max-w-md border border-gray-200 rounded-lg overflow-hidden p-2 bg-gray-50">
-                  <img
-                    src={currentQuestion.imageUrl}
-                    alt="Question Diagram"
-                    className="max-h-64 object-contain mx-auto"
-                  />
-                </div>
-              )}
-            </div>
-
-            {/* Answer Options */}
-            <div className="space-y-3 max-w-3xl">
-              {[
-                { num: 1, text: currentQuestion.option1 },
-                { num: 2, text: currentQuestion.option2 },
-                { num: 3, text: currentQuestion.option3 },
-                { num: 4, text: currentQuestion.option4 },
-              ].map((opt) => {
-                const isSelected = currentSelectedOption === opt.num;
-                return (
-                  <label
-                    key={opt.num}
-                    onClick={() => setCurrentSelectedOption(opt.num)}
-                    className={`flex items-start gap-3.5 p-3.5 rounded-lg border cursor-pointer transition-all ${
-                      isSelected
-                        ? 'bg-blue-50/80 border-blue-600 shadow-sm'
-                        : 'bg-white border-gray-200 hover:bg-gray-50/80'
-                    }`}
-                  >
-                    <div
-                      className={`w-5 h-5 rounded-full border flex items-center justify-center shrink-0 mt-0.5 font-bold text-xs ${
-                        isSelected
-                          ? 'border-blue-600 bg-blue-600 text-white'
-                          : 'border-gray-400 bg-white text-gray-700'
-                      }`}
+            return (
+              <>
+                <div className="px-4 sm:px-5 py-2.5 bg-blue-50/50 border-b border-gray-200 flex flex-wrap items-center justify-between gap-2.5 text-xs shrink-0">
+                  <div className="flex flex-wrap items-center gap-2 sm:gap-2.5">
+                    <span className="font-extrabold text-blue-950 text-sm">
+                      Question No. {currentQuestion.questionOrder}
+                    </span>
+                    <span
+                      className={`px-2.5 py-0.5 rounded-full font-bold text-[10px] uppercase tracking-wider border shadow-2xs ${qTypeInfo.badgeClass}`}
+                      title="NTA Modern Question Pattern Category"
                     >
-                      {opt.num}
+                      {qTypeInfo.label}
+                    </span>
+                    <span className="bg-blue-100 text-blue-800 font-semibold px-2 py-0.5 rounded text-[10px]">
+                      {currentQuestion.chapter}
+                    </span>
+                    {currentQuestion.topic && (
+                      <span className="text-gray-500 text-[11px] hidden lg:inline">
+                        • {currentQuestion.topic}
+                      </span>
+                    )}
+                  </div>
+
+                  <div className="flex items-center gap-2.5 font-semibold text-[11px]">
+                    {/* Font Scaler Controls */}
+                    <div
+                      className="flex items-center border border-gray-300 rounded-md bg-white shadow-2xs overflow-hidden"
+                      title="Scale Exam Font Size"
+                    >
+                      <button
+                        type="button"
+                        onClick={() => handleFontSizeChange('normal')}
+                        className={`px-2 py-0.5 text-[11px] font-bold transition-colors cursor-pointer ${
+                          fontSize === 'normal' ? 'bg-blue-900 text-white' : 'text-gray-600 hover:bg-gray-100'
+                        }`}
+                        title="Normal Font Size"
+                      >
+                        A
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleFontSizeChange('large')}
+                        className={`px-2 py-0.5 text-xs font-bold border-l border-gray-200 transition-colors cursor-pointer ${
+                          fontSize === 'large' ? 'bg-blue-900 text-white' : 'text-gray-600 hover:bg-gray-100'
+                        }`}
+                        title="Large Font Size (A+)"
+                      >
+                        A+
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleFontSizeChange('xlarge')}
+                        className={`px-2 py-0.5 text-sm font-bold border-l border-gray-200 transition-colors cursor-pointer ${
+                          fontSize === 'xlarge' ? 'bg-blue-900 text-white' : 'text-gray-600 hover:bg-gray-100'
+                        }`}
+                        title="Extra Large Font Size (A++)"
+                      >
+                        A++
+                      </button>
                     </div>
-                    <div className="flex-1 text-xs sm:text-sm text-gray-800 leading-relaxed">
-                      <MathRenderer text={opt.text} />
-                    </div>
-                  </label>
-                );
-              })}
-            </div>
-          </div>
+
+                    <span
+                      className={`px-2 py-0.5 rounded text-[10px] font-mono font-bold flex items-center gap-1 border ${
+                        questionLiveSeconds > 150
+                          ? 'bg-red-100 text-red-800 border-red-300 animate-pulse'
+                          : questionLiveSeconds > 90
+                          ? 'bg-amber-100 text-amber-800 border-amber-300'
+                          : 'bg-gray-100 text-gray-700 border-gray-200'
+                      }`}
+                      title="Pace on this question (Target: < 90s Physics, < 45s Biology)"
+                    >
+                      <Clock className="w-3 h-3" />
+                      Time on Q: {questionLiveSeconds}s {questionLiveSeconds > 150 ? '⚠️ Time Trap!' : ''}
+                    </span>
+                    <span className="text-green-700">Marks: +4</span>
+                    <span className="text-red-600">Negative: -1</span>
+                  </div>
+                </div>
+
+                {/* QUESTION STATEMENT & OPTIONS (SCROLLABLE) */}
+                <div className="flex-1 overflow-y-auto p-5 sm:p-7 space-y-6">
+                  {/* Question Statement */}
+                  <div className={`${statementFontClass} font-medium text-gray-900 leading-relaxed border-b border-gray-100 pb-5`}>
+                    <MathRenderer text={currentQuestion.statement} />
+                    {currentQuestion.imageUrl && (
+                      <div className="mt-4 max-w-md border border-gray-200 rounded-lg overflow-hidden p-2 bg-gray-50">
+                        <img
+                          src={currentQuestion.imageUrl}
+                          alt="Question Diagram"
+                          className="max-h-64 object-contain mx-auto"
+                        />
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Answer Options */}
+                  <div className="space-y-3 max-w-3xl">
+                    {[
+                      { num: 1, text: currentQuestion.option1 },
+                      { num: 2, text: currentQuestion.option2 },
+                      { num: 3, text: currentQuestion.option3 },
+                      { num: 4, text: currentQuestion.option4 },
+                    ].map((opt) => {
+                      const isSelected = currentSelectedOption === opt.num;
+                      return (
+                        <label
+                          key={opt.num}
+                          onClick={() => setCurrentSelectedOption(opt.num)}
+                          className={`flex items-start gap-3.5 p-3.5 rounded-lg border cursor-pointer transition-all ${
+                            isSelected
+                              ? 'bg-blue-50/80 border-blue-600 shadow-sm'
+                              : 'bg-white border-gray-200 hover:bg-gray-50/80'
+                          }`}
+                        >
+                          <div
+                            className={`w-5 h-5 rounded-full border flex items-center justify-center shrink-0 mt-0.5 font-bold text-xs ${
+                              isSelected
+                                ? 'border-blue-600 bg-blue-600 text-white'
+                                : 'border-gray-400 bg-white text-gray-700'
+                            }`}
+                          >
+                            {opt.num}
+                          </div>
+                          <div className={`flex-1 ${optionFontClass} text-gray-800 leading-relaxed`}>
+                            <MathRenderer text={opt.text} />
+                          </div>
+                        </label>
+                      );
+                    })}
+                  </div>
+                </div>
+              </>
+            );
+          })()}
 
           {/* BOTTOM CBT ACTION BUTTONS (NTA Standard) */}
           <div className="bg-gray-50 border-t border-gray-200 px-4 py-3 flex flex-wrap items-center justify-between gap-2 shrink-0">
@@ -1018,17 +1210,52 @@ export default function ExamInterfacePage() {
               <span className="text-[10px] text-gray-500">1 to {currentSubjectQuestions.length}</span>
             </div>
 
+            {/* PALETTE QUICK FILTER TABS */}
+            <div className="flex items-center gap-1 overflow-x-auto pb-2 mb-2.5 border-b border-gray-200 text-[10px]">
+              {(
+                [
+                  { id: 'ALL', label: `All (${currentSubjectQuestions.length})` },
+                  { id: 'ANSWERED', label: `Ans (${currentCounts.answered})` },
+                  { id: 'NOT_ANSWERED', label: `Not Ans (${currentCounts.notAnswered})` },
+                  { id: 'MARKED', label: `Marked (${currentCounts.marked + currentCounts.answeredAndMarked})` },
+                  { id: 'NOT_VISITED', label: `Not Visited (${currentCounts.notVisited})` },
+                ] as const
+              ).map((flt) => (
+                <button
+                  key={flt.id}
+                  type="button"
+                  onClick={() => setPaletteFilter(flt.id)}
+                  className={`px-2 py-1 rounded font-bold whitespace-nowrap transition-colors cursor-pointer ${
+                    paletteFilter === flt.id
+                      ? 'bg-blue-900 text-white shadow-xs'
+                      : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-200'
+                  }`}
+                >
+                  {flt.label}
+                </button>
+              ))}
+            </div>
+
             <div className="grid grid-cols-5 gap-2">
               {currentSubjectQuestions.map((q) => {
                 const globalIndex = examData.questions.findIndex((item) => item.id === q.id);
                 const isCurrent = globalIndex === activeQuestionIndex;
                 const styleClass = getPaletteStyle(q.status, isCurrent);
 
+                const isMatch =
+                  paletteFilter === 'ALL' ||
+                  (paletteFilter === 'ANSWERED' && (q.status === 'ANSWERED' || q.status === 'ANSWERED_AND_MARKED')) ||
+                  (paletteFilter === 'NOT_ANSWERED' && q.status === 'NOT_ANSWERED') ||
+                  (paletteFilter === 'MARKED' && (q.status === 'MARKED_FOR_REVIEW' || q.status === 'ANSWERED_AND_MARKED')) ||
+                  (paletteFilter === 'NOT_VISITED' && q.status === 'NOT_VISITED');
+
                 return (
                   <button
                     key={q.id}
                     onClick={() => navigateToQuestion(globalIndex)}
-                    className={`h-9 w-full rounded flex items-center justify-center text-xs font-bold shadow-xs transition-transform ${styleClass}`}
+                    className={`h-9 w-full rounded flex items-center justify-center text-xs font-bold shadow-xs transition-transform ${styleClass} ${
+                      isMatch ? 'opacity-100' : 'opacity-25 hover:opacity-100'
+                    }`}
                     title={`Question ${q.questionOrder}: ${q.status}`}
                   >
                     {q.questionOrder}
@@ -1261,6 +1488,101 @@ export default function ExamInterfacePage() {
                 Close Shortcuts
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL 5: DIGITAL ROUGH WORK / SCRATCHPAD DRAWER */}
+      {showScratchpad && (
+        <div className="fixed inset-y-0 right-0 z-50 w-full sm:w-[480px] bg-white shadow-2xl border-l border-slate-300 flex flex-col animate-in slide-in-from-right duration-200">
+          {/* Scratchpad Header */}
+          <div className="bg-[#1e3a8a] text-white p-4 flex items-center justify-between shrink-0 border-b border-blue-900">
+            <div className="flex items-center gap-2.5">
+              <Edit3 className="w-4 h-4 text-amber-300" />
+              <div>
+                <h3 className="font-bold text-sm">Digital Rough Work / Scratchpad</h3>
+                <p className="text-[10px] text-blue-200">Auto-saved locally • Dedicated to Question #{currentQuestion.questionOrder}</p>
+              </div>
+            </div>
+            <button
+              onClick={() => setShowScratchpad(false)}
+              className="text-blue-200 hover:text-white p-1 rounded-md hover:bg-blue-800 transition-colors cursor-pointer"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+
+          {/* Formula Insertion Quick Bar */}
+          <div className="p-3 bg-slate-50 border-b border-slate-200 shrink-0">
+            <div className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5 flex items-center justify-between">
+              <span>Insert Quick Formula / Symbol:</span>
+              <span className="text-[9px] text-emerald-600 font-mono font-normal">● Auto-Persisting</span>
+            </div>
+            <div className="flex flex-wrap gap-1.5">
+              {[
+                'v = u + at',
+                's = ut + ½at²',
+                'v² = u² + 2as',
+                'PV = nRT',
+                'ΔG = ΔH - TΔS',
+                'λ = h/p',
+                'E = hc/λ',
+                'pH = -log[H+]',
+                'F = qvB',
+                'I = V/R',
+                '√',
+                'π',
+                'θ',
+                'Δ',
+                'λ',
+                'μ',
+                'Ω',
+              ].map((item) => (
+                <button
+                  key={item}
+                  type="button"
+                  onClick={() => handleScratchpadChange(scratchpadNotes ? `${scratchpadNotes}  ${item}` : item)}
+                  className="px-2 py-0.5 rounded text-[10px] font-mono font-semibold bg-white hover:bg-blue-50 hover:text-blue-700 hover:border-blue-300 border border-slate-200 text-slate-700 transition-colors cursor-pointer shadow-2xs"
+                >
+                  {item}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Main Calculation Text Area */}
+          <div className="flex-1 p-3 flex flex-col bg-amber-50/20">
+            <textarea
+              value={scratchpadNotes}
+              onChange={(e) => handleScratchpadChange(e.target.value)}
+              placeholder="Type rough work calculations, formula derivations, option elimination, balanced reactions... All notes are automatically saved and won't be lost on page reload."
+              className="w-full flex-1 p-3 text-xs sm:text-sm font-mono text-slate-800 bg-white border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent resize-none leading-relaxed shadow-inner"
+              autoFocus
+            />
+          </div>
+
+          {/* Scratchpad Footer */}
+          <div className="p-3 bg-white border-t border-slate-200 flex items-center justify-between shrink-0 text-xs">
+            <button
+              type="button"
+              onClick={() => {
+                if (confirm('Clear all rough work notes from this examination?')) {
+                  handleScratchpadChange('');
+                }
+              }}
+              className="text-red-600 hover:text-red-700 font-semibold text-xs flex items-center gap-1 px-2.5 py-1.5 rounded hover:bg-red-50 transition-colors cursor-pointer"
+            >
+              <Trash2 className="w-3.5 h-3.5" />
+              <span>Clear Notes</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setShowScratchpad(false)}
+              className="bg-blue-900 hover:bg-blue-800 text-white font-bold px-4 py-1.5 rounded-lg text-xs shadow-xs transition-colors cursor-pointer"
+            >
+              Done & Close
+            </button>
           </div>
         </div>
       )}
