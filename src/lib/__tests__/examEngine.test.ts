@@ -170,6 +170,9 @@ async function runTests() {
   assert(finalAttempt?.status === AttemptStatus.SUBMITTED, 'Attempt status transitioned to SUBMITTED');
   assert(!!finalAttempt?.submittedAt, 'Attempt has submittedAt timestamp');
 
+  // Cleanup test attempt
+  await prisma.examAttempt.deleteMany({ where: { id: createdAttempt!.id } });
+
   console.log(`\n========================================`);
   console.log(`TEST SUMMARY: ${passed} passed, ${failed} failed`);
   console.log(`========================================\n`);

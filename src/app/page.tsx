@@ -148,23 +148,22 @@ export default function HomePage() {
               <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
             </span>
             <span className="font-semibold tracking-wide uppercase text-[11px] text-slate-200">
-              National Testing Agency Standard CBT Environment
+              Vailism CBT Exam Center • National Standard Environment
             </span>
             <span className="text-blue-400">|</span>
-            <span className="text-amber-300 font-bold text-[11px]">NEET (UG) 2027</span>
+            <span className="text-amber-300 font-bold text-[11px]">NEET (UG) 2015–2026 Pattern</span>
           </div>
 
           {/* Main Hero Headline */}
           <div className="space-y-3 max-w-4xl mx-auto">
             <h1 className="text-3xl sm:text-5xl lg:text-6xl font-black tracking-tight text-balance leading-tight sm:leading-none">
-              Master NEET UG 2027 with{' '}
+              Master NEET UG at{' '}
               <span className="bg-gradient-to-r from-blue-200 via-sky-300 to-amber-200 bg-clip-text text-transparent">
-                True NTA CBT Fidelity
+                Vailism CBT Exam Center
               </span>
             </h1>
             <p className="text-slate-300 max-w-2xl mx-auto text-sm sm:text-base leading-relaxed font-normal">
-              Zero distractions. 100 authentic full-length mock examinations, full NTA question palette,
-              strict 180-minute countdown, +4/-1 scoring engine, and AI-powered mistake remediation.
+              Zero distractions. 100 authentic full-length mock examinations strictly calibrated to the 2015–2026 NEET pattern — featuring Assertion-Reason, Statement I & II, Match the Following, official 180-minute countdown, and +4/-1 scoring engine.
             </p>
           </div>
 
@@ -363,7 +362,7 @@ export default function HomePage() {
                   </div>
                   <div className="flex justify-between items-center">
                     <span className="text-slate-500">Target Examination:</span>
-                    <span className="font-bold text-blue-900">NEET (UG) 2027</span>
+                    <span className="font-bold text-blue-900">NEET (UG) 2015–2026 Pattern</span>
                   </div>
                   <div className="flex justify-between items-center">
                     <span className="text-slate-500">Full Mock Papers:</span>

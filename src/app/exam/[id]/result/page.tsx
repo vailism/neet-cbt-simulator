@@ -301,7 +301,7 @@ export default function ExamResultPage() {
             <div>
               <div className="inline-flex items-center gap-1.5 bg-blue-800/80 border border-blue-400/30 text-blue-200 text-xs px-2.5 py-0.5 rounded-full mb-2">
                 <Award className="w-3.5 h-3.5 text-amber-300" />
-                <span>Official NEET UG Performance Scorecard • {data.mode}</span>
+                <span>Vailism CBT Exam Center • Official Performance Scorecard • {data.mode}</span>
               </div>
               <h1 className="text-2xl sm:text-3xl font-black tracking-tight">{data.title}</h1>
               <div className="text-xs text-blue-200 mt-1 flex flex-wrap items-center gap-3">

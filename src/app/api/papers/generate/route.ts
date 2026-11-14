@@ -22,13 +22,13 @@ export async function POST(req: NextRequest) {
 
     for (let num = startNumber; num <= endNumber; num++) {
       const code = `MOCK_${num.toString().padStart(num > 99 ? 3 : 2, '0')}`;
-      const title = `NEET MOCK TEST ${num > 99 ? num : num.toString().padStart(2, '0')}`;
+      const title = `NEET 2015–2026 Pattern Mock Test ${num > 99 ? num : num.toString().padStart(2, '0')}`;
 
       const paper = await generateMockPaper({
         paperNumber: num,
         title,
-        description: `Official NEET UG 2027 CBT Full-Length Simulation (180 Questions, 720 Marks)`,
-        seed: `NEET_2027_MOCK_SEED_${num}`,
+        description: `Vailism CBT Exam Center • NEET (UG) 2015–2026 Pattern Full-Length Simulation (180 Questions, 720 Marks)`,
+        seed: `VAILISM_NEET_2015_2026_SEED_${num}`,
         easyCount: 54,
         moderateCount: 90,
         difficultCount: 36,

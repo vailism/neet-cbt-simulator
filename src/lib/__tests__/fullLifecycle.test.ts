@@ -170,6 +170,9 @@ async function testCompleteLifecycle() {
   test('Attempt status in database transitioned to SUBMITTED', submittedAttempt?.status === AttemptStatus.SUBMITTED);
   test('submittedAt timestamp is populated', !!submittedAttempt?.submittedAt);
 
+  // Cleanup test attempt
+  await prisma.examAttempt.deleteMany({ where: { id: fullAttempt!.id } });
+
   console.log('\n======================================================');
   console.log(`LIFECYCLE TEST RESULTS: ${passedCount} PASSED, ${failedCount} FAILED`);
   console.log('======================================================\n');

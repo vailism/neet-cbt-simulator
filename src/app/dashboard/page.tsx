@@ -199,7 +199,7 @@ export default function DashboardPage() {
             </div>
             <div>
               <div className="text-[11px] font-bold uppercase tracking-wider text-blue-700">
-                Student Performance Analytics
+                Vailism CBT Exam Center • Performance & AIR Calibration
               </div>
               <h1 className="text-xl sm:text-2xl font-black text-slate-900 leading-tight">
                 {candidate.name}

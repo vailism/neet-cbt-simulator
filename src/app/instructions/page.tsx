@@ -92,7 +92,7 @@ export default function InstructionsPage() {
           <div className="relative z-10">
             <div className="inline-flex items-center gap-1.5 text-xs uppercase tracking-wider text-blue-200 font-bold mb-1">
               <Sparkles className="w-3.5 h-3.5 text-amber-300" />
-              <span>National Eligibility Cum Entrance Test (UG) 2027</span>
+              <span>Vailism CBT Exam Center • NEET (UG) 2015–2026 Examination Series</span>
             </div>
             <h1 className="text-xl sm:text-2xl font-black text-white tracking-tight">
               General Examination Instructions & CBT Protocol

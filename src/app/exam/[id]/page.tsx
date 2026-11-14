@@ -637,10 +637,10 @@ export default function ExamInterfacePage() {
           {/* Exam Title & Center Code */}
           <div>
             <div className="text-[10px] text-blue-200 font-semibold tracking-wider uppercase">
-              National Testing Agency (NTA) • CBT Center
+              Vailism CBT Exam Center • NEET (UG)
             </div>
             <h1 className="text-sm sm:text-base font-extrabold tracking-tight">
-              NATIONAL ELIGIBILITY CUM ENTRANCE TEST (UG) - 2027
+              {examData.title || 'VAILISM CBT EXAM CENTER • NEET (UG) EXAMINATION'}
             </h1>
           </div>
 

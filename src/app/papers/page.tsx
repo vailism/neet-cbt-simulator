@@ -60,6 +60,7 @@ export default function MockPapersPage() {
   const [error, setError] = useState<string | null>(null);
 
   const [statusFilter, setStatusFilter] = useState<'ALL' | 'UNATTEMPTED' | 'COMPLETED' | 'IN_PROGRESS'>('ALL');
+  const [categoryFilter, setCategoryFilter] = useState<'ALL' | 'OFFICIAL_PYQS' | 'MODERN_MOCKS'>('ALL');
   const [searchQuery, setSearchQuery] = useState('');
 
   const [candidate, setCandidate] = useState<CandidateInfo>(DEFAULT_CANDIDATE);
@@ -150,6 +151,8 @@ export default function MockPapersPage() {
   };
 
   const filteredPapers = papers.filter((p) => {
+    if (categoryFilter === 'OFFICIAL_PYQS' && p.paperNumber > 17) return false;
+    if (categoryFilter === 'MODERN_MOCKS' && p.paperNumber <= 17) return false;
     if (statusFilter === 'UNATTEMPTED' && p.attemptStatus !== 'NOT_STARTED') return false;
     if (statusFilter === 'COMPLETED' && p.attemptStatus !== 'COMPLETED') return false;
     if (statusFilter === 'IN_PROGRESS' && p.attemptStatus !== 'IN_PROGRESS') return false;
@@ -171,22 +174,20 @@ export default function MockPapersPage() {
             <div className="max-w-2xl">
               <div className="inline-flex items-center gap-1.5 bg-blue-800/60 border border-blue-400/30 px-3.5 py-1 rounded-full text-xs font-semibold mb-3 backdrop-blur-md">
                 <Sparkles className="w-3.5 h-3.5 text-amber-300" />
-                <span>NTA NEET UG 2027 Full-Length Examination Series</span>
+                <span>Vailism CBT Exam Center • NEET (UG) 2015–2026 Examination Series</span>
               </div>
               <h1 className="text-2xl sm:text-4xl font-black text-white tracking-tight mb-2">
-                NEET Mock Test Library (01 – {papers.length || 100})
+                Vailism CBT Exam Center — 100 Mock Papers
               </h1>
               <p className="text-slate-300 text-xs sm:text-sm leading-relaxed">
-                {papers.length || 100} full-length, authentic 180-question NEET CBT mock examinations generated from our validated question bank.
-                Each paper adheres strictly to NTA difficulty distribution (54 Easy, 90 Moderate, 36 Difficult)
-                and official 45-question subject partitions with zero question repetition.
+                100 full-length, authentic 180-question NEET CBT examinations strictly adhering to the 2015–2026 modern pattern. Features official past-year examination papers (2015 to 2026) and curated high-yield mock tests with Assertion-Reason, Statement I & II, and Match the Following questions.
               </p>
             </div>
 
             <div className="flex flex-col sm:flex-row items-center gap-2.5">
               <div className="bg-slate-900/80 border border-blue-400/30 text-blue-200 text-xs font-bold px-4 py-3 rounded-2xl flex items-center gap-2.5 shadow-sm backdrop-blur-md">
                 <Award className="w-4 h-4 text-amber-400" />
-                <span>{papers.length || 100} Full Mocks Ready</span>
+                <span>100 Full Mocks Ready</span>
               </div>
 
               <button
@@ -218,6 +219,40 @@ export default function MockPapersPage() {
             </button>
           </div>
         )}
+
+        {/* Primary Category Selector Tabs */}
+        <div className="flex flex-wrap items-center gap-2 border-b border-slate-200 pb-2">
+          <button
+            onClick={() => setCategoryFilter('ALL')}
+            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+              categoryFilter === 'ALL'
+                ? 'bg-blue-700 text-white shadow-xs'
+                : 'bg-white text-slate-700 hover:bg-slate-100 border border-slate-200'
+            }`}
+          >
+            All 100 Papers ({papers.length})
+          </button>
+          <button
+            onClick={() => setCategoryFilter('OFFICIAL_PYQS')}
+            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+              categoryFilter === 'OFFICIAL_PYQS'
+                ? 'bg-amber-500 text-slate-950 shadow-xs'
+                : 'bg-white text-slate-700 hover:bg-slate-100 border border-slate-200'
+            }`}
+          >
+            ⭐ Official 2015–2026 Papers (01–17)
+          </button>
+          <button
+            onClick={() => setCategoryFilter('MODERN_MOCKS')}
+            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+              categoryFilter === 'MODERN_MOCKS'
+                ? 'bg-indigo-600 text-white shadow-xs'
+                : 'bg-white text-slate-700 hover:bg-slate-100 border border-slate-200'
+            }`}
+          >
+            ⚡ Modern Pattern Mocks (18–100)
+          </button>
+        </div>
 
         {/* Candidate Bar & Filter Toolbar */}
         <div className="bg-white rounded-2xl shadow-card border border-slate-200 p-4 sm:p-5 flex flex-wrap items-center justify-between gap-3 text-xs">

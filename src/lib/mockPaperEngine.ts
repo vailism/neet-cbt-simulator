@@ -58,9 +58,9 @@ export function seededShuffle<T>(array: T[], prng: () => number): T[] {
 export async function generateMockPaper(options: PaperGenerationOptions) {
   const {
     paperNumber,
-    title = `NEET MOCK TEST ${paperNumber.toString().padStart(2, '0')}`,
-    description = `Official NEET UG 2027 CBT Full-Length Simulation (180 Questions, 720 Marks)`,
-    seed = `NEET_2027_MOCK_SEED_${paperNumber.toString().padStart(2, '0')}`,
+    title = `NEET 2015–2026 Pattern Mock Test ${paperNumber.toString().padStart(2, '0')}`,
+    description = `Vailism CBT Exam Center • NEET (UG) 2015–2026 Pattern Full-Length Simulation (180 Questions, 720 Marks)`,
+    seed = `VAILISM_NEET_2015_2026_SEED_${paperNumber.toString().padStart(3, '0')}`,
     easyCount = 54,
     moderateCount = 90,
     difficultCount = 36,
@@ -69,14 +69,14 @@ export async function generateMockPaper(options: PaperGenerationOptions) {
   } = options;
 
   const prng = createPRNG(seed);
-  const code = `MOCK_${paperNumber.toString().padStart(2, '0')}`;
+  const code = `MOCK_${paperNumber.toString().padStart(paperNumber > 99 ? 3 : 2, '0')}`;
 
   // Check if paper already exists
   const existing = await prisma.mockPaper.findUnique({
     where: { paperNumber },
     include: { paperQuestions: true },
   });
-  if (existing && existing.paperQuestions.length === 180 && existing.title.startsWith('NEET MOCK TEST')) {
+  if (existing && existing.paperQuestions.length === 180) {
     return existing;
   }
 

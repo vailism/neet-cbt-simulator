@@ -4,9 +4,9 @@ import 'katex/dist/katex.min.css';
 import { SiteNav } from '@/components/SiteNav';
 
 export const metadata: Metadata = {
-  title: 'NEET (UG) CBT Simulator - Near-Exact NTA Examination Platform',
+  title: 'Vailism CBT Exam Center - NEET (UG) Examination Platform',
   description:
-    'Simulate the realistic National Eligibility cum Entrance Test (UG) computer-based examination environment with question palette, real-time timer, marking scheme, and comprehensive result analytics.',
+    'Vailism CBT Exam Center: Official NEET (UG) 2015-2026 computer-based test examination environment with full question palette, real-time countdown timer, authentic marking scheme, and comprehensive result analytics.',
 };
 
 export default function RootLayout({

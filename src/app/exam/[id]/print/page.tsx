@@ -91,10 +91,10 @@ export default function ExamPrintBookletPage() {
         {/* NTA PHYSICAL TEST BOOKLET COVER / HEADER */}
         <div className="border-4 border-double border-gray-900 p-6 text-center mb-8">
           <div className="text-[11px] font-black uppercase tracking-widest text-gray-600 mb-1">
-            NATIONAL TESTING AGENCY • GOVERNMENT OF INDIA
+            VAILISM CBT EXAM CENTER • NEET (UG) 2015–2026 PATTERN
           </div>
           <h1 className="text-xl sm:text-2xl font-black uppercase tracking-tight text-gray-950">
-            National Eligibility Cum Entrance Test (UG) 2027
+            Vailism CBT Exam Center - Official NEET Test Booklet
           </h1>
           <div className="text-xs font-bold text-gray-700 mt-1">
             Official Computer-Based Examination Question Paper & Complete Solutions
@@ -220,7 +220,7 @@ export default function ExamPrintBookletPage() {
         {/* COMPLETE ANSWER KEY MATRIX (180 QUESTIONS) */}
         <div className="mt-12 pt-6 border-t-2 border-gray-900 break-before-page">
           <h2 className="text-sm font-black uppercase tracking-wider text-gray-950 mb-4 text-center">
-            Official NEET UG 2027 Final Answer Key Grid (Q1 to Q180)
+            Vailism CBT Exam Center • NEET (UG) Final Answer Key Grid (Q1 to Q180)
           </h2>
 
           <div className="grid grid-cols-6 sm:grid-cols-10 md:grid-cols-12 gap-1.5 text-center text-[10px] font-mono">
@@ -244,7 +244,7 @@ export default function ExamPrintBookletPage() {
 
         {/* Printable Footer */}
         <div className="mt-8 pt-4 border-t border-gray-300 text-center text-[10px] text-gray-500">
-          Generated from authentic NEET UG 2027 CBT Simulation Platform • Candidate: {candidate.name} ({candidate.rollNumber})
+          Generated from authentic Vailism CBT Exam Center • NEET (UG) 2015–2026 Examination Series • Candidate: {candidate.name} ({candidate.rollNumber})
         </div>
       </div>
     </div>

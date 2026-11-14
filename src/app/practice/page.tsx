@@ -119,10 +119,10 @@ export default function PracticeModePage() {
             <div className="max-w-xl">
               <div className="inline-flex items-center gap-1.5 bg-emerald-800/60 border border-emerald-400/30 px-3.5 py-1 rounded-full text-xs font-semibold mb-3 backdrop-blur-md">
                 <Sparkles className="w-3.5 h-3.5 text-amber-300" />
-                <span>Targeted NCERT Subject & Chapter Practice</span>
+                <span>Vailism CBT Exam Center • NCERT Chapter Practice (2015–2026)</span>
               </div>
               <h1 className="text-2xl sm:text-4xl font-black text-white tracking-tight mb-2">
-                NEET Practice Lab
+                Vailism CBT Practice Lab
               </h1>
               <p className="text-emerald-100 text-xs sm:text-sm leading-relaxed">
                 Configure custom question sets by subject, specific NCERT chapter, volume, and pacing.

@@ -190,6 +190,10 @@ async function runMockEngineTests() {
   const elapsed = Date.now() - startTime;
   assert(elapsed < 3000, `PostgreSQL indexed query returned in ${elapsed}ms (< 3000ms cloud latency threshold)`);
 
+  // Cleanup test artifacts
+  await prisma.examAttempt.deleteMany({ where: { mockPaperId: paper.id } });
+  await prisma.mockPaper.deleteMany({ where: { id: paper.id } });
+
   console.log('\n=============================================================');
   console.log(`MOCK PAPER ENGINE TEST RESULTS: ${passed} PASSED, ${failed} FAILED`);
   console.log('=============================================================\n');

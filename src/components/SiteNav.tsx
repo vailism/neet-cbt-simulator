@@ -71,22 +71,22 @@ export const SiteNav: React.FC = () => {
             <div className="flex items-center gap-2 font-medium tracking-wide">
               <span className="inline-flex items-center gap-1.5 bg-gradient-to-r from-amber-400 to-amber-500 text-slate-950 font-black px-2 py-0.5 rounded text-[10px] tracking-wider shadow-xs">
                 <span className="w-1.5 h-1.5 rounded-full bg-slate-950 animate-ping inline-block"></span>
-                NTA CBT 2027
+                Vailism CBT
               </span>
               <span className="text-[11px] text-slate-200 hidden sm:inline font-semibold">
-                NATIONAL ELIGIBILITY CUM ENTRANCE TEST (UG)
+                VAILISM CBT EXAM CENTER • NEET (UG) 2015–2026
               </span>
               <span className="text-[11px] text-slate-300 sm:hidden font-semibold">
-                NEET (UG) 2027
+                Vailism CBT Exam Center
               </span>
             </div>
             <div className="text-[11px] text-blue-200/90 flex items-center gap-3 sm:gap-4 font-mono">
               <span className="flex items-center gap-1 text-amber-300 font-semibold">
                 <Flame className="w-3 h-3 text-amber-400" />
-                <span>Target NEET 2027</span>
+                <span>NEET 2015–2026 Series</span>
               </span>
               <span className="hidden md:inline text-slate-400">|</span>
-              <span className="hidden md:inline text-slate-300">Official 180 Qs • 720 Marks</span>
+              <span className="hidden md:inline text-slate-300">100 Full-Length Papers • 720 Marks</span>
             </div>
           </div>
         </div>
@@ -97,7 +97,7 @@ export const SiteNav: React.FC = () => {
           <Link href="/" className="flex items-center gap-3 group no-underline">
             <div className="relative">
               <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-blue-700 via-blue-800 to-indigo-900 flex items-center justify-center text-white shadow-md shadow-blue-900/20 font-black text-xl group-hover:scale-105 transition-transform duration-200">
-                N
+                V
               </div>
               <span className="absolute -bottom-1 -right-1 flex h-3 w-3">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
@@ -106,13 +106,13 @@ export const SiteNav: React.FC = () => {
             </div>
             <div>
               <div className="font-extrabold text-slate-900 leading-tight text-base sm:text-lg tracking-tight group-hover:text-blue-700 transition-colors flex items-center gap-1.5">
-                <span>NEET CBT Simulator</span>
+                <span>Vailism CBT Exam Center</span>
                 <span className="hidden sm:inline-block text-[10px] font-bold uppercase tracking-wider text-blue-700 bg-blue-50 border border-blue-200 px-1.5 py-0.5 rounded">
-                  2027
+                  NEET UG
                 </span>
               </div>
               <div className="text-[11px] text-slate-500 font-medium hidden sm:block">
-                National Standard Computer-Based Examination Engine
+                National Standard Computer-Based Examination Engine • 2015–2026 Pattern
               </div>
             </div>
           </Link>
