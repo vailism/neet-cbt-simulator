@@ -316,46 +316,45 @@ export default function ExamResultPage() {
     <div className="flex-1 bg-gray-50 py-8 px-4">
       <div className="max-w-6xl mx-auto space-y-6">
         {/* TOP SCORECARD BANNER */}
-        <div className="bg-gradient-to-r from-blue-900 via-indigo-950 to-blue-950 text-white rounded-2xl p-6 sm:p-8 shadow-sm">
+        <div className="bg-slate-900 text-white rounded-xl p-6 sm:p-7 border border-slate-800 shadow-xs">
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div>
-              <div className="inline-flex items-center gap-1.5 bg-blue-800/80 border border-blue-400/30 text-blue-200 text-xs px-2.5 py-0.5 rounded-full mb-2">
-                <Award className="w-3.5 h-3.5 text-amber-300" />
-                <span>Vailism CBT Exam Center • Official Performance Scorecard • {data.mode}</span>
+              <div className="inline-flex items-center gap-1.5 text-slate-400 text-xs font-semibold tracking-wide uppercase mb-1.5">
+                <span>Vailism CBT Exam Center • Official Performance Record • {data.mode}</span>
               </div>
-              <h1 className="text-2xl sm:text-3xl font-black tracking-tight">{data.title}</h1>
-              <div className="text-xs text-blue-200 mt-1 flex flex-wrap items-center gap-3">
-                <span>Candidate: <strong>{data.candidate.name}</strong></span>
+              <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-white">{data.title}</h1>
+              <div className="text-xs text-slate-400 mt-1 flex flex-wrap items-center gap-3 font-mono">
+                <span>Candidate: <strong className="text-white font-sans">{data.candidate.name}</strong></span>
                 <span>•</span>
-                <span className="font-mono">Roll: {data.candidate.rollNumber}</span>
+                <span>Roll: {data.candidate.rollNumber}</span>
                 <span>•</span>
                 <span>Submitted: {new Date(data.submittedAt).toLocaleTimeString()}</span>
               </div>
             </div>
 
-            {/* Total Marks Hero Badge */}
-            <div className="bg-white/10 backdrop-blur-xs border border-white/20 rounded-xl p-4 text-center min-w-[170px]">
-              <div className="text-xs uppercase tracking-wider text-blue-200 font-bold">Total Score</div>
-              <div className="text-3xl sm:text-4xl font-black text-amber-300 font-mono my-0.5">
+            {/* Total Marks Metric */}
+            <div className="bg-slate-800/80 border border-slate-700 rounded-lg p-3.5 text-center min-w-[150px]">
+              <div className="text-[10px] uppercase tracking-wider text-slate-400 font-semibold">Total Score</div>
+              <div className="text-3xl font-bold text-white font-mono my-0.5">
                 {overall.totalScore}
-                <span className="text-sm text-blue-200 font-normal"> / {overall.maxScore}</span>
+                <span className="text-xs text-slate-400 font-normal"> / {overall.maxScore}</span>
               </div>
-              <div className="text-xs text-emerald-300 font-bold">
-                Accuracy: {overall.accuracy}%
+              <div className="text-xs text-slate-300 font-medium">
+                Accuracy: <span className="font-mono font-bold text-white">{overall.accuracy}%</span>
               </div>
             </div>
           </div>
 
-          {/* Quick Mistake Drill & Remedial Mock Triggers */}
-          <div className="mt-4 pt-4 border-t border-white/10 flex flex-wrap items-center justify-between gap-3">
-            <div className="text-xs text-blue-200">
+          {/* Quick Retest & Practice Triggers */}
+          <div className="mt-5 pt-4 border-t border-slate-800 flex flex-wrap items-center justify-between gap-3">
+            <div className="text-xs text-slate-400">
               {overall.incorrectCount > 0 ? (
                 <span>
-                  You have <strong>{overall.incorrectCount} mistakes</strong> in this exam. Retest your errors or launch a 45-question remedial mock targeting weak chapters.
+                  Recorded <strong className="text-white font-mono">{overall.incorrectCount} incorrect questions</strong>. Retest mistakes or generate a 45-question diagnostic exam.
                 </span>
               ) : (
                 <span>
-                  Mastery achieved! Launch a 45-question remedial mock targeting your lowest-scoring NCERT chapters.
+                  All attempted questions were correct. Take a targeted 45-question diagnostic mock for continued calibration.
                 </span>
               )}
             </div>
@@ -364,49 +363,45 @@ export default function ExamResultPage() {
                 <button
                   onClick={handleLaunchMistakeDrill}
                   disabled={drillLoading}
-                  className="bg-amber-400 hover:bg-amber-300 disabled:opacity-50 text-blue-950 font-black text-xs px-3.5 py-2 rounded-lg shadow-md transition-all flex items-center gap-2 cursor-pointer"
+                  className="bg-white hover:bg-slate-100 disabled:opacity-50 text-slate-900 font-semibold text-xs px-3.5 py-1.5 rounded transition cursor-pointer"
                 >
-                  <Target className="w-4 h-4 text-red-700" />
-                  <span>{drillLoading ? 'Building Drill...' : `Re-Test Mistakes (${overall.incorrectCount})`}</span>
-                  <Play className="w-3.5 h-3.5 fill-current" />
+                  <span>{drillLoading ? 'Preparing...' : `Retest Mistakes (${overall.incorrectCount})`}</span>
                 </button>
               )}
               <button
                 onClick={handleLaunchRemedialMock}
                 disabled={remedialLoading}
-                className="bg-gradient-to-r from-emerald-400 to-teal-400 hover:from-emerald-300 hover:to-teal-300 disabled:opacity-50 text-slate-950 font-black text-xs px-3.5 py-2 rounded-lg shadow-md transition-all flex items-center gap-2 cursor-pointer"
-                title="Auto-generates a 45-question mock test targeting your weak chapters"
+                className="bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white font-semibold text-xs px-3.5 py-1.5 rounded transition cursor-pointer"
+                title="Generates a 45-question diagnostic test targeting weak NCERT chapters"
               >
-                <Zap className="w-4 h-4 text-emerald-950" />
-                <span>{remedialLoading ? 'Generating...' : 'Launch Remedial Mock (45 Qs)'}</span>
-                <Play className="w-3.5 h-3.5 fill-current" />
+                <span>{remedialLoading ? 'Generating...' : 'Targeted Practice (45 Qs)'}</span>
               </button>
             </div>
           </div>
 
-          {/* Quick Metrics Strip */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-6 pt-6 border-t border-white/10 text-xs">
-            <div className="bg-white/5 rounded-lg p-2.5">
-              <span className="text-blue-200 block text-[11px]">Correct Answers (+4)</span>
-              <strong className="text-base text-green-300 font-mono font-bold">
-                {overall.correctCount} <span className="text-xs font-normal text-blue-200">/ 180</span>
+          {/* Metrics Strip */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-4 pt-4 border-t border-slate-800 text-xs">
+            <div className="bg-slate-800/50 rounded p-2.5 border border-slate-700/60">
+              <span className="text-slate-400 block text-[11px]">Correct (+4)</span>
+              <strong className="text-sm text-white font-mono font-bold">
+                {overall.correctCount} <span className="text-xs font-normal text-slate-400">/ 180</span>
               </strong>
             </div>
-            <div className="bg-white/5 rounded-lg p-2.5">
-              <span className="text-blue-200 block text-[11px]">Incorrect Answers (-1)</span>
-              <strong className="text-base text-red-300 font-mono font-bold">
-                {overall.incorrectCount} <span className="text-xs font-normal text-blue-200">questions</span>
+            <div className="bg-slate-800/50 rounded p-2.5 border border-slate-700/60">
+              <span className="text-slate-400 block text-[11px]">Incorrect (-1)</span>
+              <strong className="text-sm text-white font-mono font-bold">
+                {overall.incorrectCount} <span className="text-xs font-normal text-slate-400">questions</span>
               </strong>
             </div>
-            <div className="bg-white/5 rounded-lg p-2.5">
-              <span className="text-blue-200 block text-[11px]">Unattempted (0)</span>
-              <strong className="text-base text-slate-300 font-mono font-bold">
-                {overall.unattemptedCount} <span className="text-xs font-normal text-blue-200">questions</span>
+            <div className="bg-slate-800/50 rounded p-2.5 border border-slate-700/60">
+              <span className="text-slate-400 block text-[11px]">Unattempted (0)</span>
+              <strong className="text-sm text-white font-mono font-bold">
+                {overall.unattemptedCount} <span className="text-xs font-normal text-slate-400">questions</span>
               </strong>
             </div>
-            <div className="bg-white/5 rounded-lg p-2.5">
-              <span className="text-blue-200 block text-[11px]">Total Time Spent</span>
-              <strong className="text-base text-amber-300 font-mono font-bold">
+            <div className="bg-slate-800/50 rounded p-2.5 border border-slate-700/60">
+              <span className="text-slate-400 block text-[11px]">Time Spent</span>
+              <strong className="text-sm text-white font-mono font-bold">
                 {formatSeconds(overall.totalTimeSpentSeconds)}
               </strong>
             </div>
@@ -416,40 +411,33 @@ export default function ExamResultPage() {
         {/* AIIMS & GOVERNMENT MEDICAL COLLEGE CUTOFF PREDICTOR (INTERACTIVE) */}
         <CollegePredictorCard score={overall.totalScore} maxScore={overall.maxScore} />
 
-        {/* WEAK CHAPTER SCORE LEAK PLUGGER */}
+        {/* WEAK CHAPTER REVISION FOCUS */}
         {weakChapters && weakChapters.length > 0 && (
-          <div className="bg-gradient-to-br from-rose-50/90 via-orange-50/50 to-amber-50/60 rounded-2xl shadow-sm border border-rose-200 p-5 sm:p-6 space-y-3">
-            <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-rose-200/60">
-              <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-xl bg-rose-600 text-white flex items-center justify-center shadow-xs">
-                  <Flame className="w-4 h-4" />
-                </div>
-                <div>
-                  <h3 className="font-bold text-gray-900 text-sm">
-                    Identified Score Leaks & Weak NCERT Chapters ({weakChapters.length})
-                  </h3>
-                  <p className="text-[11px] text-gray-600">
-                    High-yield negative marking leak detected. Plug these gaps with an automated remedial mock test.
-                  </p>
-                </div>
+          <div className="bg-white rounded-xl border border-slate-200 p-5 space-y-3 shadow-xs">
+            <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-slate-100">
+              <div>
+                <h3 className="font-bold text-slate-900 text-sm">
+                  Recommended Revision Topics ({weakChapters.length} Chapters)
+                </h3>
+                <p className="text-xs text-slate-500 mt-0.5">
+                  Chapters with recurring deductions in this examination.
+                </p>
               </div>
               <button
                 onClick={handleLaunchRemedialMock}
                 disabled={remedialLoading}
-                className="bg-rose-600 hover:bg-rose-700 disabled:opacity-50 text-white font-bold text-xs px-4 py-2 rounded-xl shadow-xs transition-all flex items-center gap-2 cursor-pointer"
+                className="bg-slate-900 hover:bg-slate-800 disabled:opacity-50 text-white font-semibold text-xs px-3.5 py-1.5 rounded transition cursor-pointer"
               >
-                <Zap className="w-3.5 h-3.5 text-amber-300" />
-                <span>{remedialLoading ? 'Building Test...' : 'Launch 45-Q Remedial Test'}</span>
+                <span>{remedialLoading ? 'Generating...' : 'Launch 45-Q Diagnostic Test'}</span>
               </button>
             </div>
 
-            <div className="flex flex-wrap gap-2 pt-1">
+            <div className="flex flex-wrap gap-1.5 pt-1">
               {weakChapters.map((ch, idx) => (
                 <span
                   key={idx}
-                  className="bg-white border border-rose-300 text-rose-900 px-3 py-1 rounded-lg text-xs font-semibold shadow-2xs flex items-center gap-1.5"
+                  className="bg-slate-50 border border-slate-200 text-slate-800 px-2.5 py-1 rounded text-xs font-medium"
                 >
-                  <span className="w-1.5 h-1.5 rounded-full bg-rose-500" />
                   {ch}
                 </span>
               ))}
@@ -878,47 +866,48 @@ export default function ExamResultPage() {
             Back to Home Portal
           </button>
 
-          <div className="flex flex-wrap items-center gap-3">
+          <div className="flex flex-wrap items-center gap-2">
             <button
               onClick={() => router.push(`/exam/${attemptId}/print`)}
-              className="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 text-xs font-bold px-4 py-2 rounded-lg transition-colors flex items-center gap-1.5 cursor-pointer"
-              title="Print official NEET question paper booklet and solutions"
+              className="bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 text-xs font-medium px-3 py-1.5 rounded transition-colors flex items-center gap-1.5 cursor-pointer"
+              title="Print official question paper booklet and solutions"
             >
-              <Printer className="w-4 h-4 text-indigo-600" />
-              <span>Print Booklet / PDF</span>
+              <Printer className="w-3.5 h-3.5 text-slate-500" />
+              <span>Print Booklet (PDF)</span>
             </button>
 
             {overall.incorrectCount > 0 && (
               <button
                 onClick={handleLaunchMistakeDrill}
                 disabled={drillLoading}
-                className="bg-amber-500 hover:bg-amber-600 disabled:opacity-50 text-blue-950 text-xs font-black px-4 py-2 rounded-lg shadow-sm transition-colors flex items-center gap-1.5 cursor-pointer"
+                className="bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-300 text-xs font-semibold px-3 py-1.5 rounded transition-colors flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
               >
-                <Target className="w-4 h-4 text-red-900" />
-                <span>{drillLoading ? 'Preparing Drill...' : `Mistake Drill (${overall.incorrectCount} Qs)`}</span>
+                <span>{drillLoading ? 'Preparing...' : `Retest Mistakes (${overall.incorrectCount})`}</span>
               </button>
             )}
+
             <button
               onClick={handleLaunchRemedialMock}
               disabled={remedialLoading}
-              className="bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white text-xs font-black px-4 py-2 rounded-lg shadow-sm transition-colors flex items-center gap-1.5 cursor-pointer"
-              title="Auto-generates a 45-question test focusing on your lowest accuracy NCERT chapters"
+              className="bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-300 text-xs font-semibold px-3 py-1.5 rounded transition-colors flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+              title="Generates a 45-question diagnostic mock for weak NCERT chapters"
             >
-              <Zap className="w-4 h-4 text-emerald-200" />
-              <span>{remedialLoading ? 'Preparing Test...' : 'Remedial Mock (45 Qs)'}</span>
+              <span>{remedialLoading ? 'Preparing...' : 'Targeted Practice (45 Qs)'}</span>
             </button>
+
             <button
               onClick={() => router.push('/instructions')}
-              className="bg-gray-100 hover:bg-gray-200 text-gray-800 text-xs font-bold px-4 py-2 rounded-lg transition-colors cursor-pointer"
+              className="bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 text-xs font-medium px-3 py-1.5 rounded transition-colors cursor-pointer"
             >
-              Take Another Mock Exam
+              New Mock Exam
             </button>
+
             <button
               onClick={() => router.push(`/exam/${attemptId}/solutions`)}
-              className="bg-blue-700 hover:bg-blue-800 text-white text-xs font-bold px-5 py-2 rounded-lg shadow transition-colors flex items-center gap-1.5 cursor-pointer"
+              className="bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold px-4 py-1.5 rounded shadow-xs transition-colors flex items-center gap-1.5 cursor-pointer"
             >
-              Review All 180 Solutions
-              <ArrowRight className="w-4 h-4" />
+              <span>Review Solutions (180 Qs)</span>
+              <ArrowRight className="w-3.5 h-3.5" />
             </button>
           </div>
         </div>

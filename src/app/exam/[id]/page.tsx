@@ -23,7 +23,6 @@ import {
   AlertTriangle,
   Edit3,
   Trash2,
-  Sparkles,
   Layers,
   CheckCircle2,
   Scale,

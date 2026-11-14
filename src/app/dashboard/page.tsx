@@ -15,7 +15,6 @@ import {
   XCircle,
   Zap,
   RotateCcw,
-  Sparkles,
   Edit2,
   Target,
   Play,
@@ -189,7 +188,7 @@ export default function DashboardPage() {
   if (error || !data) {
     return (
       <div className="flex-1 flex flex-col items-center justify-center bg-slate-50 p-6">
-        <div className="bg-white p-8 rounded-3xl border border-slate-200 max-w-md w-full text-center shadow-card">
+        <div className="bg-white p-8 rounded-xl border border-slate-200 max-w-md w-full text-center shadow-card">
           <User className="w-12 h-12 text-slate-400 mx-auto mb-3" />
           <h2 className="text-lg font-bold text-slate-900 mb-1">No Profile Found</h2>
           <p className="text-xs text-slate-500 mb-5">
@@ -210,19 +209,19 @@ export default function DashboardPage() {
   const prediction = calculateNeetPrediction(stats.highestScore || stats.averageScore);
 
   return (
-    <div className="flex-1 bg-slate-50/70 py-8 px-4 sm:px-6">
+    <div className="flex-1 bg-slate-50 py-8 px-4 sm:px-6">
       <div className="max-w-6xl mx-auto space-y-6">
         {/* Candidate Profile Strip */}
-        <div className="bg-white rounded-3xl shadow-card border border-slate-200 p-6 sm:p-7 flex flex-wrap items-center justify-between gap-5">
-          <div className="flex items-center gap-4">
-            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-700 to-indigo-900 text-white font-black text-2xl flex items-center justify-center shadow-md">
+        <div className="bg-white rounded-xl border border-slate-200 p-5 sm:p-6 flex flex-wrap items-center justify-between gap-4 shadow-xs">
+          <div className="flex items-center gap-3.5">
+            <div className="w-12 h-12 rounded-lg bg-slate-900 text-white font-bold text-lg flex items-center justify-center">
               {candidate.name.charAt(0)}
             </div>
             <div>
-              <div className="text-[11px] font-bold uppercase tracking-wider text-blue-700">
-                Vailism CBT Exam Center • Performance & AIR Calibration
+              <div className="text-[11px] font-semibold text-slate-500 uppercase tracking-wide">
+                Vailism CBT Exam Center • Candidate Record
               </div>
-              <h1 className="text-xl sm:text-2xl font-black text-slate-900 leading-tight">
+              <h1 className="text-xl font-bold text-slate-900 leading-tight">
                 {candidate.name}
               </h1>
               <div className="text-xs text-slate-500 font-mono mt-0.5">
@@ -231,38 +230,36 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          <div className="flex flex-wrap items-center gap-2.5">
+          <div className="flex flex-wrap items-center gap-2">
             {mistakeCount > 0 && (
               <button
                 onClick={handleLaunchMistakeDrill}
                 disabled={drillLoading}
-                className="bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 disabled:opacity-50 text-slate-950 font-black text-xs px-4 py-2.5 rounded-xl shadow-xs transition-all flex items-center gap-1.5 cursor-pointer"
-                title="Launch a personalized test of past mistake questions"
+                className="bg-white hover:bg-slate-50 text-slate-800 border border-slate-300 font-semibold text-xs px-3 py-1.5 rounded transition cursor-pointer disabled:opacity-50"
+                title="Launch a test of past mistake questions"
               >
-                <Target className="w-4 h-4 text-red-700" />
-                <span>{drillLoading ? 'Loading...' : `Mistake Drill (${mistakeCount} Qs)`}</span>
+                <span>{drillLoading ? 'Loading...' : `Retest Mistakes (${mistakeCount})`}</span>
               </button>
             )}
             <button
               onClick={handleLaunchRemedialMock}
               disabled={remedialLoading}
-              className="bg-gradient-to-r from-emerald-600 to-teal-700 hover:from-emerald-700 hover:to-teal-800 disabled:opacity-50 text-white font-bold text-xs px-4 py-2.5 rounded-xl shadow-xs transition-all flex items-center gap-1.5 cursor-pointer"
-              title="Target weak NCERT chapters with an automated 45-question remedial mock test"
+              className="bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-300 font-semibold text-xs px-3 py-1.5 rounded transition cursor-pointer disabled:opacity-50"
+              title="Target weak NCERT chapters with an automated 45-question diagnostic exam"
             >
-              <Zap className="w-4 h-4 text-emerald-200" />
-              <span>{remedialLoading ? 'Building Test...' : 'Remedial Mock (45 Qs)'}</span>
+              <span>{remedialLoading ? 'Building Test...' : 'Targeted Practice (45 Qs)'}</span>
             </button>
             <button
               onClick={() => setIsModalOpen(true)}
-              className="bg-blue-50/80 hover:bg-blue-100 text-blue-900 border border-blue-200 text-xs font-bold px-3.5 py-2.5 rounded-xl transition-colors flex items-center gap-1.5 cursor-pointer"
+              className="bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 text-xs font-medium px-3 py-1.5 rounded transition cursor-pointer"
             >
-              <Edit2 className="w-3.5 h-3.5 text-blue-600" /> Rename Student
+              <Edit2 className="w-3.5 h-3.5 inline mr-1 text-slate-500" /> Rename
             </button>
             <button
               onClick={() => router.push('/instructions')}
-              className="bg-gradient-to-r from-blue-700 to-indigo-800 hover:from-blue-800 hover:to-indigo-900 text-white text-xs font-bold px-4 py-2.5 rounded-xl shadow-xs transition-all flex items-center gap-2 cursor-pointer"
+              className="bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold px-3.5 py-1.5 rounded shadow-xs transition cursor-pointer"
             >
-              <Zap className="w-3.5 h-3.5 text-amber-300" /> Start New Mock CBT
+              New Mock CBT
             </button>
           </div>
         </div>
@@ -274,78 +271,78 @@ export default function DashboardPage() {
         />
 
         {/* METRICS SUMMARY CARDS */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           {/* Total Attempts */}
-          <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-card">
-            <div className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+          <div className="bg-white rounded-xl border border-slate-200 p-4 shadow-xs">
+            <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
               Total Attempts
             </div>
-            <div className="text-3xl font-black text-slate-900 mt-1.5 font-mono">
+            <div className="text-2xl font-bold text-slate-900 mt-1 font-mono">
               {stats.totalAttempts}
             </div>
-            <div className="text-[11px] text-slate-500 mt-1">Full mocks & practice</div>
+            <div className="text-[11px] text-slate-400 mt-0.5">Completed mock sessions</div>
           </div>
 
           {/* Highest Score */}
-          <div className="bg-white rounded-2xl border border-emerald-200 p-5 shadow-card">
-            <div className="text-xs font-bold text-emerald-700 uppercase tracking-wider">
+          <div className="bg-white rounded-xl border border-slate-200 p-4 shadow-xs">
+            <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
               Highest Score
             </div>
-            <div className="text-3xl font-black text-emerald-700 mt-1.5 font-mono">
-              {stats.highestScore} <span className="text-xs text-slate-500 font-normal">/ 720</span>
+            <div className="text-2xl font-bold text-slate-900 mt-1 font-mono">
+              {stats.highestScore} <span className="text-xs text-slate-400 font-normal">/ 720</span>
             </div>
-            <div className="text-[11px] text-emerald-600 mt-1">Best performance</div>
+            <div className="text-[11px] text-slate-400 mt-0.5">Peak performance</div>
           </div>
 
           {/* Average Score */}
-          <div className="bg-white rounded-2xl border border-blue-200 p-5 shadow-card">
-            <div className="text-xs font-bold text-blue-700 uppercase tracking-wider">
+          <div className="bg-white rounded-xl border border-slate-200 p-4 shadow-xs">
+            <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
               Average Score
             </div>
-            <div className="text-3xl font-black text-blue-900 mt-1.5 font-mono">
-              {stats.averageScore} <span className="text-xs text-slate-500 font-normal">/ 720</span>
+            <div className="text-2xl font-bold text-slate-900 mt-1 font-mono">
+              {stats.averageScore} <span className="text-xs text-slate-400 font-normal">/ 720</span>
             </div>
-            <div className="text-[11px] text-blue-600 mt-1">Across all completed</div>
+            <div className="text-[11px] text-slate-400 mt-0.5">Mean overall score</div>
           </div>
 
           {/* Overall Accuracy */}
-          <div className="bg-white rounded-2xl border border-purple-200 p-5 shadow-card">
-            <div className="text-xs font-bold text-purple-700 uppercase tracking-wider">
+          <div className="bg-white rounded-xl border border-slate-200 p-4 shadow-xs">
+            <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
               Average Accuracy
             </div>
-            <div className="text-3xl font-black text-purple-900 mt-1.5 font-mono">
+            <div className="text-2xl font-bold text-slate-900 mt-1 font-mono">
               {stats.averageAccuracy}%
             </div>
-            <div className="text-[11px] text-purple-600 mt-1">Precision rate</div>
+            <div className="text-[11px] text-slate-400 mt-0.5">Precision rate</div>
           </div>
         </div>
 
         {/* NCERT CHAPTER MASTER HEATMAP */}
         {data.chapterHeatmap && data.chapterHeatmap.length > 0 && (
-          <div className="bg-white rounded-3xl border border-slate-200 shadow-card p-6 sm:p-7">
-            <div className="flex flex-wrap items-center justify-between gap-3 pb-4 border-b border-slate-100">
+          <div className="bg-white rounded-xl border border-slate-200 shadow-xs p-5 sm:p-6">
+            <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-slate-100">
               <div>
-                <h2 className="font-extrabold text-sm sm:text-base text-slate-900 flex items-center gap-2">
-                  <Layers className="w-4 h-4 text-indigo-600" />
-                  <span>NCERT Chapter Master Heatmap ({data.chapterHeatmap.length} Chapters)</span>
+                <h2 className="font-bold text-sm text-slate-900 flex items-center gap-2">
+                  <Layers className="w-4 h-4 text-slate-700" />
+                  <span>NCERT Chapter Mastery Matrix ({data.chapterHeatmap.length} Chapters)</span>
                 </h2>
                 <p className="text-xs text-slate-500 mt-0.5">
-                  Real-time accuracy and mastery distribution tracked across all your official mock exam attempts.
+                  Accuracy and historical performance distribution across official mock attempts.
                 </p>
               </div>
 
               {/* Status Pills Summary */}
-              <div className="flex flex-wrap items-center gap-2 text-[11px]">
-                <span className="px-3 py-1 rounded-full bg-emerald-100 text-emerald-800 font-bold border border-emerald-200">
+              <div className="flex flex-wrap items-center gap-1.5 text-[11px]">
+                <span className="px-2.5 py-0.5 rounded bg-slate-100 text-slate-700 font-semibold border border-slate-200">
                   {data.chapterHeatmap.filter((c) => c.status === 'MASTERED').length} Mastered (≥75%)
                 </span>
-                <span className="px-3 py-1 rounded-full bg-amber-100 text-amber-800 font-bold border border-amber-200">
-                  {data.chapterHeatmap.filter((c) => c.status === 'PRACTICE').length} Needs Practice (50–74%)
+                <span className="px-2.5 py-0.5 rounded bg-slate-100 text-slate-700 font-semibold border border-slate-200">
+                  {data.chapterHeatmap.filter((c) => c.status === 'PRACTICE').length} Review (50–74%)
                 </span>
-                <span className="px-3 py-1 rounded-full bg-rose-100 text-rose-800 font-bold border border-rose-200">
-                  {data.chapterHeatmap.filter((c) => c.status === 'CRITICAL').length} Critical Gap (&lt;50%)
+                <span className="px-2.5 py-0.5 rounded bg-slate-100 text-slate-700 font-semibold border border-slate-200">
+                  {data.chapterHeatmap.filter((c) => c.status === 'CRITICAL').length} Critical (&lt;50%)
                 </span>
-                <span className="px-3 py-1 rounded-full bg-slate-100 text-slate-700 font-medium border border-slate-200">
+                <span className="px-2.5 py-0.5 rounded bg-slate-100 text-slate-500 font-medium border border-slate-200">
                   {data.chapterHeatmap.filter((c) => c.status === 'UNATTEMPTED').length} Unattempted
                 </span>
               </div>
@@ -353,19 +350,15 @@ export default function DashboardPage() {
 
             {/* Remedial Mock Trigger for Critical Gaps */}
             {data.chapterHeatmap.some((c) => c.status === 'CRITICAL') && (
-              <div className="mt-4 p-3.5 bg-rose-50 border border-rose-200 rounded-2xl flex flex-wrap items-center justify-between gap-3 text-xs">
-                <div className="flex items-center gap-2">
-                  <Flame className="w-4 h-4 text-rose-600 shrink-0" />
-                  <span className="text-rose-950 font-medium">
-                    You have <strong>{data.chapterHeatmap.filter((c) => c.status === 'CRITICAL').length} chapters</strong> with critical score drag (&lt;50% accuracy). Plug these leaks immediately.
-                  </span>
-                </div>
+              <div className="mt-3.5 p-3 bg-slate-50 border border-slate-200 rounded-lg flex flex-wrap items-center justify-between gap-3 text-xs">
+                <span className="text-slate-700 font-medium">
+                  Identified <strong>{data.chapterHeatmap.filter((c) => c.status === 'CRITICAL').length} chapters</strong> with &lt;50% accuracy.
+                </span>
                 <button
                   onClick={handleLaunchRemedialMock}
                   disabled={remedialLoading}
-                  className="bg-rose-600 hover:bg-rose-700 disabled:opacity-50 text-white font-bold text-xs px-3.5 py-1.5 rounded-xl shadow-xs transition-all flex items-center gap-1.5 cursor-pointer"
+                  className="bg-slate-900 hover:bg-slate-800 disabled:opacity-50 text-white font-semibold text-xs px-3 py-1 rounded transition cursor-pointer"
                 >
-                  <Zap className="w-3.5 h-3.5 text-amber-300" />
                   <span>{remedialLoading ? 'Preparing...' : 'Target Weak Chapters (45 Qs)'}</span>
                 </button>
               </div>
@@ -423,7 +416,7 @@ export default function DashboardPage() {
                   return (
                     <div
                       key={ch.chapterId}
-                      className={`p-3.5 rounded-2xl border transition-all flex flex-col justify-between ${badgeConfig.bg}`}
+                      className={`p-3 rounded-lg border transition-all flex flex-col justify-between ${badgeConfig.bg}`}
                     >
                       <div>
                         <div className="flex items-center justify-between gap-1 mb-1.5">
@@ -459,7 +452,7 @@ export default function DashboardPage() {
         )}
 
         {/* RECENT ATTEMPTS & HISTORY */}
-        <div className="bg-white rounded-3xl border border-slate-200 shadow-card overflow-hidden">
+        <div className="bg-white rounded-xl border border-slate-200 shadow-card overflow-hidden">
           <div className="p-5 sm:p-6 border-b border-slate-100 flex items-center justify-between">
             <h2 className="font-extrabold text-sm sm:text-base text-slate-900 flex items-center gap-2">
               <Calendar className="w-4 h-4 text-blue-700" />

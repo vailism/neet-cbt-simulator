@@ -13,7 +13,6 @@ import {
   HelpCircle,
   Layers,
   Edit2,
-  Sparkles,
   Award,
   BookOpen,
   Check,
@@ -83,18 +82,15 @@ export default function InstructionsPage() {
   };
 
   return (
-    <div className="flex-1 bg-slate-50/70 py-8 px-4 sm:px-6">
-      <div className="max-w-5xl mx-auto bg-white rounded-3xl shadow-elevated border border-slate-200/90 overflow-hidden">
+    <div className="flex-1 bg-slate-50 py-8 px-4 sm:px-6">
+      <div className="max-w-5xl mx-auto bg-white rounded-xl border border-slate-200 overflow-hidden shadow-xs">
         {/* NTA Instructions Header */}
-        <div className="bg-gradient-to-r from-slate-950 via-blue-950 to-indigo-950 text-white p-5 sm:p-7 flex flex-wrap items-center justify-between gap-4 border-b border-blue-900/40 relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500/10 rounded-full blur-3xl pointer-events-none" />
-
-          <div className="relative z-10">
-            <div className="inline-flex items-center gap-1.5 text-xs uppercase tracking-wider text-blue-200 font-bold mb-1">
-              <Sparkles className="w-3.5 h-3.5 text-amber-300" />
-              <span>Vailism CBT Exam Center • NEET (UG) 2015–2026 Examination Series</span>
+        <div className="bg-slate-900 text-white p-5 sm:p-6 flex flex-wrap items-center justify-between gap-4 border-b border-slate-800">
+          <div>
+            <div className="inline-flex items-center gap-1.5 text-xs uppercase tracking-wider text-slate-400 font-semibold mb-1">
+              <span>Vailism CBT Exam Center • NEET (UG) Protocol</span>
             </div>
-            <h1 className="text-xl sm:text-2xl font-black text-white tracking-tight">
+            <h1 className="text-xl sm:text-2xl font-bold text-white tracking-tight">
               General Examination Instructions & CBT Protocol
             </h1>
           </div>
@@ -121,26 +117,26 @@ export default function InstructionsPage() {
         {/* Content Body */}
         <div className="p-6 sm:p-8 text-sm text-slate-800 space-y-7">
           {/* Quick Metrics HUD */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3.5 p-4 bg-gradient-to-r from-blue-50/70 to-indigo-50/70 border border-blue-200 rounded-2xl text-center">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3.5 p-4 bg-slate-50 border border-slate-200 rounded-xl text-center">
             <div className="p-2">
               <div className="text-slate-500 font-medium text-xs">Total Duration</div>
-              <div className="font-black text-blue-950 text-base sm:text-lg font-mono">180 Minutes</div>
-              <div className="text-[10px] text-blue-700">3 Hours Full Length</div>
+              <div className="font-black text-slate-900 text-base sm:text-lg font-mono">180 Minutes</div>
+              <div className="text-[10px] text-slate-600">3 Hours Full Length</div>
             </div>
             <div className="p-2">
               <div className="text-slate-500 font-medium text-xs">Total Questions</div>
-              <div className="font-black text-blue-950 text-base sm:text-lg font-mono">180 Questions</div>
-              <div className="text-[10px] text-blue-700">4 Core Subjects</div>
+              <div className="font-black text-slate-900 text-base sm:text-lg font-mono">180 Questions</div>
+              <div className="text-[10px] text-slate-600">4 Core Subjects</div>
             </div>
             <div className="p-2">
               <div className="text-slate-500 font-medium text-xs">Maximum Marks</div>
-              <div className="font-black text-blue-950 text-base sm:text-lg font-mono">720 Marks</div>
-              <div className="text-[10px] text-blue-700">Standard Cutoff Scale</div>
+              <div className="font-black text-slate-900 text-base sm:text-lg font-mono">720 Marks</div>
+              <div className="text-[10px] text-slate-600">Standard Cutoff Scale</div>
             </div>
             <div className="p-2">
               <div className="text-slate-500 font-medium text-xs">Marking Scheme</div>
-              <div className="font-black text-emerald-700 text-base sm:text-lg font-mono">+4, -1, 0</div>
-              <div className="text-[10px] text-emerald-600">Negative Marking</div>
+              <div className="font-black text-emerald-800 text-base sm:text-lg font-mono">+4, -1, 0</div>
+              <div className="text-[10px] text-emerald-700">Negative Marking</div>
             </div>
           </div>
 
@@ -273,7 +269,7 @@ export default function InstructionsPage() {
           </div>
 
           {/* Section 5: Configurable Examination Settings */}
-          <div className="bg-slate-50/90 border border-slate-200 rounded-2xl p-5 space-y-4">
+          <div className="bg-slate-50/90 border border-slate-200 rounded-xl p-5 space-y-4">
             <h2 className="font-bold text-sm text-blue-950 flex items-center gap-2">
               <Clock className="w-4 h-4 text-blue-700" />
               <span>5. Examination Timer & CBT Configuration</span>
@@ -285,17 +281,17 @@ export default function InstructionsPage() {
                 <button
                   type="button"
                   onClick={() => setSelectedDuration(180)}
-                  className={`p-3.5 rounded-xl border text-left transition-all cursor-pointer ${
+                  className={`p-3 rounded-lg border text-left transition cursor-pointer ${
                     selectedDuration === 180
-                      ? 'border-blue-700 bg-blue-50/90 font-bold text-blue-950 ring-2 ring-blue-700 shadow-xs'
+                      ? 'border-slate-900 bg-slate-50 font-semibold text-slate-900'
                       : 'border-slate-300 bg-white text-slate-700 hover:bg-slate-50'
                   }`}
                 >
                   <div className="flex items-center justify-between">
-                    <div className="font-bold text-xs text-blue-900">⏱️ 180 Minutes (Standard NEET UG)</div>
-                    {selectedDuration === 180 && <Check className="w-4 h-4 text-blue-700" />}
+                    <div className="font-semibold text-xs text-slate-900">180 Minutes (Standard NEET UG)</div>
+                    {selectedDuration === 180 && <Check className="w-3.5 h-3.5 text-slate-900" />}
                   </div>
-                  <div className="text-[11px] text-slate-500 font-normal mt-1">
+                  <div className="text-[11px] text-slate-500 font-normal mt-0.5">
                     Official 3-hour examination format (180 questions)
                   </div>
                 </button>
@@ -303,17 +299,17 @@ export default function InstructionsPage() {
                 <button
                   type="button"
                   onClick={() => setSelectedDuration(200)}
-                  className={`p-3.5 rounded-xl border text-left transition-all cursor-pointer ${
+                  className={`p-3 rounded-lg border text-left transition cursor-pointer ${
                     selectedDuration === 200
-                      ? 'border-blue-700 bg-blue-50/90 font-bold text-blue-950 ring-2 ring-blue-700 shadow-xs'
+                      ? 'border-slate-900 bg-slate-50 font-semibold text-slate-900'
                       : 'border-slate-300 bg-white text-slate-700 hover:bg-slate-50'
                   }`}
                 >
                   <div className="flex items-center justify-between">
-                    <div className="font-bold text-xs text-blue-900">⏱️ 200 Minutes (Extended Buffer)</div>
-                    {selectedDuration === 200 && <Check className="w-4 h-4 text-blue-700" />}
+                    <div className="font-semibold text-xs text-slate-900">200 Minutes (Buffer Format)</div>
+                    {selectedDuration === 200 && <Check className="w-3.5 h-3.5 text-slate-900" />}
                   </div>
-                  <div className="text-[11px] text-slate-500 font-normal mt-1">
+                  <div className="text-[11px] text-slate-500 font-normal mt-0.5">
                     3 hours 20 minutes buffer format
                   </div>
                 </button>
@@ -323,7 +319,7 @@ export default function InstructionsPage() {
 
           {/* Error Message */}
           {error && (
-            <div className="bg-red-50 border border-red-200 text-red-700 text-xs p-3.5 rounded-xl flex items-center gap-2">
+            <div className="bg-red-50 border border-red-200 text-red-700 text-xs p-3 rounded-lg flex items-center gap-2">
               <AlertTriangle className="w-4 h-4 shrink-0" />
               <span>{error}</span>
             </div>
@@ -331,7 +327,7 @@ export default function InstructionsPage() {
 
           {/* Declaration Checkbox */}
           <div className="pt-2">
-            <label className="flex items-start gap-3.5 p-4 bg-amber-50/80 border border-amber-200 rounded-2xl cursor-pointer hover:bg-amber-50 transition-colors">
+            <label className="flex items-start gap-3 p-3.5 bg-slate-50 border border-slate-200 rounded-lg cursor-pointer hover:bg-slate-100/50 transition-colors">
               <input
                 type="checkbox"
                 checked={declared}
@@ -339,11 +335,11 @@ export default function InstructionsPage() {
                   setDeclared(e.target.checked);
                   if (error) setError(null);
                 }}
-                className="mt-0.5 h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
+                className="mt-0.5 h-4 w-4 rounded border-slate-300 text-slate-900 focus:ring-slate-800 cursor-pointer"
               />
-              <span className="text-xs text-slate-800 leading-relaxed font-medium">
+              <span className="text-xs text-slate-700 leading-relaxed font-normal">
                 I have read and understood all the instructions given above. I ensure that I am
-                appearing for this computer-based examination under strictly authentic conditions.
+                appearing for this computer-based examination under authentic conditions.
                 I understand that the timer will run for {selectedDuration} minutes and my paper will be submitted
                 automatically upon expiry.
               </span>
@@ -355,7 +351,7 @@ export default function InstructionsPage() {
             <button
               type="button"
               onClick={() => router.push('/')}
-              className="text-xs text-slate-600 hover:text-slate-900 underline font-medium cursor-pointer"
+              className="text-xs text-slate-600 hover:text-slate-900 font-medium cursor-pointer"
             >
               Back to Candidate Portal
             </button>
@@ -364,14 +360,14 @@ export default function InstructionsPage() {
               type="button"
               disabled={!declared || loading}
               onClick={handleStartExam}
-              className={`flex items-center justify-center gap-2 px-7 py-3.5 rounded-xl font-bold text-sm shadow-md transition-all ${
+              className={`flex items-center justify-center gap-2 px-6 py-2.5 rounded text-xs font-semibold shadow-xs transition ${
                 declared && !loading
-                  ? 'bg-gradient-to-r from-emerald-600 to-green-700 hover:from-emerald-500 hover:to-green-600 text-white cursor-pointer hover:shadow-lg hover:-translate-y-0.5'
+                  ? 'bg-blue-600 hover:bg-blue-500 text-white cursor-pointer'
                   : 'bg-slate-200 text-slate-400 cursor-not-allowed'
               }`}
             >
-              {loading ? 'Generating 180 Question Paper...' : 'I am ready to begin'}
-              <ArrowRight className="w-4 h-4" />
+              {loading ? 'Initializing 180-Question Paper...' : 'I am ready to begin'}
+              <ArrowRight className="w-3.5 h-3.5" />
             </button>
           </div>
         </div>

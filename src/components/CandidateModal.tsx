@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { User, ShieldCheck, ArrowRight, X, Edit3, CheckCircle2, Hash, Sparkles } from 'lucide-react';
+import { User, ArrowRight, X, Hash, ShieldCheck } from 'lucide-react';
 import { getClientCandidate, syncCandidateToServer, CandidateInfo } from '@/lib/candidateClient';
 
 interface CandidateModalProps {
@@ -18,7 +18,7 @@ export const CandidateModal: React.FC<CandidateModalProps> = ({
   onClose,
   onConfirm,
   title = 'Candidate Verification',
-  subtitle = 'Verify or update your candidate details before proceeding',
+  subtitle = 'Verify or update your candidate details before proceeding to the examination session.',
   confirmLabel = 'Proceed to Examination',
 }) => {
   const [name, setName] = useState('');
@@ -65,28 +65,25 @@ export const CandidateModal: React.FC<CandidateModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-md animate-in fade-in duration-200">
-      <div className="w-full max-w-md bg-white rounded-3xl shadow-2xl border border-slate-200 overflow-hidden transform animate-in zoom-in-95 duration-200">
-        {/* Header with deep blue gradient */}
-        <div className="bg-gradient-to-r from-slate-950 via-blue-950 to-indigo-950 text-white p-5 sm:p-6 flex items-center justify-between border-b border-blue-900/40 relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/10 rounded-full blur-2xl pointer-events-none" />
-
-          <div className="flex items-center gap-3.5 relative z-10">
-            <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-700 border border-blue-400/40 flex items-center justify-center text-amber-300 shadow-md">
-              <User className="w-5 h-5" />
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-xs">
+      <div className="w-full max-w-md bg-white rounded-xl shadow-xl border border-slate-200 overflow-hidden">
+        {/* Institutional Slate Header */}
+        <div className="bg-slate-900 text-white p-5 flex items-center justify-between border-b border-slate-800">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-lg bg-slate-800 border border-slate-700 flex items-center justify-center text-slate-200">
+              <User className="w-5 h-5 text-slate-300" />
             </div>
             <div>
-              <div className="inline-flex items-center gap-1.5 text-[10px] uppercase font-bold tracking-wider text-blue-200">
-                <Sparkles className="w-3 h-3 text-amber-300" />
-                <span>NTA NEET (UG) 2027</span>
+              <div className="text-[10px] uppercase font-bold tracking-wider text-slate-400">
+                Vailism CBT Examination Center
               </div>
-              <h2 className="text-base font-extrabold text-white leading-tight">{title}</h2>
+              <h2 className="text-sm font-bold text-white tracking-tight">{title}</h2>
             </div>
           </div>
           <button
             type="button"
             onClick={onClose}
-            className="text-slate-400 hover:text-white p-1.5 rounded-xl hover:bg-white/10 transition-colors cursor-pointer relative z-10"
+            className="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800 transition-colors cursor-pointer"
             aria-label="Close modal"
           >
             <X className="w-5 h-5" />
@@ -98,14 +95,14 @@ export const CandidateModal: React.FC<CandidateModalProps> = ({
           <p className="text-xs text-slate-600 leading-relaxed">{subtitle}</p>
 
           {error && (
-            <div className="p-3 bg-red-50 border border-red-200 rounded-xl text-xs text-red-700 font-medium">
+            <div className="p-3 bg-rose-50 border border-rose-200 rounded-lg text-xs text-rose-700 font-medium">
               {error}
             </div>
           )}
 
           <div>
-            <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wider flex items-center gap-1.5">
-              <User className="w-3.5 h-3.5 text-blue-700" />
+            <label className="block text-xs font-semibold text-slate-700 mb-1.5 uppercase tracking-wide flex items-center gap-1.5">
+              <User className="w-3.5 h-3.5 text-slate-500" />
               <span>Candidate Full Name</span>
             </label>
             <input
@@ -115,13 +112,13 @@ export const CandidateModal: React.FC<CandidateModalProps> = ({
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="e.g. KUMAR ADITYA"
-              className="w-full px-4 py-2.5 text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-600 focus:border-blue-600 font-semibold uppercase text-slate-900 shadow-xs transition-all"
+              className="w-full px-3.5 py-2 text-sm border border-slate-300 rounded-lg focus:ring-1 focus:ring-slate-900 focus:border-slate-900 font-semibold uppercase text-slate-900 placeholder:text-slate-400 shadow-2xs transition-colors"
             />
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wider flex items-center gap-1.5">
-              <Hash className="w-3.5 h-3.5 text-blue-700" />
+            <label className="block text-xs font-semibold text-slate-700 mb-1.5 uppercase tracking-wide flex items-center gap-1.5">
+              <Hash className="w-3.5 h-3.5 text-slate-500" />
               <span>Roll / Admission Number</span>
             </label>
             <input
@@ -130,10 +127,10 @@ export const CandidateModal: React.FC<CandidateModalProps> = ({
               value={rollNumber}
               onChange={(e) => setRollNumber(e.target.value)}
               placeholder="e.g. 240410012345"
-              className="w-full px-4 py-2.5 text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-600 focus:border-blue-600 font-mono text-slate-900 shadow-xs transition-all"
+              className="w-full px-3.5 py-2 text-sm border border-slate-300 rounded-lg focus:ring-1 focus:ring-slate-900 focus:border-slate-900 font-mono text-slate-900 placeholder:text-slate-400 shadow-2xs transition-colors"
             />
             <p className="text-[11px] text-slate-500 mt-1.5">
-              Your test attempts, score records, and chapter analytics will be tied to this roll number.
+              Attempts, analytics, and percentile ranks are mapped to this roll number.
             </p>
           </div>
 
@@ -142,14 +139,14 @@ export const CandidateModal: React.FC<CandidateModalProps> = ({
               type="button"
               onClick={onClose}
               disabled={saving}
-              className="px-4 py-2.5 text-xs font-semibold text-slate-600 hover:text-slate-900 rounded-xl border border-slate-300 hover:bg-slate-50 transition-colors cursor-pointer"
+              className="px-4 py-2 text-xs font-medium text-slate-600 hover:text-slate-900 rounded-lg border border-slate-300 hover:bg-slate-50 transition-colors cursor-pointer"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={saving}
-              className="bg-gradient-to-r from-blue-700 to-indigo-800 hover:from-blue-800 hover:to-indigo-900 disabled:opacity-50 text-white text-xs font-bold py-2.5 px-5 rounded-xl transition-all flex items-center gap-2 shadow-md cursor-pointer hover:shadow-lg"
+              className="bg-slate-900 hover:bg-slate-800 disabled:opacity-50 text-white text-xs font-semibold py-2 px-4 rounded-lg transition-colors flex items-center gap-1.5 cursor-pointer shadow-2xs"
             >
               {saving ? (
                 'Saving...'

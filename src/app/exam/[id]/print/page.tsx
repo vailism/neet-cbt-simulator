@@ -87,7 +87,7 @@ export default function ExamPrintBookletPage() {
       </div>
 
       {/* Main Printable Booklet Container */}
-      <div className="max-w-5xl mx-auto bg-white p-8 sm:p-12 rounded-2xl shadow-md border border-gray-200 print:shadow-none print:border-none print:p-0 print:max-w-none text-gray-900">
+      <div className="max-w-5xl mx-auto bg-white p-8 sm:p-12 rounded-xl shadow-sm border border-slate-200 print:shadow-none print:border-none print:p-0 print:max-w-none text-gray-900">
         {/* NTA PHYSICAL TEST BOOKLET COVER / HEADER */}
         <div className="border-4 border-double border-gray-900 p-6 text-center mb-8">
           <div className="text-[11px] font-black uppercase tracking-widest text-gray-600 mb-1">

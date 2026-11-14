@@ -15,7 +15,6 @@ import {
   ChevronRight,
   ChevronLeft,
   Printer,
-  Sparkles,
   Send,
   MessageSquare,
   Bot,
@@ -542,51 +541,48 @@ export default function ExamSolutionsReviewPage() {
                 {!aiTutorOpen ? (
                   <button
                     onClick={() => setAiTutorOpen(true)}
-                    className="flex items-center justify-between w-full p-3.5 bg-gradient-to-r from-indigo-50 via-purple-50 to-pink-50 border border-indigo-200 hover:border-indigo-400 rounded-xl transition text-left group shadow-xs cursor-pointer"
+                    className="flex items-center justify-between w-full p-3.5 bg-white border border-slate-200 hover:border-slate-300 rounded-lg transition text-left group shadow-2xs cursor-pointer"
                   >
                     <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-lg bg-indigo-600 text-white flex items-center justify-center shrink-0 shadow-sm">
-                        <Bot className="w-5 h-5" />
+                      <div className="w-8 h-8 rounded-md bg-slate-100 text-slate-700 flex items-center justify-center shrink-0 border border-slate-200">
+                        <Bot className="w-4 h-4" />
                       </div>
                       <div>
-                        <div className="text-xs font-bold text-indigo-950 flex items-center gap-1.5">
-                          Ask AI Tutor (Doubt Clarifier)
-                          <span className="bg-indigo-100 text-indigo-700 text-[10px] font-semibold px-2 py-0.5 rounded-full border border-indigo-200">
-                            Gemini NCERT 2.5
+                        <div className="text-xs font-bold text-slate-900 flex items-center gap-2">
+                          <span>NCERT Concept Explainer & Doubt Resolution</span>
+                          <span className="text-[10px] text-slate-500 font-mono bg-slate-100 border border-slate-200 px-1.5 py-0.2 rounded font-normal">
+                            AI Tutor
                           </span>
                         </div>
-                        <div className="text-[11px] text-indigo-700">
-                          Confused why an option was wrong, or fell into an examiner trap? Get instant conceptual clarification.
+                        <div className="text-[11px] text-slate-500">
+                          Need clarification on an incorrect option, derivation step, or conceptual rule?
                         </div>
                       </div>
                     </div>
-                    <span className="text-xs font-bold text-indigo-600 flex items-center gap-1 group-hover:translate-x-0.5 transition shrink-0">
-                      Open Tutor <Sparkles className="w-3.5 h-3.5" />
+                    <span className="text-xs font-semibold text-slate-600 group-hover:text-slate-900 transition shrink-0 flex items-center gap-1">
+                      Open Explainer <ChevronRight className="w-3.5 h-3.5" />
                     </span>
                   </button>
                 ) : (
-                  <div className="bg-gradient-to-br from-indigo-50/80 via-white to-purple-50/60 border border-indigo-200 rounded-xl p-4 sm:p-5 shadow-xs space-y-4">
-                    <div className="flex items-center justify-between border-b border-indigo-100 pb-3">
+                  <div className="bg-white border border-slate-300 rounded-lg p-4 space-y-3.5 shadow-2xs">
+                    <div className="flex items-center justify-between border-b border-slate-100 pb-2.5">
                       <div className="flex items-center gap-2">
-                        <div className="w-7 h-7 rounded-lg bg-indigo-600 text-white flex items-center justify-center shadow-xs">
-                          <Bot className="w-4 h-4" />
+                        <div className="w-6 h-6 rounded bg-slate-900 text-white flex items-center justify-center">
+                          <Bot className="w-3.5 h-3.5" />
                         </div>
                         <div>
-                          <h4 className="text-xs font-bold text-indigo-950 flex items-center gap-1.5">
-                            AI NCERT Doubt Clarifier
-                            <span className="text-[10px] bg-indigo-100 text-indigo-800 px-1.5 py-0.5 rounded font-mono font-medium">
-                              Gemini 2.5 Flash
+                          <h4 className="text-xs font-bold text-slate-900 flex items-center gap-1.5">
+                            NCERT Concept Explainer
+                            <span className="text-[10px] text-slate-500 font-mono font-normal">
+                              ({currentQ.chapter} • Q.{currentQ.questionOrder})
                             </span>
                           </h4>
-                          <p className="text-[11px] text-indigo-700">
-                            Context: {currentQ.chapter} • Question #{currentQ.questionOrder}
-                          </p>
                         </div>
                       </div>
                       <button
                         onClick={() => setAiTutorOpen(false)}
-                        className="text-gray-400 hover:text-gray-600 p-1 rounded-md hover:bg-gray-100 transition"
-                        title="Close AI Tutor"
+                        className="text-slate-400 hover:text-slate-700 p-1 rounded hover:bg-slate-100 transition"
+                        title="Close"
                       >
                         <X className="w-4 h-4" />
                       </button>
@@ -594,69 +590,67 @@ export default function ExamSolutionsReviewPage() {
 
                     {/* Quick Clarification Chips */}
                     <div className="space-y-1.5">
-                      <span className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider block">
-                        Quick Clarification Chips
+                      <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
+                        Direct Query Options:
                       </span>
-                      <div className="flex flex-wrap gap-2">
+                      <div className="flex flex-wrap gap-1.5">
                         {currentQ.selectedOption && currentQ.selectedOption !== currentQ.correctAnswer && (
                           <button
                             type="button"
                             disabled={aiTutorLoading}
                             onClick={() => handleAskAiTutor('why_selected_wrong')}
-                            className="text-xs font-medium bg-red-50 hover:bg-red-100 text-red-800 border border-red-200 rounded-lg px-2.5 py-1.5 transition flex items-center gap-1.5 disabled:opacity-50"
+                            className="text-xs font-medium bg-red-50 hover:bg-red-100 text-red-800 border border-red-200 rounded px-2.5 py-1 transition disabled:opacity-50"
                           >
-                            <span>⚠️</span> Why is Option {currentQ.selectedOption} Wrong?
+                            Why is Option {currentQ.selectedOption} incorrect?
                           </button>
                         )}
                         <button
                           type="button"
                           disabled={aiTutorLoading}
-                          onClick={() => handleAskAiTutor('custom', 'Provide a step-by-step first-principles NCERT breakdown of this question.')}
-                          className="text-xs font-medium bg-white hover:bg-indigo-50 text-indigo-900 border border-indigo-200 rounded-lg px-2.5 py-1.5 transition flex items-center gap-1.5 shadow-2xs disabled:opacity-50"
+                          onClick={() => handleAskAiTutor('custom', 'Provide a step-by-step first-principles NCERT derivation of this question.')}
+                          className="text-xs font-medium bg-slate-50 hover:bg-slate-100 text-slate-800 border border-slate-200 rounded px-2.5 py-1 transition disabled:opacity-50"
                         >
-                          <Lightbulb className="w-3.5 h-3.5 text-amber-500" /> Step-by-Step Logic
+                          Step-by-step derivation
                         </button>
                         <button
                           type="button"
                           disabled={aiTutorLoading}
                           onClick={() => handleAskAiTutor('trap_analysis')}
-                          className="text-xs font-medium bg-white hover:bg-amber-50 text-amber-900 border border-amber-200 rounded-lg px-2.5 py-1.5 transition flex items-center gap-1.5 shadow-2xs disabled:opacity-50"
+                          className="text-xs font-medium bg-slate-50 hover:bg-slate-100 text-slate-800 border border-slate-200 rounded px-2.5 py-1 transition disabled:opacity-50"
                         >
-                          <span>🎯</span> Examiner Trap Analysis
+                          Common traps & misconceptions
                         </button>
                         <button
                           type="button"
                           disabled={aiTutorLoading}
                           onClick={() => handleAskAiTutor('memory_hook')}
-                          className="text-xs font-medium bg-white hover:bg-purple-50 text-purple-900 border border-purple-200 rounded-lg px-2.5 py-1.5 transition flex items-center gap-1.5 shadow-2xs disabled:opacity-50"
+                          className="text-xs font-medium bg-slate-50 hover:bg-slate-100 text-slate-800 border border-slate-200 rounded px-2.5 py-1 transition disabled:opacity-50"
                         >
-                          <span>🧠</span> NCERT Memory Mnemonic
+                          Core NCERT formula & takeaway
                         </button>
                       </div>
                     </div>
 
                     {/* Custom Question / Doubt Input */}
                     <div className="flex gap-2">
-                      <div className="relative flex-1">
-                        <input
-                          type="text"
-                          value={customDoubt}
-                          onChange={(e) => setCustomDoubt(e.target.value)}
-                          onKeyDown={(e) => {
-                            if (e.key === 'Enter' && customDoubt.trim() && !aiTutorLoading) {
-                              handleAskAiTutor('custom', customDoubt);
-                            }
-                          }}
-                          placeholder="Type your specific doubt (e.g. 'Why did we use formula v^2=u^2+2as here?')..."
-                          className="w-full text-xs px-3 py-2 border border-indigo-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
-                          disabled={aiTutorLoading}
-                        />
-                      </div>
+                      <input
+                        type="text"
+                        value={customDoubt}
+                        onChange={(e) => setCustomDoubt(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' && customDoubt.trim() && !aiTutorLoading) {
+                            handleAskAiTutor('custom', customDoubt);
+                          }
+                        }}
+                        placeholder="Ask a specific conceptual question about this problem..."
+                        className="flex-1 text-xs px-3 py-1.5 border border-slate-300 rounded focus:outline-none focus:border-slate-800 bg-white"
+                        disabled={aiTutorLoading}
+                      />
                       <button
                         type="button"
                         disabled={aiTutorLoading || !customDoubt.trim()}
                         onClick={() => handleAskAiTutor('custom', customDoubt)}
-                        className="px-3 py-2 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white rounded-lg text-xs font-semibold flex items-center gap-1.5 transition shadow-xs"
+                        className="px-3 py-1.5 bg-slate-900 hover:bg-slate-800 disabled:opacity-40 text-white rounded text-xs font-semibold flex items-center gap-1.5 transition"
                       >
                         {aiTutorLoading ? (
                           <Loader2 className="w-3.5 h-3.5 animate-spin" />
@@ -669,24 +663,21 @@ export default function ExamSolutionsReviewPage() {
 
                     {/* AI Response Display */}
                     {aiTutorLoading && (
-                      <div className="flex items-center gap-3 p-4 bg-white/90 border border-indigo-100 rounded-lg text-xs text-indigo-900 shadow-2xs">
-                        <Loader2 className="w-5 h-5 text-indigo-600 animate-spin shrink-0" />
-                        <div>
-                          <div className="font-bold">Consulting NCERT & Analyzing Question Parameters...</div>
-                          <div className="text-[11px] text-gray-500">Drafting focused pedagogical clarification</div>
-                        </div>
+                      <div className="flex items-center gap-2.5 p-3 bg-slate-50 border border-slate-200 rounded text-xs text-slate-700">
+                        <Loader2 className="w-4 h-4 text-slate-600 animate-spin shrink-0" />
+                        <span>Analyzing question parameters and drafting explanation...</span>
                       </div>
                     )}
 
                     {aiTutorResponse && !aiTutorLoading && (
-                      <div className="p-4 bg-white border border-indigo-200 rounded-lg text-xs space-y-2 shadow-2xs">
-                        <div className="flex items-center justify-between pb-2 border-b border-gray-100">
-                          <span className="font-bold text-indigo-950 flex items-center gap-1 text-[11px]">
-                            <Sparkles className="w-3.5 h-3.5 text-indigo-600" /> AI Tutor Pedagogical Clarification:
+                      <div className="p-3.5 bg-slate-50 border border-slate-200 rounded text-xs space-y-2">
+                        <div className="flex items-center justify-between pb-1.5 border-b border-slate-200">
+                          <span className="font-bold text-slate-900 text-[11px]">
+                            Conceptual Explanation:
                           </span>
-                          <span className="text-[10px] text-gray-400 font-mono">Verified against NCERT</span>
+                          <span className="text-[10px] text-slate-500 font-mono">NCERT Verified</span>
                         </div>
-                        <div className="text-gray-800 leading-relaxed font-sans prose prose-xs max-w-none">
+                        <div className="text-slate-800 leading-relaxed font-sans max-w-none">
                           <MathRenderer text={aiTutorResponse} />
                         </div>
                       </div>

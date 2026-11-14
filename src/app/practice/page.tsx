@@ -9,7 +9,6 @@ import {
   Layers,
   ArrowRight,
   Filter,
-  Sparkles,
   Zap,
   HelpCircle,
   User,
@@ -109,49 +108,45 @@ export default function PracticeModePage() {
   };
 
   return (
-    <div className="flex-1 bg-slate-50/70 py-8 px-4 sm:px-6">
+    <div className="flex-1 bg-slate-50 py-8 px-4 sm:px-6">
       <div className="max-w-4xl mx-auto space-y-6">
         {/* Header Hero Banner */}
-        <div className="relative overflow-hidden bg-gradient-to-r from-emerald-900 via-teal-900 to-slate-950 text-white rounded-3xl p-6 sm:p-8 shadow-elevated border border-emerald-800/40">
-          <div className="absolute top-0 right-0 w-72 h-72 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
-
-          <div className="relative z-10 flex flex-wrap items-center justify-between gap-4">
+        <div className="bg-slate-900 text-white rounded-xl p-6 sm:p-7 border border-slate-800 shadow-xs">
+          <div className="flex flex-wrap items-center justify-between gap-4">
             <div className="max-w-xl">
-              <div className="inline-flex items-center gap-1.5 bg-emerald-800/60 border border-emerald-400/30 px-3.5 py-1 rounded-full text-xs font-semibold mb-3 backdrop-blur-md">
-                <Sparkles className="w-3.5 h-3.5 text-amber-300" />
-                <span>Vailism CBT Exam Center • NCERT Chapter Practice (2015–2026)</span>
+              <div className="inline-flex items-center gap-1.5 text-slate-400 text-xs font-semibold tracking-wide uppercase mb-2">
+                <span>Vailism CBT Exam Center • Chapter Practice</span>
               </div>
-              <h1 className="text-2xl sm:text-4xl font-black text-white tracking-tight mb-2">
-                Vailism CBT Practice Lab
+              <h1 className="text-2xl sm:text-3xl font-bold text-white tracking-tight mb-2">
+                Custom NCERT Practice Lab
               </h1>
-              <p className="text-emerald-100 text-xs sm:text-sm leading-relaxed">
-                Configure custom question sets by subject, specific NCERT chapter, volume, and pacing.
-                Instant step-by-step KaTeX solutions available for every single question.
+              <p className="text-slate-300 text-xs sm:text-sm leading-relaxed">
+                Configure custom practice question sets by subject, specific NCERT chapter, question count, and timer mode. Includes step-by-step mathematical solutions.
               </p>
             </div>
 
             <button
               type="button"
               onClick={() => setIsModalOpen(true)}
-              className="flex items-center gap-2.5 bg-emerald-950/70 hover:bg-emerald-950 border border-emerald-400/40 px-3.5 py-2 rounded-xl text-xs text-left transition-colors cursor-pointer group shadow-xs"
+              className="flex items-center gap-2.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 px-3.5 py-2 rounded text-xs text-left transition-colors cursor-pointer group shadow-xs"
               title="Click to rename candidate"
             >
-              <div className="w-8 h-8 rounded-lg bg-emerald-600 flex items-center justify-center text-white font-bold text-xs">
+              <div className="w-8 h-8 rounded bg-slate-700 flex items-center justify-center text-white font-bold text-xs">
                 {candidate.name ? candidate.name.charAt(0) : 'S'}
               </div>
               <div>
                 <div className="font-bold flex items-center gap-1 text-white text-xs">
                   <span>{candidate.name}</span>
-                  <Edit2 className="w-2.5 h-2.5 text-emerald-300 opacity-70 group-hover:opacity-100" />
+                  <Edit2 className="w-2.5 h-2.5 text-slate-400 opacity-70 group-hover:opacity-100" />
                 </div>
-                <div className="text-[10px] text-emerald-200 font-mono">{candidate.rollNumber}</div>
+                <div className="text-[10px] text-slate-400 font-mono">{candidate.rollNumber}</div>
               </div>
             </button>
           </div>
         </div>
 
         {/* Configuration Card */}
-        <div className="bg-white rounded-3xl border border-slate-200 shadow-card p-6 sm:p-8 space-y-7">
+        <div className="bg-white rounded-xl border border-slate-200 shadow-card p-6 sm:p-8 space-y-7">
           {error && (
             <div className="bg-red-50 border border-red-200 text-red-700 text-xs p-4 rounded-xl flex items-center gap-2">
               <span className="font-semibold">{error}</span>
@@ -178,7 +173,7 @@ export default function PracticeModePage() {
                     setSelectedSubject(s.code);
                     setSelectedChapter('');
                   }}
-                  className={`p-3.5 rounded-2xl border text-left transition-all cursor-pointer ${
+                  className={`p-3 rounded-lg border text-left transition-colors cursor-pointer ${
                     selectedSubject === s.code
                       ? 'border-emerald-600 bg-emerald-50/80 text-emerald-950 ring-2 ring-emerald-600 font-bold shadow-xs'
                       : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-50'
@@ -279,7 +274,7 @@ export default function PracticeModePage() {
 
           {/* 5. Mode Toggles */}
           <div className="pt-2 border-t border-slate-100 grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <label className="flex items-start gap-3 p-3.5 rounded-2xl border border-slate-200 hover:bg-slate-50 cursor-pointer transition-colors">
+            <label className="flex items-start gap-3 p-3.5 rounded-xl border border-slate-200 hover:bg-slate-50 cursor-pointer transition-colors">
               <input
                 type="checkbox"
                 checked={isTimed}
@@ -288,7 +283,7 @@ export default function PracticeModePage() {
               />
               <div className="text-xs">
                 <div className="font-bold text-slate-800 flex items-center gap-1.5">
-                  <Clock className="w-3.5 h-3.5 text-emerald-600" />
+                  <Clock className="w-3.5 h-3.5 text-slate-700" />
                   <span>Timed Session ({Math.round(questionCount * 1.5)} Minutes)</span>
                 </div>
                 <div className="text-slate-500 text-[11px] mt-0.5">
@@ -297,7 +292,7 @@ export default function PracticeModePage() {
               </div>
             </label>
 
-            <label className="flex items-start gap-3 p-3.5 rounded-2xl border border-slate-200 hover:bg-slate-50 cursor-pointer transition-colors">
+            <label className="flex items-start gap-3 p-3.5 rounded-xl border border-slate-200 hover:bg-slate-50 cursor-pointer transition-colors">
               <input
                 type="checkbox"
                 checked={instantFeedback}
@@ -306,7 +301,7 @@ export default function PracticeModePage() {
               />
               <div className="text-xs">
                 <div className="font-bold text-slate-800 flex items-center gap-1.5">
-                  <Zap className="w-3.5 h-3.5 text-amber-500" />
+                  <Zap className="w-3.5 h-3.5 text-slate-700" />
                   <span>Instant Detailed Solutions</span>
                 </div>
                 <div className="text-slate-500 text-[11px] mt-0.5">
@@ -321,7 +316,7 @@ export default function PracticeModePage() {
             <button
               onClick={() => setIsModalOpen(true)}
               disabled={loading}
-              className="w-full bg-gradient-to-r from-emerald-600 to-teal-700 hover:from-emerald-500 hover:to-teal-600 text-white font-bold py-3.5 px-4 rounded-2xl shadow-md transition-all flex items-center justify-center gap-2 text-sm cursor-pointer hover:shadow-lg hover:-translate-y-0.5"
+              className="w-full bg-blue-600 hover:bg-blue-500 text-white font-semibold py-2.5 px-4 rounded shadow-xs transition flex items-center justify-center gap-2 text-sm cursor-pointer disabled:opacity-50"
             >
               {loading ? (
                 'Preparing Practice Questions...'

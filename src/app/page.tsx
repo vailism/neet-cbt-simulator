@@ -7,7 +7,6 @@ import {
   Clock,
   Award,
   BookOpen,
-  Sparkles,
   User,
   ShieldCheck,
   ArrowRight,
@@ -145,92 +144,68 @@ export default function HomePage() {
 
   return (
     <div className="flex-1 bg-slate-50/70 pb-20">
-      {/* 1. HERO SECTION - Ultra-Modern NTA Exam Command Header */}
-      <section className="relative overflow-hidden bg-gradient-to-b from-slate-950 via-blue-950 to-indigo-950 text-white pt-12 pb-24 px-4 sm:px-6 grain">
-        {/* Ambient Decorative Lighting */}
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-6xl h-80 bg-blue-500/10 blur-[100px] pointer-events-none rounded-full" />
-        <div className="absolute top-20 right-10 w-72 h-72 bg-indigo-500/10 blur-[80px] pointer-events-none rounded-full" />
-        <div className="absolute top-32 left-10 w-72 h-72 bg-amber-500/10 blur-[90px] pointer-events-none rounded-full" />
-
+      {/* 1. HERO SECTION - Institutional Exam Command Header */}
+      <section className="relative overflow-hidden bg-slate-950 text-white pt-12 pb-20 px-4 sm:px-6 border-b border-slate-800">
         {/* Subtle grid pattern overlay */}
         <div
-          className="absolute inset-0 opacity-[0.04] pointer-events-none"
+          className="absolute inset-0 opacity-[0.03] pointer-events-none"
           style={{
             backgroundImage:
               'linear-gradient(to right, #ffffff 1px, transparent 1px), linear-gradient(to bottom, #ffffff 1px, transparent 1px)',
-            backgroundSize: '40px 40px',
+            backgroundSize: '32px 32px',
           }}
         />
 
-        <div className="relative max-w-6xl mx-auto text-center space-y-6">
+        <div className="relative max-w-5xl mx-auto text-center space-y-5">
           {/* Official Agency Badge Pill */}
-          <div className="inline-flex items-center gap-2 bg-gradient-to-r from-blue-900/60 to-indigo-900/60 border border-blue-400/30 text-blue-200 text-xs px-4 py-1.5 rounded-full shadow-lg backdrop-blur-md">
-            <span className="flex h-2 w-2 relative">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+          <div className="inline-flex items-center gap-2 bg-slate-800/90 border border-slate-700 text-slate-300 text-xs px-3.5 py-1 rounded-full">
+            <span className="w-2 h-2 rounded-full bg-emerald-500" />
+            <span className="font-semibold tracking-wide text-[11px] text-slate-200">
+              Vailism CBT Exam Center
             </span>
-            <span className="font-semibold tracking-wide uppercase text-[11px] text-slate-200">
-              Vailism CBT Exam Center • National Standard Environment
-            </span>
-            <span className="text-blue-400">|</span>
-            <span className="text-amber-300 font-bold text-[11px]">NEET (UG) 2015–2026 Pattern</span>
+            <span className="text-slate-600">•</span>
+            <span className="text-slate-300 font-mono text-[11px]">NEET (UG) 2015–2026 Curriculum Standard</span>
           </div>
 
           {/* Main Hero Headline */}
-          <div className="space-y-3 max-w-4xl mx-auto">
-            <h1 className="text-3xl sm:text-5xl lg:text-6xl font-black tracking-tight text-balance leading-tight sm:leading-none">
-              Master NEET UG at{' '}
-              <span className="bg-gradient-to-r from-blue-200 via-sky-300 to-amber-200 bg-clip-text text-transparent">
-                Vailism CBT Exam Center
-              </span>
+          <div className="space-y-3 max-w-3xl mx-auto">
+            <h1 className="text-3xl sm:text-5xl font-extrabold tracking-tight text-white leading-tight">
+              Standard Computer-Based Examination Center
             </h1>
             <p className="text-slate-300 max-w-2xl mx-auto text-sm sm:text-base leading-relaxed font-normal">
-              Zero distractions. 100 authentic full-length mock examinations strictly calibrated to the 2015–2026 NEET pattern — featuring Assertion-Reason, Statement I & II, Match the Following, official 180-minute countdown, and +4/-1 scoring engine.
+              100 full-length mock examinations strictly calibrated to the NEET (UG) pattern. Real-time 180-minute countdown, authentic NTA question palette (+4/-1), and zero question repetition.
             </p>
           </div>
 
           {/* Live Countdown to NEET Examination */}
           {isMounted && (
-            <div className="pt-1 pb-1">
-              <div className="inline-flex flex-wrap items-center justify-center gap-2 sm:gap-3 bg-slate-900/80 border border-blue-400/30 px-5 py-3 rounded-2xl backdrop-blur-md shadow-xl text-center">
-                <div className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mr-1 hidden sm:block">
-                  NEET UG Official Countdown:
-                </div>
-                <div className="flex items-center gap-1.5 sm:gap-2 font-mono">
-                  <div className="bg-blue-950/90 border border-blue-400/30 px-3 py-1.5 rounded-xl min-w-[54px]">
-                    <div className="text-base sm:text-xl font-black text-amber-300">{countdown.days}</div>
-                    <div className="text-[9px] text-slate-400 uppercase font-sans">Days</div>
-                  </div>
-                  <span className="text-blue-400 font-bold">:</span>
-                  <div className="bg-blue-950/90 border border-blue-400/30 px-3 py-1.5 rounded-xl min-w-[46px]">
-                    <div className="text-base sm:text-xl font-black text-white">{String(countdown.hours).padStart(2, '0')}</div>
-                    <div className="text-[9px] text-slate-400 uppercase font-sans">Hours</div>
-                  </div>
-                  <span className="text-blue-400 font-bold">:</span>
-                  <div className="bg-blue-950/90 border border-blue-400/30 px-3 py-1.5 rounded-xl min-w-[46px]">
-                    <div className="text-base sm:text-xl font-black text-white">{String(countdown.minutes).padStart(2, '0')}</div>
-                    <div className="text-[9px] text-slate-400 uppercase font-sans">Mins</div>
-                  </div>
-                  <span className="text-blue-400 font-bold">:</span>
-                  <div className="bg-blue-950/90 border border-blue-400/30 px-3 py-1.5 rounded-xl min-w-[46px]">
-                    <div className="text-base sm:text-xl font-black text-emerald-400">{String(countdown.seconds).padStart(2, '0')}</div>
-                    <div className="text-[9px] text-slate-400 uppercase font-sans">Secs</div>
-                  </div>
+            <div className="pt-1">
+              <div className="inline-flex flex-wrap items-center justify-center gap-3 bg-slate-900/90 border border-slate-700/80 px-4 py-2 rounded-lg text-center font-mono">
+                <span className="text-xs font-semibold text-slate-400 font-sans">
+                  NEET UG Target:
+                </span>
+                <div className="flex items-center gap-2 text-white text-sm font-bold">
+                  <span>{countdown.days}d</span>
+                  <span className="text-slate-500">:</span>
+                  <span>{String(countdown.hours).padStart(2, '0')}h</span>
+                  <span className="text-slate-500">:</span>
+                  <span>{String(countdown.minutes).padStart(2, '0')}m</span>
+                  <span className="text-slate-500">:</span>
+                  <span className="text-emerald-400">{String(countdown.seconds).padStart(2, '0')}s</span>
                 </div>
               </div>
             </div>
           )}
 
           {/* Primary Action Buttons */}
-          <div className="flex flex-wrap items-center justify-center gap-3.5 pt-2">
+          <div className="flex flex-wrap items-center justify-center gap-2.5 pt-2">
             <button
               type="button"
               onClick={handleLaunchInstantMock}
-              className="group relative inline-flex items-center gap-2.5 bg-gradient-to-r from-blue-600 via-blue-500 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold text-sm px-6 py-3.5 rounded-xl shadow-xl shadow-blue-900/40 hover:shadow-blue-600/30 transition-all duration-200 hover:-translate-y-0.5 cursor-pointer"
+              className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-500 text-white font-semibold text-sm px-5 py-2.5 rounded transition cursor-pointer shadow-xs"
             >
-              <Zap className="w-4 h-4 text-amber-300 group-hover:scale-110 transition-transform" />
               <span>Start Full Mock CBT Exam</span>
-              <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+              <ArrowRight className="w-4 h-4" />
             </button>
 
             {mistakeCount > 0 ? (
@@ -238,72 +213,49 @@ export default function HomePage() {
                 type="button"
                 onClick={handleLaunchMistakeDrill}
                 disabled={drillLoading}
-                className="inline-flex items-center gap-2 bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-sm px-5 py-3.5 rounded-xl shadow-lg transition-all duration-200 hover:-translate-y-0.5 cursor-pointer"
+                className="inline-flex items-center gap-2 bg-slate-800 hover:bg-slate-700 text-white font-semibold text-sm px-4 py-2.5 rounded border border-slate-700 transition cursor-pointer disabled:opacity-50"
               >
-                <Target className="w-4 h-4 text-red-700" />
                 <span>
-                  {drillLoading ? 'Preparing Drill...' : `Mistake Drill (${mistakeCount} Qs)`}
+                  {drillLoading ? 'Preparing...' : `Retest Mistakes (${mistakeCount} Qs)`}
                 </span>
               </button>
             ) : (
               <Link
                 href="/papers"
-                className="inline-flex items-center gap-2 bg-white/10 hover:bg-white/15 text-white font-semibold text-sm px-5 py-3.5 rounded-xl border border-white/20 backdrop-blur-md transition-all duration-200 hover:-translate-y-0.5"
+                className="inline-flex items-center gap-2 bg-slate-800 hover:bg-slate-700 text-slate-200 font-medium text-sm px-4 py-2.5 rounded border border-slate-700 transition"
               >
-                <BookOpen className="w-4 h-4 text-blue-300" />
-                <span>Browse 100 Mock Papers</span>
+                <span>Browse 100 Papers</span>
               </Link>
             )}
 
             <Link
               href="/dashboard"
-              className="inline-flex items-center gap-2 bg-slate-900/80 hover:bg-slate-900 text-slate-200 font-semibold text-sm px-4 py-3.5 rounded-xl border border-slate-700/80 transition-all duration-200"
+              className="inline-flex items-center gap-2 bg-slate-800/80 hover:bg-slate-800 text-slate-300 font-medium text-sm px-4 py-2.5 rounded border border-slate-700/80 transition"
             >
-              <BarChart3 className="w-4 h-4 text-purple-400" />
-              <span>Student Analytics</span>
+              <span>Candidate Analytics</span>
             </Link>
           </div>
 
           {/* 4 Core Examination Pillars HUD */}
-          <div className="pt-6 grid grid-cols-2 md:grid-cols-4 gap-3 max-w-4xl mx-auto text-left">
-            <div className="bg-slate-900/60 backdrop-blur-md border border-slate-700/50 p-3.5 rounded-xl flex items-center gap-3">
-              <div className="w-9 h-9 rounded-lg bg-blue-600/20 border border-blue-400/30 flex items-center justify-center text-blue-400 shrink-0">
-                <Clock className="w-4 h-4" />
-              </div>
-              <div>
-                <div className="text-[11px] text-slate-400 font-medium">Standard Duration</div>
-                <div className="text-sm font-bold text-white font-mono">180 Mins (3 Hrs)</div>
-              </div>
+          <div className="pt-6 grid grid-cols-2 md:grid-cols-4 gap-2.5 max-w-4xl mx-auto text-left">
+            <div className="bg-slate-900/80 border border-slate-800 p-3 rounded-lg">
+              <div className="text-[11px] text-slate-400 font-medium">Standard Duration</div>
+              <div className="text-sm font-bold text-white font-mono mt-0.5">180 Mins (3 Hrs)</div>
             </div>
 
-            <div className="bg-slate-900/60 backdrop-blur-md border border-slate-700/50 p-3.5 rounded-xl flex items-center gap-3">
-              <div className="w-9 h-9 rounded-lg bg-emerald-600/20 border border-emerald-400/30 flex items-center justify-center text-emerald-400 shrink-0">
-                <BookOpen className="w-4 h-4" />
-              </div>
-              <div>
-                <div className="text-[11px] text-slate-400 font-medium">Questions Blueprint</div>
-                <div className="text-sm font-bold text-white font-mono">180 Questions</div>
-              </div>
+            <div className="bg-slate-900/80 border border-slate-800 p-3 rounded-lg">
+              <div className="text-[11px] text-slate-400 font-medium">Questions Blueprint</div>
+              <div className="text-sm font-bold text-white font-mono mt-0.5">180 Questions</div>
             </div>
 
-            <div className="bg-slate-900/60 backdrop-blur-md border border-slate-700/50 p-3.5 rounded-xl flex items-center gap-3">
-              <div className="w-9 h-9 rounded-lg bg-amber-600/20 border border-amber-400/30 flex items-center justify-center text-amber-400 shrink-0">
-                <Award className="w-4 h-4" />
-              </div>
-              <div>
-                <div className="text-[11px] text-slate-400 font-medium">Marking Engine</div>
-                <div className="text-sm font-bold text-white font-mono">+4, -1, 0 Scheme</div>
-              </div>
+            <div className="bg-slate-900/80 border border-slate-800 p-3 rounded-lg">
+              <div className="text-[11px] text-slate-400 font-medium">Marking Engine</div>
+              <div className="text-sm font-bold text-white font-mono mt-0.5">+4, -1, 0 Scheme</div>
             </div>
 
-            <div className="bg-slate-900/60 backdrop-blur-md border border-slate-700/50 p-3.5 rounded-xl flex items-center gap-3">
-              <div className="w-9 h-9 rounded-lg bg-purple-600/20 border border-purple-400/30 flex items-center justify-center text-purple-400 shrink-0">
-                <Layers className="w-4 h-4" />
-              </div>
-              <div>
-                <div className="text-[11px] text-slate-400 font-medium">Mock Papers Library</div>
-                <div className="text-sm font-bold text-white font-mono">100 Full Mocks</div>
-              </div>
+            <div className="bg-slate-900/80 border border-slate-800 p-3 rounded-lg">
+              <div className="text-[11px] text-slate-400 font-medium">Mock Papers Library</div>
+              <div className="text-sm font-bold text-white font-mono mt-0.5">100 Full Mocks</div>
             </div>
           </div>
         </div>
@@ -311,29 +263,21 @@ export default function HomePage() {
 
       {/* 2. COMMAND CENTER - Candidate Profile & Feature Action Matrix */}
       <div className="max-w-6xl mx-auto px-4 sm:px-6 -mt-12 relative z-10">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
           {/* Active Candidate Command Card */}
-          <div className="lg:col-span-5 bg-white rounded-2xl shadow-elevated border border-slate-200/90 p-6 flex flex-col justify-between relative overflow-hidden">
-            {/* Top accent line */}
-            <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700" />
-
+          <div className="lg:col-span-5 bg-white rounded-xl border border-slate-200 p-5 sm:p-6 flex flex-col justify-between shadow-xs">
             <div>
               {/* Profile Header */}
-              <div className="flex items-center justify-between pb-4 border-b border-slate-100 mb-5">
-                <div className="flex items-center gap-3.5">
-                  <div className="relative">
-                    <div className="w-13 h-13 rounded-2xl bg-gradient-to-br from-blue-700 to-indigo-900 text-white font-black text-xl flex items-center justify-center shadow-md">
-                      {candidate.name ? candidate.name.charAt(0) : 'S'}
-                    </div>
-                    <span className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-emerald-500 border-2 border-white flex items-center justify-center text-[8px] text-white font-bold" title="Candidate Active">
-                      ✓
-                    </span>
+              <div className="flex items-center justify-between pb-3.5 border-b border-slate-100 mb-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-11 h-11 rounded-lg bg-slate-900 text-white font-bold text-lg flex items-center justify-center">
+                    {candidate.name ? candidate.name.charAt(0) : 'S'}
                   </div>
                   <div>
-                    <div className="text-[10px] font-bold uppercase tracking-wider text-blue-700 flex items-center gap-1">
-                      <span>Active Candidate Profile</span>
+                    <div className="text-[10px] font-semibold uppercase tracking-wider text-slate-500">
+                      Active Candidate Profile
                     </div>
-                    <h2 className="text-lg font-black text-slate-900 leading-snug">{candidate.name}</h2>
+                    <h2 className="text-base font-bold text-slate-900 leading-snug">{candidate.name}</h2>
                     <p className="text-xs text-slate-500 font-mono">Roll: {candidate.rollNumber}</p>
                   </div>
                 </div>
@@ -341,9 +285,9 @@ export default function HomePage() {
                 <button
                   type="button"
                   onClick={() => setIsEditing(!isEditing)}
-                  className="text-xs text-blue-700 hover:text-blue-900 font-bold flex items-center gap-1.5 bg-blue-50/80 hover:bg-blue-100 border border-blue-200 px-3 py-1.5 rounded-lg transition-colors cursor-pointer"
+                  className="text-xs text-slate-700 hover:text-slate-900 font-medium flex items-center gap-1.5 bg-white hover:bg-slate-50 border border-slate-300 px-2.5 py-1 rounded transition-colors cursor-pointer"
                 >
-                  <Edit3 className="w-3.5 h-3.5" />
+                  <Edit3 className="w-3 h-3 text-slate-500" />
                   <span>{isEditing ? 'Cancel' : 'Rename'}</span>
                 </button>
               </div>
@@ -352,15 +296,14 @@ export default function HomePage() {
               {isEditing ? (
                 <form
                   onSubmit={handleInlineSave}
-                  className="bg-blue-50/70 border border-blue-200 rounded-xl p-4 mb-5 space-y-3.5 animate-in fade-in"
+                  className="bg-slate-50 border border-slate-200 rounded-lg p-3.5 mb-4 space-y-3"
                 >
-                  <div className="text-xs font-bold text-blue-950 flex items-center gap-1.5">
-                    <Edit3 className="w-3.5 h-3.5 text-blue-700" />
-                    <span>Change Candidate Name & Roll Number</span>
+                  <div className="text-xs font-semibold text-slate-800">
+                    Edit Candidate Profile
                   </div>
 
                   <div>
-                    <label className="block text-[11px] font-bold text-slate-700 mb-1 uppercase tracking-wide">
+                    <label className="block text-[11px] font-medium text-slate-600 mb-1">
                       Student Full Name:
                     </label>
                     <input
@@ -369,12 +312,12 @@ export default function HomePage() {
                       value={editName}
                       onChange={(e) => setEditName(e.target.value)}
                       placeholder="e.g. PRIYA SHARMA"
-                      className="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg bg-white font-semibold uppercase text-slate-900 focus:ring-2 focus:ring-blue-600 focus:outline-none"
+                      className="w-full px-2.5 py-1.5 text-xs border border-slate-300 rounded bg-white font-semibold uppercase text-slate-900 focus:outline-none focus:border-slate-800"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-[11px] font-bold text-slate-700 mb-1 uppercase tracking-wide">
+                    <label className="block text-[11px] font-medium text-slate-600 mb-1">
                       Roll Number / Candidate ID:
                     </label>
                     <input
@@ -383,7 +326,7 @@ export default function HomePage() {
                       value={editRoll}
                       onChange={(e) => setEditRoll(e.target.value)}
                       placeholder="e.g. 240410012345"
-                      className="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg bg-white font-mono text-slate-900 focus:ring-2 focus:ring-blue-600 focus:outline-none"
+                      className="w-full px-2.5 py-1.5 text-xs border border-slate-300 rounded bg-white font-mono text-slate-900 focus:outline-none focus:border-slate-800"
                     />
                   </div>
 
@@ -391,21 +334,21 @@ export default function HomePage() {
                     <button
                       type="button"
                       onClick={() => setIsEditing(false)}
-                      className="px-3 py-1.5 text-xs text-slate-600 hover:text-slate-900 font-medium"
+                      className="px-2.5 py-1 text-xs text-slate-600 hover:text-slate-900 font-medium"
                     >
                       Cancel
                     </button>
                     <button
                       type="submit"
                       disabled={saving}
-                      className="bg-blue-700 hover:bg-blue-800 disabled:opacity-50 text-white font-bold px-4 py-1.5 rounded-lg text-xs transition-colors shadow-xs"
+                      className="bg-slate-900 hover:bg-slate-800 disabled:opacity-50 text-white font-semibold px-3 py-1 rounded text-xs transition"
                     >
                       {saving ? 'Saving...' : 'Save Profile'}
                     </button>
                   </div>
                 </form>
               ) : (
-                <div className="bg-slate-50/90 border border-slate-200/80 rounded-xl p-4 text-xs space-y-2.5 mb-5 font-medium text-slate-700">
+                <div className="bg-slate-50 border border-slate-200 rounded-lg p-3.5 text-xs space-y-2 mb-4 font-medium text-slate-700">
                   <div className="flex justify-between items-center">
                     <span className="text-slate-500">Student Name:</span>
                     <span className="font-bold text-slate-900 uppercase">{candidate.name}</span>
@@ -415,45 +358,44 @@ export default function HomePage() {
                     <span className="font-mono font-bold text-slate-900">{candidate.rollNumber}</span>
                   </div>
                   <div className="flex justify-between items-center">
-                    <span className="text-slate-500">Target Examination:</span>
-                    <span className="font-bold text-blue-900">NEET (UG) 2015–2026 Pattern</span>
+                    <span className="text-slate-500">Examination Format:</span>
+                    <span className="font-semibold text-slate-900">NEET (UG) 2015–2026</span>
                   </div>
                   <div className="flex justify-between items-center">
-                    <span className="text-slate-500">Full Mock Papers:</span>
-                    <span className="font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
-                      100 Full Mocks Ready
+                    <span className="text-slate-500">Paper Inventory:</span>
+                    <span className="font-semibold text-slate-800 bg-white px-2 py-0.5 rounded border border-slate-200">
+                      100 Full Mocks
                     </span>
                   </div>
                 </div>
               )}
 
               {saveSuccess && (
-                <div className="p-2.5 mb-4 bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs rounded-lg flex items-center gap-2 font-medium animate-in fade-in">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-                  <span>Candidate profile updated successfully!</span>
+                <div className="p-2.5 mb-3 bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs rounded flex items-center gap-2 font-medium">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                  <span>Profile updated successfully.</span>
                 </div>
               )}
 
-              <p className="text-xs text-slate-500 leading-relaxed mb-4">
+              <p className="text-xs text-slate-500 leading-relaxed mb-3">
                 Single-student private environment. The platform automatically tracks your test scores,
                 time-traps, and chapter mastery under this candidate profile.
               </p>
             </div>
 
             {/* Candidate Quick Action Stack */}
-            <div className="space-y-2.5 pt-3 border-t border-slate-100">
+            <div className="space-y-2 pt-3 border-t border-slate-100">
               {mistakeCount > 0 && (
                 <button
                   type="button"
                   onClick={handleLaunchMistakeDrill}
                   disabled={drillLoading}
-                  className="w-full bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 text-slate-950 font-black py-2.5 px-4 rounded-xl shadow-xs transition-all flex items-center justify-center gap-2 text-xs cursor-pointer"
+                  className="w-full bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-300 font-semibold py-2 px-3 rounded transition flex items-center justify-center gap-2 text-xs cursor-pointer disabled:opacity-50"
                 >
-                  <Target className="w-4 h-4 text-red-700" />
                   <span>
                     {drillLoading
                       ? 'Loading Drill...'
-                      : `🎯 Launch Mistake Drill (${mistakeCount} Questions)`}
+                      : `Retest Mistakes (${mistakeCount} Questions)`}
                   </span>
                 </button>
               )}
@@ -461,18 +403,18 @@ export default function HomePage() {
               <button
                 type="button"
                 onClick={handleLaunchInstantMock}
-                className="w-full bg-gradient-to-r from-blue-700 to-indigo-800 hover:from-blue-800 hover:to-indigo-900 text-white font-bold py-2.5 px-4 rounded-xl shadow-md transition-all flex items-center justify-center gap-2 text-xs cursor-pointer group"
+                className="w-full bg-slate-900 hover:bg-slate-800 text-white font-semibold py-2 px-3 rounded shadow-xs transition flex items-center justify-center gap-2 text-xs cursor-pointer group"
               >
-                <span>Confirm Name & Read Instructions</span>
-                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                <span>Confirm Candidate & Start Examination</span>
+                <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
               </button>
 
               <Link
                 href="/dashboard"
-                className="w-full bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold py-2.5 px-4 rounded-xl border border-slate-300 transition-colors flex items-center justify-center gap-2 text-xs"
+                className="w-full bg-white hover:bg-slate-50 text-slate-700 font-medium py-2 px-3 rounded border border-slate-300 transition flex items-center justify-center gap-2 text-xs"
               >
-                <BarChart3 className="w-3.5 h-3.5 text-blue-700" />
-                <span>Open Student Analytics & Heatmap</span>
+                <BarChart3 className="w-3.5 h-3.5 text-slate-500" />
+                <span>Open Candidate Dashboard</span>
               </Link>
             </div>
           </div>
@@ -480,47 +422,47 @@ export default function HomePage() {
           {/* Quick Action Modes - 4 Feature Cards */}
           <div className="lg:col-span-7 grid grid-cols-1 sm:grid-cols-2 gap-4">
             {/* 100 Mock Papers Card */}
-            <div className="bg-white rounded-2xl shadow-card border border-slate-200 p-5 flex flex-col justify-between hover:shadow-elevated transition-all border-l-4 border-l-blue-600 group">
+            <div className="bg-white rounded-xl border border-slate-200 p-5 flex flex-col justify-between hover:border-slate-300 transition-colors shadow-xs group">
               <div>
                 <div className="flex items-center justify-between mb-3">
-                  <span className="bg-blue-100 text-blue-900 text-[10px] font-black px-2.5 py-0.5 rounded-full uppercase tracking-wider">
-                    Official 100 Papers
+                  <span className="bg-slate-100 text-slate-800 text-[10px] font-semibold px-2 py-0.5 rounded uppercase tracking-wider">
+                    Full Mocks
                   </span>
-                  <div className="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center text-blue-700 group-hover:bg-blue-600 group-hover:text-white transition-colors">
-                    <Clock className="w-4 h-4" />
+                  <div className="w-7 h-7 rounded bg-slate-100 flex items-center justify-center text-slate-600">
+                    <Clock className="w-3.5 h-3.5" />
                   </div>
                 </div>
 
-                <h3 className="font-extrabold text-slate-900 text-base mb-1.5 group-hover:text-blue-700 transition-colors">
+                <h3 className="font-bold text-slate-900 text-sm mb-1 group-hover:text-blue-900 transition-colors">
                   100 Full-Length Mocks
                 </h3>
-                <p className="text-xs text-slate-600 mb-3.5 leading-relaxed">
-                  Authentic 180-question mock exams adhering strictly to NTA difficulty ratio (54 Easy, 90 Moderate, 36 Difficult) with zero question repetition.
+                <p className="text-xs text-slate-500 mb-3 leading-relaxed">
+                  Authentic 180-question mock exams adhering strictly to NTA difficulty ratio (54 Easy, 90 Moderate, 36 Difficult) with zero repetition.
                 </p>
 
-                <div className="text-[11px] text-slate-600 space-y-1 mb-4 font-mono bg-slate-50 p-2.5 rounded-lg border border-slate-200">
+                <div className="text-[11px] text-slate-600 space-y-1 mb-4 font-mono bg-slate-50 p-2.5 rounded border border-slate-200">
                   <div className="flex justify-between">
-                    <span>• Physics (45 Qs)</span>
-                    <span className="font-bold text-slate-900">180 M</span>
+                    <span>Physics (45 Qs)</span>
+                    <span className="font-semibold text-slate-800">180 M</span>
                   </div>
                   <div className="flex justify-between">
-                    <span>• Chemistry (45 Qs)</span>
-                    <span className="font-bold text-slate-900">180 M</span>
+                    <span>Chemistry (45 Qs)</span>
+                    <span className="font-semibold text-slate-800">180 M</span>
                   </div>
                   <div className="flex justify-between">
-                    <span>• Botany (45 Qs)</span>
-                    <span className="font-bold text-slate-900">180 M</span>
+                    <span>Botany (45 Qs)</span>
+                    <span className="font-semibold text-slate-800">180 M</span>
                   </div>
                   <div className="flex justify-between">
-                    <span>• Zoology (45 Qs)</span>
-                    <span className="font-bold text-slate-900">180 M</span>
+                    <span>Zoology (45 Qs)</span>
+                    <span className="font-semibold text-slate-800">180 M</span>
                   </div>
                 </div>
               </div>
 
               <Link
                 href="/papers"
-                className="w-full bg-blue-700 hover:bg-blue-800 text-white text-xs font-bold py-2.5 rounded-xl transition-all flex items-center justify-center gap-1.5 shadow-xs"
+                className="w-full bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold py-2 rounded transition flex items-center justify-center gap-1.5"
               >
                 <span>Browse All 100 Papers</span>
                 <ArrowRight className="w-3.5 h-3.5" />
@@ -528,39 +470,39 @@ export default function HomePage() {
             </div>
 
             {/* Targeted Chapter Practice Card */}
-            <div className="bg-white rounded-2xl shadow-card border border-slate-200 p-5 flex flex-col justify-between hover:shadow-elevated transition-all border-l-4 border-l-emerald-600 group">
+            <div className="bg-white rounded-xl border border-slate-200 p-5 flex flex-col justify-between hover:border-slate-300 transition-colors shadow-xs group">
               <div>
                 <div className="flex items-center justify-between mb-3">
-                  <span className="bg-emerald-100 text-emerald-900 text-[10px] font-black px-2.5 py-0.5 rounded-full uppercase tracking-wider">
-                    Self-Paced Practice
+                  <span className="bg-slate-100 text-slate-800 text-[10px] font-semibold px-2 py-0.5 rounded uppercase tracking-wider">
+                    Chapter Drill
                   </span>
-                  <div className="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center text-emerald-700 group-hover:bg-emerald-600 group-hover:text-white transition-colors">
-                    <BookOpen className="w-4 h-4" />
+                  <div className="w-7 h-7 rounded bg-slate-100 flex items-center justify-center text-slate-600">
+                    <BookOpen className="w-3.5 h-3.5" />
                   </div>
                 </div>
 
-                <h3 className="font-extrabold text-slate-900 text-base mb-1.5 group-hover:text-emerald-700 transition-colors">
+                <h3 className="font-bold text-slate-900 text-sm mb-1 group-hover:text-blue-900 transition-colors">
                   NCERT Chapter Practice
                 </h3>
-                <p className="text-xs text-slate-600 mb-3.5 leading-relaxed">
-                  Focus on specific weak chapters across 75 NCERT topics with customizable question counts (10 to 45 questions) and instant KaTeX explanations.
+                <p className="text-xs text-slate-500 mb-3 leading-relaxed">
+                  Focus on specific weak chapters across 75 NCERT topics with customizable volume (10 to 45 questions) and step-by-step explanations.
                 </p>
 
-                <div className="text-[11px] text-slate-600 space-y-1 mb-4 bg-slate-50 p-2.5 rounded-lg border border-slate-200">
+                <div className="text-[11px] text-slate-600 space-y-1 mb-4 bg-slate-50 p-2.5 rounded border border-slate-200">
                   <div className="flex items-center gap-1.5">
-                    <Check className="w-3.5 h-3.5 text-emerald-600" />
+                    <Check className="w-3.5 h-3.5 text-slate-500" />
                     <span>75 NCERT Chapters supported</span>
                   </div>
                   <div className="flex items-center gap-1.5">
-                    <Check className="w-3.5 h-3.5 text-emerald-600" />
+                    <Check className="w-3.5 h-3.5 text-slate-500" />
                     <span>Custom volume (10–45 questions)</span>
                   </div>
                   <div className="flex items-center gap-1.5">
-                    <Check className="w-3.5 h-3.5 text-emerald-600" />
-                    <span>Instant solutions with formulas</span>
+                    <Check className="w-3.5 h-3.5 text-slate-500" />
+                    <span>Instant step-by-step solutions</span>
                   </div>
                   <div className="flex items-center gap-1.5">
-                    <Check className="w-3.5 h-3.5 text-emerald-600" />
+                    <Check className="w-3.5 h-3.5 text-slate-500" />
                     <span>Timed or untimed practice</span>
                   </div>
                 </div>
@@ -568,7 +510,7 @@ export default function HomePage() {
 
               <Link
                 href="/practice"
-                className="w-full bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold py-2.5 rounded-xl transition-all flex items-center justify-center gap-1.5 shadow-xs"
+                className="w-full bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold py-2 rounded transition flex items-center justify-center gap-1.5"
               >
                 <span>Configure Practice Mode</span>
                 <ArrowRight className="w-3.5 h-3.5" />
@@ -576,35 +518,35 @@ export default function HomePage() {
             </div>
 
             {/* Performance & Mistake Notebook */}
-            <div className="bg-white rounded-2xl shadow-card border border-slate-200 p-5 flex flex-col justify-between hover:shadow-elevated transition-all border-l-4 border-l-purple-600 group">
+            <div className="bg-white rounded-xl border border-slate-200 p-5 flex flex-col justify-between hover:border-slate-300 transition-colors shadow-xs group">
               <div>
                 <div className="flex items-center justify-between mb-3">
-                  <span className="bg-purple-100 text-purple-900 text-[10px] font-black px-2.5 py-0.5 rounded-full uppercase tracking-wider">
-                    Diagnostics & AIR
+                  <span className="bg-slate-100 text-slate-800 text-[10px] font-semibold px-2 py-0.5 rounded uppercase tracking-wider">
+                    Analytics
                   </span>
-                  <div className="w-8 h-8 rounded-lg bg-purple-50 flex items-center justify-center text-purple-700 group-hover:bg-purple-600 group-hover:text-white transition-colors">
-                    <BarChart3 className="w-4 h-4" />
+                  <div className="w-7 h-7 rounded bg-slate-100 flex items-center justify-center text-slate-600">
+                    <BarChart3 className="w-3.5 h-3.5" />
                   </div>
                 </div>
 
-                <h3 className="font-extrabold text-slate-900 text-base mb-1.5 group-hover:text-purple-700 transition-colors">
+                <h3 className="font-bold text-slate-900 text-sm mb-1 group-hover:text-blue-900 transition-colors">
                   Mistake Notebook & AIR
                 </h3>
-                <p className="text-xs text-slate-600 mb-3.5 leading-relaxed">
+                <p className="text-xs text-slate-500 mb-3 leading-relaxed">
                   Track historical exam attempts, All India Rank predictions, college cutoff tier chances, time-traps, and NCERT chapter mastery heatmap.
                 </p>
 
-                <div className="text-[11px] text-slate-600 space-y-1 mb-4 bg-slate-50 p-2.5 rounded-lg border border-slate-200">
+                <div className="text-[11px] text-slate-600 space-y-1 mb-4 bg-slate-50 p-2.5 rounded border border-slate-200">
                   <div className="flex items-center gap-1.5">
-                    <Check className="w-3.5 h-3.5 text-purple-600" />
+                    <Check className="w-3.5 h-3.5 text-slate-500" />
                     <span>NEET AIR & Percentile Predictor</span>
                   </div>
                   <div className="flex items-center gap-1.5">
-                    <Check className="w-3.5 h-3.5 text-purple-600" />
+                    <Check className="w-3.5 h-3.5 text-slate-500" />
                     <span>Time-Trap Pace Analyzer (&gt;120s)</span>
                   </div>
                   <div className="flex items-center gap-1.5">
-                    <Check className="w-3.5 h-3.5 text-purple-600" />
+                    <Check className="w-3.5 h-3.5 text-slate-500" />
                     <span>NCERT 75-Chapter Heatmap</span>
                   </div>
                 </div>
@@ -612,7 +554,7 @@ export default function HomePage() {
 
               <Link
                 href="/dashboard"
-                className="w-full bg-purple-700 hover:bg-purple-800 text-white text-xs font-bold py-2.5 rounded-xl transition-all flex items-center justify-center gap-1.5 shadow-xs"
+                className="w-full bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold py-2 rounded transition flex items-center justify-center gap-1.5"
               >
                 <span>View Analytics & Heatmap</span>
                 <ArrowRight className="w-3.5 h-3.5" />
@@ -620,35 +562,35 @@ export default function HomePage() {
             </div>
 
             {/* Instant Exam Launcher Card */}
-            <div className="bg-white rounded-2xl shadow-card border border-slate-200 p-5 flex flex-col justify-between hover:shadow-elevated transition-all border-l-4 border-l-amber-500 group">
+            <div className="bg-white rounded-xl border border-slate-200 p-5 flex flex-col justify-between hover:border-slate-300 transition-colors shadow-xs group">
               <div>
                 <div className="flex items-center justify-between mb-3">
-                  <span className="bg-amber-100 text-amber-900 text-[10px] font-black px-2.5 py-0.5 rounded-full uppercase tracking-wider">
-                    Quick Start
+                  <span className="bg-slate-100 text-slate-800 text-[10px] font-semibold px-2 py-0.5 rounded uppercase tracking-wider">
+                    Instant Launch
                   </span>
-                  <div className="w-8 h-8 rounded-lg bg-amber-50 flex items-center justify-center text-amber-600 group-hover:bg-amber-500 group-hover:text-white transition-colors">
-                    <Zap className="w-4 h-4" />
+                  <div className="w-7 h-7 rounded bg-slate-100 flex items-center justify-center text-slate-600">
+                    <Zap className="w-3.5 h-3.5" />
                   </div>
                 </div>
 
-                <h3 className="font-extrabold text-slate-900 text-base mb-1.5 group-hover:text-amber-600 transition-colors">
+                <h3 className="font-bold text-slate-900 text-sm mb-1 group-hover:text-blue-900 transition-colors">
                   Instant Mock Exam
                 </h3>
-                <p className="text-xs text-slate-600 mb-3.5 leading-relaxed">
-                  Jump directly into an official 180-question NEET CBT mock exam with official NTA instructions, kiosk mode, and 180-minute countdown.
+                <p className="text-xs text-slate-500 mb-3 leading-relaxed">
+                  Start an authentic 180-question NEET CBT mock exam with official NTA instructions, kiosk layout, and 180-minute countdown.
                 </p>
 
-                <div className="text-[11px] text-slate-600 space-y-1 mb-4 bg-slate-50 p-2.5 rounded-lg border border-slate-200">
+                <div className="text-[11px] text-slate-600 space-y-1 mb-4 bg-slate-50 p-2.5 rounded border border-slate-200">
                   <div className="flex items-center gap-1.5">
-                    <Check className="w-3.5 h-3.5 text-amber-600" />
+                    <Check className="w-3.5 h-3.5 text-slate-500" />
                     <span>Immediate start with 1-click</span>
                   </div>
                   <div className="flex items-center gap-1.5">
-                    <Check className="w-3.5 h-3.5 text-amber-600" />
+                    <Check className="w-3.5 h-3.5 text-slate-500" />
                     <span>NTA Kiosk Fullscreen Lock</span>
                   </div>
                   <div className="flex items-center gap-1.5">
-                    <Check className="w-3.5 h-3.5 text-amber-600" />
+                    <Check className="w-3.5 h-3.5 text-slate-500" />
                     <span>Zero-Data-Loss Offline Sync</span>
                   </div>
                 </div>
@@ -657,7 +599,7 @@ export default function HomePage() {
               <button
                 type="button"
                 onClick={handleLaunchInstantMock}
-                className="w-full bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold py-2.5 rounded-xl transition-all flex items-center justify-center gap-1.5 shadow-xs cursor-pointer"
+                className="w-full bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold py-2 rounded transition flex items-center justify-center gap-1.5 cursor-pointer"
               >
                 <span>Launch Mock Exam Now</span>
                 <ArrowRight className="w-3.5 h-3.5" />
@@ -667,37 +609,37 @@ export default function HomePage() {
         </div>
 
         {/* 3. NTA OFFICIAL QUESTION PALETTE STATUS LEGEND */}
-        <div className="mt-8 bg-white rounded-2xl shadow-card border border-slate-200 p-6 sm:p-7">
-          <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-slate-100 mb-5">
+        <div className="mt-6 bg-white rounded-xl border border-slate-200 p-5 sm:p-6 shadow-xs">
+          <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-slate-100 mb-4">
             <div>
-              <h3 className="text-sm font-black text-slate-900 uppercase tracking-wider flex items-center gap-2">
-                <HelpCircle className="w-4 h-4 text-blue-700" />
-                Official NTA Question Status Palette Legend
+              <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider flex items-center gap-2">
+                <HelpCircle className="w-4 h-4 text-slate-600" />
+                NTA Question Palette Status Legend
               </h3>
               <p className="text-xs text-slate-500 mt-0.5">
-                Standard color-coded status indicators used in the actual NEET (UG) computer-based examination.
+                Official color-coded status indicators utilized during the computer-based test.
               </p>
             </div>
-            <span className="text-[11px] font-semibold text-slate-500 bg-slate-100 px-2.5 py-1 rounded-full">
-              NTA Guideline 2027
+            <span className="text-[10px] font-semibold text-slate-500 bg-slate-100 border border-slate-200 px-2 py-0.5 rounded">
+              NTA Standard
             </span>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-3.5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-3">
             {/* 1. Not Visited */}
-            <div className="flex items-center gap-3 p-3 rounded-xl border border-slate-200 bg-slate-50/70 hover:bg-slate-100 transition-colors">
-              <div className="w-8 h-8 rounded bg-slate-200 border border-slate-400 flex items-center justify-center font-bold text-xs text-slate-700 shrink-0 shadow-xs">
+            <div className="flex items-center gap-2.5 p-2.5 rounded-lg border border-slate-200 bg-slate-50">
+              <div className="w-7 h-7 rounded bg-slate-200 border border-slate-400 flex items-center justify-center font-bold text-xs text-slate-700 shrink-0">
                 01
               </div>
               <div className="text-xs">
-                <div className="font-bold text-slate-800">Not Visited</div>
-                <div className="text-[10px] text-slate-500">Question not yet viewed</div>
+                <div className="font-semibold text-slate-800">Not Visited</div>
+                <div className="text-[10px] text-slate-400">Not yet viewed</div>
               </div>
             </div>
 
             {/* 2. Not Answered */}
-            <div className="flex items-center gap-3 p-3 rounded-xl border border-red-200 bg-red-50/50 hover:bg-red-50 transition-colors">
-              <div className="w-8 h-8 rounded bg-[#dc2626] flex items-center justify-center font-bold text-xs text-white shrink-0 shadow-xs">
+            <div className="flex items-center gap-2.5 p-2.5 rounded-lg border border-red-200 bg-red-50/50">
+              <div className="w-7 h-7 rounded bg-[#dc2626] flex items-center justify-center font-bold text-xs text-white shrink-0">
                 02
               </div>
               <div className="text-xs">
@@ -755,7 +697,7 @@ export default function HomePage() {
         {/* 4. KEYBOARD SHORTCUTS & CBT FEATURES STRIP */}
         <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-5">
           {/* Keyboard Shortcuts Deck */}
-          <div className="bg-white rounded-2xl shadow-card border border-slate-200 p-6">
+          <div className="bg-white rounded-xl shadow-xs border border-slate-200 p-6">
             <div className="flex items-center gap-2 mb-3 pb-2 border-b border-slate-100">
               <Keyboard className="w-4 h-4 text-blue-700" />
               <h4 className="font-bold text-xs uppercase tracking-wider text-slate-900">
@@ -806,7 +748,7 @@ export default function HomePage() {
           </div>
 
           {/* Exam Resilience & Offline Guard */}
-          <div className="bg-white rounded-2xl shadow-card border border-slate-200 p-6 flex flex-col justify-between">
+          <div className="bg-white rounded-xl shadow-xs border border-slate-200 p-6 flex flex-col justify-between">
             <div>
               <div className="flex items-center gap-2 mb-3 pb-2 border-b border-slate-100">
                 <ShieldCheck className="w-4 h-4 text-emerald-600" />
@@ -842,7 +784,7 @@ export default function HomePage() {
         </div>
 
         {/* 5. SYLLABUS & BLUEPRINT COVERAGE BREAKDOWN */}
-        <div className="mt-8 bg-white rounded-2xl shadow-card border border-slate-200 p-6 sm:p-7">
+        <div className="mt-8 bg-white rounded-xl shadow-xs border border-slate-200 p-6 sm:p-7">
           <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-slate-100 mb-6">
             <div>
               <div className="inline-flex items-center gap-1.5 bg-blue-50 text-blue-700 border border-blue-200 px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider mb-1">
@@ -991,7 +933,7 @@ export default function HomePage() {
           {/* 2015-2026 Question Format Evolution Breakdown */}
           <div className="p-4 rounded-xl bg-slate-50 border border-slate-200">
             <div className="text-xs font-bold text-slate-800 mb-2 flex items-center gap-2">
-              <Sparkles className="w-4 h-4 text-amber-500" />
+              <CheckCircle2 className="w-4 h-4 text-slate-700" />
               <span>2015–2026 Modern Pattern Question Formats Calibrated in All 100 Tests:</span>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs text-slate-600">
