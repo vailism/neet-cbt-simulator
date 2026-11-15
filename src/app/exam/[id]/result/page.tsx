@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
+import { motion } from 'framer-motion';
 import {
   Award,
   CheckCircle,
@@ -316,7 +317,12 @@ export default function ExamResultPage() {
     <div className="flex-1 bg-gray-50 py-8 px-4">
       <div className="max-w-6xl mx-auto space-y-6">
         {/* TOP SCORECARD BANNER */}
-        <div className="bg-slate-900 text-white rounded-xl p-6 sm:p-7 border border-slate-800 shadow-xs">
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3 }}
+          className="bg-slate-900 text-white rounded-xl p-6 sm:p-7 border border-slate-800 shadow-xs"
+        >
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div>
               <div className="inline-flex items-center gap-1.5 text-slate-400 text-xs font-semibold tracking-wide uppercase mb-1.5">
@@ -333,9 +339,9 @@ export default function ExamResultPage() {
             </div>
 
             {/* Total Marks Metric */}
-            <div className="bg-slate-800/80 border border-slate-700 rounded-lg p-3.5 text-center min-w-[150px]">
+            <div className="bg-slate-800/80 border border-slate-700 rounded-lg p-3.5 text-center min-w-[150px] shadow-2xs">
               <div className="text-[10px] uppercase tracking-wider text-slate-400 font-semibold">Total Score</div>
-              <div className="text-3xl font-bold text-white font-mono my-0.5">
+              <div className="text-3xl font-bold text-white font-mono my-0.5 tabular-nums">
                 {overall.totalScore}
                 <span className="text-xs text-slate-400 font-normal"> / {overall.maxScore}</span>
               </div>
@@ -406,7 +412,7 @@ export default function ExamResultPage() {
               </strong>
             </div>
           </div>
-        </div>
+        </motion.div>
 
         {/* AIIMS & GOVERNMENT MEDICAL COLLEGE CUTOFF PREDICTOR (INTERACTIVE) */}
         <CollegePredictorCard score={overall.totalScore} maxScore={overall.maxScore} />

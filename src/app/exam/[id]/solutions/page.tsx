@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
   CheckCircle,
   XCircle,
@@ -395,7 +396,15 @@ export default function ExamSolutionsReviewPage() {
           {/* Question Viewer (Left/Center) */}
           <div className="lg:col-span-8 bg-white rounded-xl shadow-sm border border-gray-200 p-6 space-y-6">
             {currentQ ? (
-              <>
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={currentQ.id}
+                  initial={{ opacity: 0, y: 6 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -6 }}
+                  transition={{ duration: 0.14 }}
+                  className="space-y-6"
+                >
                 {/* Question Info Header */}
                 <div className="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-gray-100 text-xs">
                   <div className="flex flex-wrap items-center gap-2">
@@ -716,12 +725,13 @@ export default function ExamSolutionsReviewPage() {
                       filteredQuestions.findIndex((q) => q.questionOrder === currentQ.questionOrder) >=
                       filteredQuestions.length - 1
                     }
-                    className="flex items-center gap-1 px-3 py-1.5 rounded bg-blue-700 text-white text-xs font-semibold hover:bg-blue-800 disabled:opacity-40 shadow-xs"
+                    className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-blue-700 text-white text-xs font-semibold hover:bg-blue-800 disabled:opacity-40 active:scale-98 transition-all shadow-xs cursor-pointer"
                   >
                     Next Question <ChevronRight className="w-4 h-4" />
                   </button>
                 </div>
-              </>
+              </motion.div>
+            </AnimatePresence>
             ) : (
               <div className="py-12 text-center text-gray-500 text-xs">
                 No questions match the current filter selection.

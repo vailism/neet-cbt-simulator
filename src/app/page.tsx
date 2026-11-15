@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { motion } from 'framer-motion';
 import {
   Clock,
   Award,
@@ -158,33 +159,48 @@ export default function HomePage() {
 
         <div className="relative max-w-5xl mx-auto text-center space-y-5">
           {/* Official Agency Badge Pill */}
-          <div className="inline-flex items-center gap-2 bg-slate-800/90 border border-slate-700 text-slate-300 text-xs px-3.5 py-1 rounded-full">
-            <span className="w-2 h-2 rounded-full bg-emerald-500" />
+          <motion.div
+            initial={{ opacity: 0, y: -8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3 }}
+            className="inline-flex items-center gap-2 bg-slate-800/90 border border-slate-700/80 text-slate-300 text-xs px-3.5 py-1.5 rounded-full shadow-xs"
+          >
+            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
             <span className="font-semibold tracking-wide text-[11px] text-slate-200">
               Vailism CBT Exam Center
             </span>
             <span className="text-slate-600">•</span>
-            <span className="text-slate-300 font-mono text-[11px]">NEET (UG) 2015–2026 Curriculum Standard</span>
-          </div>
+            <span className="text-slate-300 font-mono text-[11px]">NEET (UG) 2015–2026 Standard</span>
+          </motion.div>
 
           {/* Main Hero Headline */}
-          <div className="space-y-3 max-w-3xl mx-auto">
+          <motion.div
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.35, delay: 0.05 }}
+            className="space-y-3 max-w-3xl mx-auto"
+          >
             <h1 className="text-3xl sm:text-5xl font-extrabold tracking-tight text-white leading-tight">
               Standard Computer-Based Examination Center
             </h1>
             <p className="text-slate-300 max-w-2xl mx-auto text-sm sm:text-base leading-relaxed font-normal">
               100 full-length mock examinations strictly calibrated to the NEET (UG) pattern. Real-time 180-minute countdown, authentic NTA question palette (+4/-1), and zero question repetition.
             </p>
-          </div>
+          </motion.div>
 
           {/* Live Countdown to NEET Examination */}
           {isMounted && (
-            <div className="pt-1">
-              <div className="inline-flex flex-wrap items-center justify-center gap-3 bg-slate-900/90 border border-slate-700/80 px-4 py-2 rounded-lg text-center font-mono">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.98 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.35, delay: 0.1 }}
+              className="pt-1"
+            >
+              <div className="inline-flex flex-wrap items-center justify-center gap-3 bg-slate-900/95 border border-slate-700/80 px-4 py-2 rounded-lg text-center font-mono shadow-xs">
                 <span className="text-xs font-semibold text-slate-400 font-sans">
                   NEET UG Target:
                 </span>
-                <div className="flex items-center gap-2 text-white text-sm font-bold">
+                <div className="flex items-center gap-2 text-white text-sm font-bold tabular-nums">
                   <span>{countdown.days}d</span>
                   <span className="text-slate-500">:</span>
                   <span>{String(countdown.hours).padStart(2, '0')}h</span>
@@ -194,15 +210,20 @@ export default function HomePage() {
                   <span className="text-emerald-400">{String(countdown.seconds).padStart(2, '0')}s</span>
                 </div>
               </div>
-            </div>
+            </motion.div>
           )}
 
           {/* Primary Action Buttons */}
-          <div className="flex flex-wrap items-center justify-center gap-2.5 pt-2">
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.35, delay: 0.15 }}
+            className="flex flex-wrap items-center justify-center gap-2.5 pt-2"
+          >
             <button
               type="button"
               onClick={handleLaunchInstantMock}
-              className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-500 text-white font-semibold text-sm px-5 py-2.5 rounded transition cursor-pointer shadow-xs"
+              className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-500 text-white font-semibold text-sm px-5 py-2.5 rounded-lg active:scale-98 transition-all cursor-pointer shadow-xs"
             >
               <span>Start Full Mock CBT Exam</span>
               <ArrowRight className="w-4 h-4" />
@@ -213,7 +234,7 @@ export default function HomePage() {
                 type="button"
                 onClick={handleLaunchMistakeDrill}
                 disabled={drillLoading}
-                className="inline-flex items-center gap-2 bg-slate-800 hover:bg-slate-700 text-white font-semibold text-sm px-4 py-2.5 rounded border border-slate-700 transition cursor-pointer disabled:opacity-50"
+                className="inline-flex items-center gap-2 bg-slate-800 hover:bg-slate-700 text-white font-semibold text-sm px-4 py-2.5 rounded-lg border border-slate-700 active:scale-98 transition-all cursor-pointer disabled:opacity-50"
               >
                 <span>
                   {drillLoading ? 'Preparing...' : `Retest Mistakes (${mistakeCount} Qs)`}
@@ -222,7 +243,7 @@ export default function HomePage() {
             ) : (
               <Link
                 href="/papers"
-                className="inline-flex items-center gap-2 bg-slate-800 hover:bg-slate-700 text-slate-200 font-medium text-sm px-4 py-2.5 rounded border border-slate-700 transition"
+                className="inline-flex items-center gap-2 bg-slate-800 hover:bg-slate-700 text-slate-200 font-medium text-sm px-4 py-2.5 rounded-lg border border-slate-700 active:scale-98 transition-all"
               >
                 <span>Browse 100 Papers</span>
               </Link>
@@ -230,34 +251,39 @@ export default function HomePage() {
 
             <Link
               href="/dashboard"
-              className="inline-flex items-center gap-2 bg-slate-800/80 hover:bg-slate-800 text-slate-300 font-medium text-sm px-4 py-2.5 rounded border border-slate-700/80 transition"
+              className="inline-flex items-center gap-2 bg-slate-800/80 hover:bg-slate-800 text-slate-300 font-medium text-sm px-4 py-2.5 rounded-lg border border-slate-700/80 active:scale-98 transition-all"
             >
               <span>Candidate Analytics</span>
             </Link>
-          </div>
+          </motion.div>
 
           {/* 4 Core Examination Pillars HUD */}
-          <div className="pt-6 grid grid-cols-2 md:grid-cols-4 gap-2.5 max-w-4xl mx-auto text-left">
-            <div className="bg-slate-900/80 border border-slate-800 p-3 rounded-lg">
+          <motion.div
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay: 0.2 }}
+            className="pt-6 grid grid-cols-2 md:grid-cols-4 gap-2.5 max-w-4xl mx-auto text-left"
+          >
+            <div className="bg-slate-900/80 border border-slate-800 p-3 rounded-lg hover:border-slate-700 transition-colors">
               <div className="text-[11px] text-slate-400 font-medium">Standard Duration</div>
               <div className="text-sm font-bold text-white font-mono mt-0.5">180 Mins (3 Hrs)</div>
             </div>
 
-            <div className="bg-slate-900/80 border border-slate-800 p-3 rounded-lg">
+            <div className="bg-slate-900/80 border border-slate-800 p-3 rounded-lg hover:border-slate-700 transition-colors">
               <div className="text-[11px] text-slate-400 font-medium">Questions Blueprint</div>
               <div className="text-sm font-bold text-white font-mono mt-0.5">180 Questions</div>
             </div>
 
-            <div className="bg-slate-900/80 border border-slate-800 p-3 rounded-lg">
+            <div className="bg-slate-900/80 border border-slate-800 p-3 rounded-lg hover:border-slate-700 transition-colors">
               <div className="text-[11px] text-slate-400 font-medium">Marking Engine</div>
               <div className="text-sm font-bold text-white font-mono mt-0.5">+4, -1, 0 Scheme</div>
             </div>
 
-            <div className="bg-slate-900/80 border border-slate-800 p-3 rounded-lg">
+            <div className="bg-slate-900/80 border border-slate-800 p-3 rounded-lg hover:border-slate-700 transition-colors">
               <div className="text-[11px] text-slate-400 font-medium">Mock Papers Library</div>
               <div className="text-sm font-bold text-white font-mono mt-0.5">100 Full Mocks</div>
             </div>
-          </div>
+          </motion.div>
         </div>
       </section>
 
@@ -422,7 +448,7 @@ export default function HomePage() {
           {/* Quick Action Modes - 4 Feature Cards */}
           <div className="lg:col-span-7 grid grid-cols-1 sm:grid-cols-2 gap-4">
             {/* 100 Mock Papers Card */}
-            <div className="bg-white rounded-xl border border-slate-200 p-5 flex flex-col justify-between hover:border-slate-300 transition-colors shadow-xs group">
+            <div className="bg-white rounded-xl border border-slate-200 p-5 flex flex-col justify-between shadow-xs premium-card group">
               <div>
                 <div className="flex items-center justify-between mb-3">
                   <span className="bg-slate-100 text-slate-800 text-[10px] font-semibold px-2 py-0.5 rounded uppercase tracking-wider">
@@ -462,7 +488,7 @@ export default function HomePage() {
 
               <Link
                 href="/papers"
-                className="w-full bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold py-2 rounded transition flex items-center justify-center gap-1.5"
+                className="w-full bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold py-2.5 rounded-lg active:scale-98 transition-all flex items-center justify-center gap-1.5"
               >
                 <span>Browse All 100 Papers</span>
                 <ArrowRight className="w-3.5 h-3.5" />
@@ -470,7 +496,7 @@ export default function HomePage() {
             </div>
 
             {/* Targeted Chapter Practice Card */}
-            <div className="bg-white rounded-xl border border-slate-200 p-5 flex flex-col justify-between hover:border-slate-300 transition-colors shadow-xs group">
+            <div className="bg-white rounded-xl border border-slate-200 p-5 flex flex-col justify-between shadow-xs premium-card group">
               <div>
                 <div className="flex items-center justify-between mb-3">
                   <span className="bg-slate-100 text-slate-800 text-[10px] font-semibold px-2 py-0.5 rounded uppercase tracking-wider">
@@ -510,7 +536,7 @@ export default function HomePage() {
 
               <Link
                 href="/practice"
-                className="w-full bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold py-2 rounded transition flex items-center justify-center gap-1.5"
+                className="w-full bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold py-2.5 rounded-lg active:scale-98 transition-all flex items-center justify-center gap-1.5"
               >
                 <span>Configure Practice Mode</span>
                 <ArrowRight className="w-3.5 h-3.5" />
@@ -518,7 +544,7 @@ export default function HomePage() {
             </div>
 
             {/* Performance & Mistake Notebook */}
-            <div className="bg-white rounded-xl border border-slate-200 p-5 flex flex-col justify-between hover:border-slate-300 transition-colors shadow-xs group">
+            <div className="bg-white rounded-xl border border-slate-200 p-5 flex flex-col justify-between shadow-xs premium-card group">
               <div>
                 <div className="flex items-center justify-between mb-3">
                   <span className="bg-slate-100 text-slate-800 text-[10px] font-semibold px-2 py-0.5 rounded uppercase tracking-wider">
@@ -554,7 +580,7 @@ export default function HomePage() {
 
               <Link
                 href="/dashboard"
-                className="w-full bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold py-2 rounded transition flex items-center justify-center gap-1.5"
+                className="w-full bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold py-2.5 rounded-lg active:scale-98 transition-all flex items-center justify-center gap-1.5"
               >
                 <span>View Analytics & Heatmap</span>
                 <ArrowRight className="w-3.5 h-3.5" />
@@ -562,7 +588,7 @@ export default function HomePage() {
             </div>
 
             {/* Instant Exam Launcher Card */}
-            <div className="bg-white rounded-xl border border-slate-200 p-5 flex flex-col justify-between hover:border-slate-300 transition-colors shadow-xs group">
+            <div className="bg-white rounded-xl border border-slate-200 p-5 flex flex-col justify-between shadow-xs premium-card group">
               <div>
                 <div className="flex items-center justify-between mb-3">
                   <span className="bg-slate-100 text-slate-800 text-[10px] font-semibold px-2 py-0.5 rounded uppercase tracking-wider">
@@ -599,7 +625,7 @@ export default function HomePage() {
               <button
                 type="button"
                 onClick={handleLaunchInstantMock}
-                className="w-full bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold py-2 rounded transition flex items-center justify-center gap-1.5 cursor-pointer"
+                className="w-full bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold py-2.5 rounded-lg active:scale-98 transition-all flex items-center justify-center gap-1.5 cursor-pointer"
               >
                 <span>Launch Mock Exam Now</span>
                 <ArrowRight className="w-3.5 h-3.5" />
@@ -697,9 +723,9 @@ export default function HomePage() {
         {/* 4. KEYBOARD SHORTCUTS & CBT FEATURES STRIP */}
         <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-5">
           {/* Keyboard Shortcuts Deck */}
-          <div className="bg-white rounded-xl shadow-xs border border-slate-200 p-6">
+          <div className="bg-white rounded-xl shadow-xs border border-slate-200 p-6 premium-card">
             <div className="flex items-center gap-2 mb-3 pb-2 border-b border-slate-100">
-              <Keyboard className="w-4 h-4 text-blue-700" />
+              <Keyboard className="w-4 h-4 text-slate-700" />
               <h4 className="font-bold text-xs uppercase tracking-wider text-slate-900">
                 CBT Hotkeys & Rapid Navigation
               </h4>
@@ -707,42 +733,42 @@ export default function HomePage() {
             <p className="text-xs text-slate-500 mb-3.5">
               Speed up your test attempt without touching the mouse:
             </p>
-            <div className="grid grid-cols-2 gap-2 text-xs font-mono">
-              <div className="flex items-center justify-between p-2 rounded-lg bg-slate-50 border border-slate-200">
-                <span className="text-slate-600">Select Option</span>
-                <span className="font-bold text-blue-900 bg-white px-2 py-0.5 rounded border border-slate-300">
-                  1 • 2 • 3 • 4
-                </span>
+            <div className="grid grid-cols-2 gap-2.5 text-xs font-mono">
+              <div className="flex items-center justify-between p-2.5 rounded-lg bg-slate-50 border border-slate-200">
+                <span className="text-slate-600 font-sans text-xs">Select Option</span>
+                <div className="flex items-center gap-1">
+                  <span className="kbd-cap">1</span>
+                  <span className="kbd-cap">2</span>
+                  <span className="kbd-cap">3</span>
+                  <span className="kbd-cap">4</span>
+                </div>
               </div>
-              <div className="flex items-center justify-between p-2 rounded-lg bg-slate-50 border border-slate-200">
-                <span className="text-slate-600">Save & Next</span>
-                <span className="font-bold text-blue-900 bg-white px-2 py-0.5 rounded border border-slate-300">
-                  Enter
-                </span>
+              <div className="flex items-center justify-between p-2.5 rounded-lg bg-slate-50 border border-slate-200">
+                <span className="text-slate-600 font-sans text-xs">Save & Next</span>
+                <span className="kbd-cap">Enter ↵</span>
               </div>
-              <div className="flex items-center justify-between p-2 rounded-lg bg-slate-50 border border-slate-200">
-                <span className="text-slate-600">Mark for Review</span>
-                <span className="font-bold text-blue-900 bg-white px-2 py-0.5 rounded border border-slate-300">
-                  M
-                </span>
+              <div className="flex items-center justify-between p-2.5 rounded-lg bg-slate-50 border border-slate-200">
+                <span className="text-slate-600 font-sans text-xs">Mark for Review</span>
+                <span className="kbd-cap">M</span>
               </div>
-              <div className="flex items-center justify-between p-2 rounded-lg bg-slate-50 border border-slate-200">
-                <span className="text-slate-600">Clear Answer</span>
-                <span className="font-bold text-blue-900 bg-white px-2 py-0.5 rounded border border-slate-300">
-                  C / Space
-                </span>
+              <div className="flex items-center justify-between p-2.5 rounded-lg bg-slate-50 border border-slate-200">
+                <span className="text-slate-600 font-sans text-xs">Clear Answer</span>
+                <div className="flex items-center gap-1">
+                  <span className="kbd-cap">C</span>
+                  <span className="text-slate-400 text-[10px]">/</span>
+                  <span className="kbd-cap">Space</span>
+                </div>
               </div>
-              <div className="flex items-center justify-between p-2 rounded-lg bg-slate-50 border border-slate-200">
-                <span className="text-slate-600">Next / Prev Q</span>
-                <span className="font-bold text-blue-900 bg-white px-2 py-0.5 rounded border border-slate-300">
-                  ← • →
-                </span>
+              <div className="flex items-center justify-between p-2.5 rounded-lg bg-slate-50 border border-slate-200">
+                <span className="text-slate-600 font-sans text-xs">Next / Prev Q</span>
+                <div className="flex items-center gap-1">
+                  <span className="kbd-cap">←</span>
+                  <span className="kbd-cap">→</span>
+                </div>
               </div>
-              <div className="flex items-center justify-between p-2 rounded-lg bg-slate-50 border border-slate-200">
-                <span className="text-slate-600">Fullscreen Kiosk</span>
-                <span className="font-bold text-blue-900 bg-white px-2 py-0.5 rounded border border-slate-300">
-                  F
-                </span>
+              <div className="flex items-center justify-between p-2.5 rounded-lg bg-slate-50 border border-slate-200">
+                <span className="text-slate-600 font-sans text-xs">Fullscreen Kiosk</span>
+                <span className="kbd-cap">F</span>
               </div>
             </div>
           </div>

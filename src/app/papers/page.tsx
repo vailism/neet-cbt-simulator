@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
   BookOpen,
   Clock,
@@ -22,6 +23,7 @@ import {
   TrendingUp,
   Target,
   BarChart2,
+  X,
 } from 'lucide-react';
 import {
   getClientCandidate,
@@ -261,7 +263,7 @@ export default function MockPapersPage() {
           return (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
               {/* Card 1: Library Mastery */}
-              <div className="bg-white rounded-xl border border-slate-200 p-4 shadow-xs flex items-center gap-3">
+              <div className="bg-white rounded-xl border border-slate-200 p-4 shadow-xs flex items-center gap-3 premium-card">
                 <div className="w-10 h-10 rounded-lg bg-slate-100 text-slate-700 flex items-center justify-center shrink-0 border border-slate-200">
                   <BookOpen className="w-4 h-4" />
                 </div>
@@ -272,9 +274,9 @@ export default function MockPapersPage() {
                   <div className="text-base font-bold text-slate-900 font-mono">
                     {completedCount} <span className="text-xs text-slate-400 font-normal">/ {totalPapersCount} Complete</span>
                   </div>
-                  <div className="w-full bg-slate-100 h-1 rounded overflow-hidden mt-1.5">
+                  <div className="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden mt-1.5">
                     <div
-                      className="bg-slate-900 h-full rounded transition-all duration-500"
+                      className="bg-slate-900 h-full rounded-full transition-all duration-700 ease-out"
                       style={{ width: `${Math.max(completionPercentage, 3)}%` }}
                     />
                   </div>
@@ -282,7 +284,7 @@ export default function MockPapersPage() {
               </div>
 
               {/* Card 2: Average Score */}
-              <div className="bg-white rounded-xl border border-slate-200 p-4 shadow-xs flex items-center gap-3">
+              <div className="bg-white rounded-xl border border-slate-200 p-4 shadow-xs flex items-center gap-3 premium-card">
                 <div className="w-10 h-10 rounded-lg bg-slate-100 text-slate-700 flex items-center justify-center shrink-0 border border-slate-200">
                   <Award className="w-4 h-4" />
                 </div>
@@ -306,7 +308,7 @@ export default function MockPapersPage() {
               </div>
 
               {/* Card 3: Accuracy Benchmark */}
-              <div className="bg-white rounded-xl border border-slate-200 p-4 shadow-xs flex items-center gap-3">
+              <div className="bg-white rounded-xl border border-slate-200 p-4 shadow-xs flex items-center gap-3 premium-card">
                 <div className="w-10 h-10 rounded-lg bg-slate-100 text-slate-700 flex items-center justify-center shrink-0 border border-slate-200">
                   <Target className="w-4 h-4" />
                 </div>
@@ -328,7 +330,7 @@ export default function MockPapersPage() {
               </div>
 
               {/* Card 4: 2015-2026 Standard */}
-              <div className="bg-white rounded-xl border border-slate-200 p-4 shadow-xs flex items-center gap-3">
+              <div className="bg-white rounded-xl border border-slate-200 p-4 shadow-xs flex items-center gap-3 premium-card">
                 <div className="w-10 h-10 rounded-lg bg-slate-100 text-slate-700 flex items-center justify-center shrink-0 border border-slate-200">
                   <Layers className="w-4 h-4" />
                 </div>
@@ -437,15 +439,28 @@ export default function MockPapersPage() {
             </button>
 
             {/* Search Input */}
-            <div className="relative flex-1 sm:w-56">
+            <div className="relative flex-1 sm:w-60">
               <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-2.5" />
               <input
                 type="text"
                 placeholder="Search paper or code..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-8 pr-3 py-1.5 rounded border border-slate-300 focus:outline-none focus:border-slate-800 text-xs text-slate-800"
+                className="w-full pl-8 pr-7 py-1.5 rounded-lg border border-slate-300 focus:outline-hidden focus:border-slate-800 text-xs text-slate-800 placeholder:text-slate-400 shadow-2xs transition-colors"
               />
+              {searchQuery ? (
+                <button
+                  type="button"
+                  onClick={() => setSearchQuery('')}
+                  className="absolute right-2.5 top-2 text-slate-400 hover:text-slate-600 cursor-pointer"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              ) : (
+                <span className="kbd-cap absolute right-2 top-1.5 text-[9px] text-slate-400 pointer-events-none hidden sm:inline-flex">
+                  /
+                </span>
+              )}
             </div>
           </div>
         </div>
@@ -471,16 +486,19 @@ export default function MockPapersPage() {
               const academicFocus = !isOfficialPYQ ? getAcademicFocus(paper.paperNumber) : null;
 
               return (
-                <div
+                <motion.div
                   key={paper.id}
-                  className={`bg-white rounded-xl border p-4 sm:p-5 flex flex-col justify-between transition-colors shadow-xs ${
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.2 }}
+                  className={`bg-white rounded-xl border p-4 sm:p-5 flex flex-col justify-between shadow-xs premium-card ${
                     isOfficialPYQ
-                      ? 'border-slate-300 bg-slate-50/30'
+                      ? 'border-slate-300 bg-slate-50/20'
                       : isCompleted
                       ? 'border-slate-300'
                       : isInProgress
                       ? 'border-slate-300'
-                      : 'border-slate-200 hover:border-slate-300'
+                      : 'border-slate-200'
                   }`}
                 >
                   <div>
@@ -583,7 +601,7 @@ export default function MockPapersPage() {
                     {isInProgress ? (
                       <button
                         onClick={() => triggerLaunchPaper(paper.id, false)}
-                        className="w-full bg-slate-900 hover:bg-slate-800 text-white font-semibold py-2 rounded text-xs transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
+                        className="w-full bg-slate-900 hover:bg-slate-800 text-white font-semibold py-2 rounded-lg text-xs active:scale-98 transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-2xs"
                       >
                         <Play className="w-3.5 h-3.5" /> Resume Examination
                       </button>
@@ -592,20 +610,20 @@ export default function MockPapersPage() {
                         <div className="flex items-center gap-1.5">
                           <button
                             onClick={() => router.push(`/exam/${paper.latestAttemptId}/result`)}
-                            className="flex-1 bg-white hover:bg-slate-50 text-slate-800 font-medium py-1.5 rounded text-xs transition-colors border border-slate-300 cursor-pointer"
+                            className="flex-1 bg-white hover:bg-slate-50 text-slate-800 font-medium py-1.5 rounded-lg text-xs active:scale-98 transition-all border border-slate-300 cursor-pointer"
                           >
                             Result
                           </button>
                           <button
                             onClick={() => router.push(`/exam/${paper.latestAttemptId}/solutions`)}
-                            className="flex-1 bg-white hover:bg-slate-50 text-slate-800 font-medium py-1.5 rounded text-xs transition-colors border border-slate-300 flex items-center justify-center gap-1 cursor-pointer"
+                            className="flex-1 bg-white hover:bg-slate-50 text-slate-800 font-medium py-1.5 rounded-lg text-xs active:scale-98 transition-all border border-slate-300 flex items-center justify-center gap-1 cursor-pointer"
                           >
                             <FileCheck className="w-3.5 h-3.5 text-slate-500" /> Solutions
                           </button>
                         </div>
                         <button
                           onClick={() => triggerLaunchPaper(paper.id, true)}
-                          className="w-full bg-slate-900 hover:bg-slate-800 text-white font-semibold py-2 rounded text-xs transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
+                          className="w-full bg-slate-900 hover:bg-slate-800 text-white font-semibold py-2 rounded-lg text-xs active:scale-98 transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-2xs"
                           title="Retake examination"
                         >
                           <RotateCcw className="w-3.5 h-3.5" /> Retake Examination
@@ -614,13 +632,13 @@ export default function MockPapersPage() {
                     ) : (
                       <button
                         onClick={() => triggerLaunchPaper(paper.id, false)}
-                        className="w-full bg-blue-600 hover:bg-blue-500 text-white font-semibold py-2 rounded text-xs transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
+                        className="w-full bg-blue-600 hover:bg-blue-500 text-white font-semibold py-2 rounded-lg text-xs active:scale-98 transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-2xs"
                       >
                         <Play className="w-3.5 h-3.5" /> Start Examination
                       </button>
                     )}
                   </div>
-                </div>
+                </motion.div>
               );
             })}
           </div>

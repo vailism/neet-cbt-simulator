@@ -360,9 +360,9 @@ export default function InstructionsPage() {
               type="button"
               disabled={!declared || loading}
               onClick={handleStartExam}
-              className={`flex items-center justify-center gap-2 px-6 py-2.5 rounded text-xs font-semibold shadow-xs transition ${
+              className={`flex items-center justify-center gap-2 px-6 py-2.5 rounded-lg text-xs font-semibold shadow-xs transition-all ${
                 declared && !loading
-                  ? 'bg-blue-600 hover:bg-blue-500 text-white cursor-pointer'
+                  ? 'bg-blue-600 hover:bg-blue-500 text-white active:scale-98 cursor-pointer'
                   : 'bg-slate-200 text-slate-400 cursor-not-allowed'
               }`}
             >

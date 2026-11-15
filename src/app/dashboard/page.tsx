@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
+import { motion } from 'framer-motion';
 import {
   Award,
   BarChart3,
@@ -273,48 +274,68 @@ export default function DashboardPage() {
         {/* METRICS SUMMARY CARDS */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           {/* Total Attempts */}
-          <div className="bg-white rounded-xl border border-slate-200 p-4 shadow-xs">
+          <motion.div
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.25 }}
+            className="bg-white rounded-xl border border-slate-200 p-4 shadow-xs premium-card"
+          >
             <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
               Total Attempts
             </div>
-            <div className="text-2xl font-bold text-slate-900 mt-1 font-mono">
+            <div className="text-2xl font-bold text-slate-900 mt-1 font-mono tabular-nums">
               {stats.totalAttempts}
             </div>
             <div className="text-[11px] text-slate-400 mt-0.5">Completed mock sessions</div>
-          </div>
+          </motion.div>
 
           {/* Highest Score */}
-          <div className="bg-white rounded-xl border border-slate-200 p-4 shadow-xs">
+          <motion.div
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.25, delay: 0.05 }}
+            className="bg-white rounded-xl border border-slate-200 p-4 shadow-xs premium-card"
+          >
             <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
               Highest Score
             </div>
-            <div className="text-2xl font-bold text-slate-900 mt-1 font-mono">
+            <div className="text-2xl font-bold text-slate-900 mt-1 font-mono tabular-nums">
               {stats.highestScore} <span className="text-xs text-slate-400 font-normal">/ 720</span>
             </div>
             <div className="text-[11px] text-slate-400 mt-0.5">Peak performance</div>
-          </div>
+          </motion.div>
 
           {/* Average Score */}
-          <div className="bg-white rounded-xl border border-slate-200 p-4 shadow-xs">
+          <motion.div
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.25, delay: 0.1 }}
+            className="bg-white rounded-xl border border-slate-200 p-4 shadow-xs premium-card"
+          >
             <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
               Average Score
             </div>
-            <div className="text-2xl font-bold text-slate-900 mt-1 font-mono">
+            <div className="text-2xl font-bold text-slate-900 mt-1 font-mono tabular-nums">
               {stats.averageScore} <span className="text-xs text-slate-400 font-normal">/ 720</span>
             </div>
             <div className="text-[11px] text-slate-400 mt-0.5">Mean overall score</div>
-          </div>
+          </motion.div>
 
           {/* Overall Accuracy */}
-          <div className="bg-white rounded-xl border border-slate-200 p-4 shadow-xs">
+          <motion.div
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.25, delay: 0.15 }}
+            className="bg-white rounded-xl border border-slate-200 p-4 shadow-xs premium-card"
+          >
             <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
               Average Accuracy
             </div>
-            <div className="text-2xl font-bold text-slate-900 mt-1 font-mono">
+            <div className="text-2xl font-bold text-slate-900 mt-1 font-mono tabular-nums">
               {stats.averageAccuracy}%
             </div>
             <div className="text-[11px] text-slate-400 mt-0.5">Precision rate</div>
-          </div>
+          </motion.div>
         </div>
 
         {/* NCERT CHAPTER MASTER HEATMAP */}

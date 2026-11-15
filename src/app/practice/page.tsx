@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { motion } from 'framer-motion';
 import {
   BookOpen,
   CheckCircle,
@@ -316,7 +317,7 @@ export default function PracticeModePage() {
             <button
               onClick={() => setIsModalOpen(true)}
               disabled={loading}
-              className="w-full bg-blue-600 hover:bg-blue-500 text-white font-semibold py-2.5 px-4 rounded shadow-xs transition flex items-center justify-center gap-2 text-sm cursor-pointer disabled:opacity-50"
+              className="w-full bg-blue-600 hover:bg-blue-500 text-white font-semibold py-2.5 px-4 rounded-lg shadow-xs active:scale-98 transition-all flex items-center justify-center gap-2 text-sm cursor-pointer disabled:opacity-50"
             >
               {loading ? (
                 'Preparing Practice Questions...'

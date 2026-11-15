@@ -62,7 +62,7 @@ export const SiteNav: React.FC = () => {
 
   return (
     <>
-      <header className="border-b border-slate-200 bg-white sticky top-0 z-40">
+      <header className="border-b border-slate-200/80 bg-white/90 backdrop-blur-md sticky top-0 z-40 transition-all">
         {/* Top Official notification strip */}
         <div className="bg-slate-900 text-slate-300 py-1.5 px-4 text-xs border-b border-slate-800">
           <div className="max-w-7xl mx-auto flex flex-wrap justify-between items-center gap-2">
@@ -144,7 +144,7 @@ export const SiteNav: React.FC = () => {
             <button
               type="button"
               onClick={() => setIsModalOpen(true)}
-              className="flex items-center gap-2.5 bg-slate-50 hover:bg-slate-100 border border-slate-200 px-3 py-1.5 rounded-lg text-xs transition-colors cursor-pointer text-left shadow-2xs"
+              className="flex items-center gap-2.5 bg-slate-50 hover:bg-slate-100 border border-slate-200 px-3 py-1.5 rounded-lg text-xs active:scale-95 transition-all cursor-pointer text-left shadow-2xs"
               title="Click to rename student or switch roll number"
             >
               <div className="w-6 h-6 rounded bg-slate-800 text-white flex items-center justify-center text-xs font-semibold">
