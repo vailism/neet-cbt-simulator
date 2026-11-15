@@ -767,6 +767,14 @@ export default function HomePage() {
                 </div>
               </div>
               <div className="flex items-center justify-between p-2.5 rounded-lg bg-slate-50 border border-slate-200">
+                <span className="text-slate-600 font-sans text-xs">Strike Option</span>
+                <span className="kbd-cap text-[10px]">Alt + 1..4</span>
+              </div>
+              <div className="flex items-center justify-between p-2.5 rounded-lg bg-slate-50 border border-slate-200">
+                <span className="text-slate-600 font-sans text-xs">Flag Priority</span>
+                <span className="kbd-cap">S</span>
+              </div>
+              <div className="flex items-center justify-between p-2.5 rounded-lg bg-slate-50 border border-slate-200">
                 <span className="text-slate-600 font-sans text-xs">Fullscreen Kiosk</span>
                 <span className="kbd-cap">F</span>
               </div>

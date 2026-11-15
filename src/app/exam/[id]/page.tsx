@@ -27,9 +27,20 @@ import {
   Layers,
   CheckCircle2,
   Scale,
+  Atom,
+  Strikethrough,
+  Volume2,
+  VolumeX,
+  Star,
 } from 'lucide-react';
 import { MathRenderer } from '@/components/MathRenderer';
 import { getUpdatedQuestionStatus } from '@/lib/examEngine';
+import { PhysicalConstantsModal } from '@/components/PhysicalConstantsModal';
+import {
+  playOptionClickSound,
+  playActionKeySound,
+  playEliminationSound,
+} from '@/lib/soundEffects';
 
 function detectQuestionType(statement: string): {
   type: 'ASSERTION_REASON' | 'STATEMENT_I_II' | 'MATCH_LIST' | 'MULTI_STATEMENT' | 'STANDARD_MCQ';
@@ -157,14 +168,22 @@ export default function ExamInterfacePage() {
   const [showPaperModal, setShowPaperModal] = useState(false);
   const [showInstructionsModal, setShowInstructionsModal] = useState(false);
   const [showShortcutsModal, setShowShortcutsModal] = useState(false);
+  const [showConstantsModal, setShowConstantsModal] = useState(false);
+
+  // Sound & Tactile Feedback
+  const [soundEnabled, setSoundEnabled] = useState(true);
+
+  // Distractor Elimination & Priority Star State
+  const [eliminatedOptions, setEliminatedOptions] = useState<Record<string, number[]>>({});
+  const [starredQuestions, setStarredQuestions] = useState<Record<string, boolean>>({});
 
   // Digital Rough Work Scratchpad & UI Scaler
   const [showScratchpad, setShowScratchpad] = useState(false);
   const [scratchpadNotes, setScratchpadNotes] = useState('');
   const [fontSize, setFontSize] = useState<'normal' | 'large' | 'xlarge'>('normal');
-  const [paletteFilter, setPaletteFilter] = useState<'ALL' | 'ANSWERED' | 'NOT_ANSWERED' | 'NOT_VISITED' | 'MARKED'>('ALL');
+  const [paletteFilter, setPaletteFilter] = useState<'ALL' | 'ANSWERED' | 'NOT_ANSWERED' | 'NOT_VISITED' | 'MARKED' | 'STARRED'>('ALL');
 
-  // Load persisted font size and scratchpad on mount
+  // Load persisted font size, scratchpad, eliminated options & sound on mount
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const savedFont = localStorage.getItem('vailism_font_size') as any;
@@ -174,6 +193,22 @@ export default function ExamInterfacePage() {
       const savedNotes = localStorage.getItem(`vailism_scratchpad_${attemptId}`);
       if (savedNotes) {
         setScratchpadNotes(savedNotes);
+      }
+      const savedSound = localStorage.getItem('vailism_sound');
+      if (savedSound !== null) {
+        setSoundEnabled(savedSound === 'true');
+      }
+      try {
+        const savedElim = localStorage.getItem(`vailism_eliminated_${attemptId}`);
+        if (savedElim) {
+          setEliminatedOptions(JSON.parse(savedElim));
+        }
+        const savedStarred = localStorage.getItem(`vailism_starred_${attemptId}`);
+        if (savedStarred) {
+          setStarredQuestions(JSON.parse(savedStarred));
+        }
+      } catch (e) {
+        console.warn('Failed to parse cached exam states', e);
       }
     }
   }, [attemptId]);
@@ -192,6 +227,65 @@ export default function ExamInterfacePage() {
     if (typeof window !== 'undefined') {
       localStorage.setItem(`vailism_scratchpad_${attemptId}`, val);
     }
+  };
+
+  // Toggle Sound feedback
+  const toggleSound = () => {
+    setSoundEnabled((prev) => {
+      const next = !prev;
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('vailism_sound', String(next));
+      }
+      return next;
+    });
+  };
+
+  // Option Elimination / Strikethrough Handler
+  const toggleEliminateOption = (optNum: number) => {
+    const q = examData?.questions[activeQuestionIndex];
+    if (!q) return;
+    const qId = q.id;
+
+    setEliminatedOptions((prev) => {
+      const currentList = prev[qId] || [];
+      const isAlreadyEliminated = currentList.includes(optNum);
+      const updatedList = isAlreadyEliminated
+        ? currentList.filter((n) => n !== optNum)
+        : [...currentList, optNum];
+
+      const nextState = { ...prev, [qId]: updatedList };
+      if (typeof window !== 'undefined') {
+        try {
+          localStorage.setItem(`vailism_eliminated_${attemptId}`, JSON.stringify(nextState));
+        } catch {}
+      }
+      return nextState;
+    });
+
+    if (currentSelectedOption === optNum) {
+      setCurrentSelectedOption(null);
+    }
+
+    playEliminationSound(soundEnabled);
+  };
+
+  // Priority Star / Flag Question Handler
+  const toggleStarQuestion = () => {
+    const q = examData?.questions[activeQuestionIndex];
+    if (!q) return;
+    const qId = q.id;
+
+    setStarredQuestions((prev) => {
+      const nextState = { ...prev, [qId]: !prev[qId] };
+      if (typeof window !== 'undefined') {
+        try {
+          localStorage.setItem(`vailism_starred_${attemptId}`, JSON.stringify(nextState));
+        } catch {}
+      }
+      return nextState;
+    });
+
+    playActionKeySound(soundEnabled);
   };
 
   // Kiosk & Pacing State
@@ -511,6 +605,7 @@ export default function ExamInterfacePage() {
 
     // Reset timestamp so subsequent actions don't duplicate
     questionStartTimeRef.current = Date.now();
+    playActionKeySound(soundEnabled);
 
     // Advance to next question without re-adding delta
     if (activeQuestionIndex < (examData?.questions.length || 0) - 1) {
@@ -539,6 +634,7 @@ export default function ExamInterfacePage() {
 
     // Reset timestamp so subsequent actions don't duplicate
     questionStartTimeRef.current = Date.now();
+    playActionKeySound(soundEnabled);
 
     // Advance to next question without re-adding delta
     if (activeQuestionIndex < (examData?.questions.length || 0) - 1) {
@@ -555,6 +651,7 @@ export default function ExamInterfacePage() {
     currentQuestion.status = 'NOT_ANSWERED';
 
     saveAnswerToServer(currentQuestion.id, null, 'NOT_ANSWERED', 0);
+    playActionKeySound(soundEnabled);
   };
 
   // ACTION: Final Exam Submission
@@ -593,28 +690,59 @@ export default function ExamInterfacePage() {
     const handleKeyDown = (e: KeyboardEvent) => {
       // Ignore if user is typing in an input or textarea or any modal is open
       if (['INPUT', 'TEXTAREA'].includes((e.target as HTMLElement)?.tagName)) return;
-      if (showSubmitModal || showPaperModal || showInstructionsModal || showShortcutsModal) return;
+      if (
+        showSubmitModal ||
+        showPaperModal ||
+        showInstructionsModal ||
+        showShortcutsModal ||
+        showConstantsModal
+      ) {
+        if (e.key === 'Escape') {
+          setShowSubmitModal(false);
+          setShowPaperModal(false);
+          setShowInstructionsModal(false);
+          setShowShortcutsModal(false);
+          setShowConstantsModal(false);
+        }
+        return;
+      }
 
       const key = e.key.toLowerCase();
+
+      // Alt + 1/2/3/4: Distractor Elimination
+      if (e.altKey && ['1', '2', '3', '4'].includes(e.key)) {
+        e.preventDefault();
+        toggleEliminateOption(Number(e.key));
+        return;
+      }
+
+      // Option selection
       if (e.key === '1' || key === 'a') {
         e.preventDefault();
         setCurrentSelectedOption(1);
+        playOptionClickSound(soundEnabled);
       } else if (e.key === '2' || key === 'b') {
         e.preventDefault();
         setCurrentSelectedOption(2);
+        playOptionClickSound(soundEnabled);
       } else if (e.key === '3' || key === 'c') {
         e.preventDefault();
         setCurrentSelectedOption(3);
+        playOptionClickSound(soundEnabled);
       } else if (e.key === '4' || key === 'd') {
         e.preventDefault();
         setCurrentSelectedOption(4);
+        playOptionClickSound(soundEnabled);
       } else if (e.key === 'Enter' || e.code === 'Space') {
         e.preventDefault();
         handleSaveAndNext();
       } else if (key === 'm') {
         e.preventDefault();
         handleMarkForReviewAndNext();
-      } else if (e.key === 'Backspace' || key === 'c') {
+      } else if (key === 's') {
+        e.preventDefault();
+        toggleStarQuestion();
+      } else if (e.key === 'Backspace' || (key === 'c' && !e.ctrlKey && !e.metaKey)) {
         e.preventDefault();
         handleClearResponse();
       } else if (key === 'f') {
@@ -643,10 +771,12 @@ export default function ExamInterfacePage() {
     currentQuestion,
     currentSelectedOption,
     examData,
+    soundEnabled,
     showSubmitModal,
     showPaperModal,
     showInstructionsModal,
     showShortcutsModal,
+    showConstantsModal,
   ]);
 
   // Question Palette Counters
@@ -766,10 +896,21 @@ export default function ExamInterfacePage() {
             <button
               onClick={() => setShowShortcutsModal(true)}
               className="hidden lg:flex items-center gap-1.5 bg-blue-800 hover:bg-blue-700 border border-blue-400/30 text-white text-xs font-semibold px-2.5 py-1.5 rounded transition-colors"
-              title="Keyboard Shortcuts (1-4, Enter, Space, M, C, Arrows, F)"
+              title="Keyboard Shortcuts (1-4, Enter, Space, M, C, Arrows, F, Alt+1..4, S)"
             >
               <Keyboard className="w-3.5 h-3.5 text-amber-300" />
               Shortcuts
+            </button>
+
+            {/* NEET Physical Constants & Reference */}
+            <button
+              type="button"
+              onClick={() => setShowConstantsModal(true)}
+              className="flex items-center gap-1.5 bg-blue-800 hover:bg-blue-700 border border-blue-400/30 text-white text-xs font-semibold px-2.5 py-1.5 rounded transition-colors cursor-pointer"
+              title="Official Physical Constants & Formula Reference (c, h, R, G, e...)"
+            >
+              <Atom className="w-3.5 h-3.5 text-amber-300" />
+              <span className="hidden sm:inline">Constants</span>
             </button>
 
             {/* NTA Kiosk Mode Toggle */}
@@ -795,6 +936,20 @@ export default function ExamInterfacePage() {
             >
               <Edit3 className="w-3.5 h-3.5 text-amber-300" />
               <span>Rough Work</span>
+            </button>
+
+            {/* Tactile Audio Feedback Toggle */}
+            <button
+              type="button"
+              onClick={toggleSound}
+              className="flex items-center justify-center w-8 h-8 rounded bg-blue-800 hover:bg-blue-700 border border-blue-400/30 text-white transition-colors cursor-pointer"
+              title={soundEnabled ? 'Mechanical Click Feedback: Enabled' : 'Mechanical Click Feedback: Muted'}
+            >
+              {soundEnabled ? (
+                <Volume2 className="w-3.5 h-3.5 text-emerald-300" />
+              ) : (
+                <VolumeX className="w-3.5 h-3.5 text-slate-400" />
+              )}
             </button>
 
             {/* Real-time Sync Indicator */}
@@ -965,6 +1120,27 @@ export default function ExamInterfacePage() {
                     <span className="font-extrabold text-blue-950 text-sm">
                       Question No. {currentQuestion.questionOrder}
                     </span>
+
+                    {/* Question Priority Star / Flag */}
+                    {(() => {
+                      const isStarred = Boolean(starredQuestions[currentQuestion.id]);
+                      return (
+                        <button
+                          type="button"
+                          onClick={toggleStarQuestion}
+                          className={`px-2 py-0.5 rounded-md border text-[11px] font-bold flex items-center gap-1 transition-all cursor-pointer ${
+                            isStarred
+                              ? 'bg-amber-400 text-slate-950 border-amber-500 shadow-2xs'
+                              : 'bg-white text-slate-600 border-slate-300 hover:bg-slate-100'
+                          }`}
+                          title={isStarred ? 'Flagged for Priority Review (Press S)' : 'Flag Question for Priority Review (Press S)'}
+                        >
+                          <Star className={`w-3.5 h-3.5 ${isStarred ? 'fill-slate-950 text-slate-950' : 'text-slate-400'}`} />
+                          <span className="text-[10px] hidden sm:inline">{isStarred ? 'Flagged' : 'Flag'}</span>
+                        </button>
+                      );
+                    })()}
+
                     <span
                       className={`px-2.5 py-0.5 rounded-full font-bold text-[10px] uppercase tracking-wider border shadow-2xs ${qTypeInfo.badgeClass}`}
                       title="NTA Modern Question Pattern Category"
@@ -1019,19 +1195,61 @@ export default function ExamInterfacePage() {
                       </button>
                     </div>
 
-                    <span
-                      className={`px-2 py-0.5 rounded text-[10px] font-mono font-bold flex items-center gap-1 border ${
-                        questionLiveSeconds > 150
-                          ? 'bg-red-100 text-red-800 border-red-300 animate-pulse'
-                          : questionLiveSeconds > 90
-                          ? 'bg-amber-100 text-amber-800 border-amber-300'
-                          : 'bg-gray-100 text-gray-700 border-gray-200'
-                      }`}
-                      title="Pace on this question (Target: < 90s Physics, < 45s Biology)"
-                    >
-                      <Clock className="w-3 h-3" />
-                      Time on Q: {questionLiveSeconds}s {questionLiveSeconds > 150 ? '⚠️ Time Trap!' : ''}
-                    </span>
+                    {/* Dynamic Question Pace Progress Bar */}
+                    {(() => {
+                      const isBio =
+                        currentQuestion.subjectCode === 'BOTANY' ||
+                        currentQuestion.subjectCode === 'ZOOLOGY';
+                      const targetBenchmarkSecs = isBio ? 45 : 90;
+                      const pacePercentage = Math.round(
+                        (questionLiveSeconds / targetBenchmarkSecs) * 100
+                      );
+
+                      return (
+                        <div
+                          className="flex items-center gap-2 bg-white px-2.5 py-1 rounded-lg border border-slate-200 shadow-2xs"
+                          title={`Target Pace: ${targetBenchmarkSecs}s (${
+                            isBio ? 'Biology' : 'Physics/Chemistry'
+                          }). Current: ${questionLiveSeconds}s`}
+                        >
+                          <Clock className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                          <div className="flex flex-col gap-0.5 min-w-[70px] sm:min-w-[100px]">
+                            <div className="flex items-center justify-between text-[10px] font-mono leading-none">
+                              <span className="text-slate-500">{questionLiveSeconds}s</span>
+                              <span
+                                className={`font-bold ${
+                                  questionLiveSeconds > 150
+                                    ? 'text-rose-600 font-extrabold'
+                                    : pacePercentage > 100
+                                    ? 'text-amber-600'
+                                    : 'text-emerald-700'
+                                }`}
+                              >
+                                Tgt: {targetBenchmarkSecs}s
+                              </span>
+                            </div>
+                            <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden border border-slate-200/60">
+                              <div
+                                className={`h-full transition-all duration-300 rounded-full ${
+                                  questionLiveSeconds > 150
+                                    ? 'bg-rose-500 animate-pulse'
+                                    : pacePercentage > 100
+                                    ? 'bg-amber-500'
+                                    : 'bg-emerald-500'
+                                }`}
+                                style={{ width: `${Math.min(100, pacePercentage)}%` }}
+                              />
+                            </div>
+                          </div>
+                          {questionLiveSeconds > 150 && (
+                            <span className="hidden xl:inline text-[9px] font-extrabold text-rose-700 bg-rose-50 px-1 py-0.5 rounded border border-rose-200 animate-pulse">
+                              Time Trap
+                            </span>
+                          )}
+                        </div>
+                      );
+                    })()}
+
                     <span className="text-green-700">Marks: +4</span>
                     <span className="text-red-600">Negative: -1</span>
                   </div>
@@ -1062,7 +1280,7 @@ export default function ExamInterfacePage() {
                         )}
                       </div>
 
-                      {/* Answer Options */}
+                      {/* Answer Options with Distractor Elimination */}
                       <div className="space-y-3 max-w-3xl">
                         {[
                           { num: 1, text: currentQuestion.option1 },
@@ -1071,29 +1289,62 @@ export default function ExamInterfacePage() {
                           { num: 4, text: currentQuestion.option4 },
                         ].map((opt) => {
                           const isSelected = currentSelectedOption === opt.num;
+                          const currentQuestionEliminated = eliminatedOptions[currentQuestion.id] || [];
+                          const isEliminated = currentQuestionEliminated.includes(opt.num);
+
                           return (
-                            <label
+                            <div
                               key={opt.num}
-                              onClick={() => setCurrentSelectedOption(opt.num)}
-                              className={`flex items-start gap-3.5 p-3.5 rounded-lg border cursor-pointer active:scale-99 transition-all ${
-                                isSelected
-                                  ? 'bg-blue-50/80 border-blue-600 shadow-2xs'
-                                  : 'bg-white border-gray-200 hover:bg-gray-50/80 hover:border-gray-300'
+                              onClick={() => {
+                                if (isEliminated) {
+                                  toggleEliminateOption(opt.num);
+                                }
+                                setCurrentSelectedOption(opt.num);
+                                playOptionClickSound(soundEnabled);
+                              }}
+                              className={`group flex items-start gap-3.5 p-3.5 rounded-xl border cursor-pointer active:scale-[0.99] transition-all select-none ${
+                                isEliminated
+                                  ? 'line-through opacity-45 bg-slate-100/70 border-dashed border-slate-300 text-slate-400'
+                                  : isSelected
+                                  ? 'bg-blue-50/80 border-blue-600 shadow-2xs text-slate-900 ring-1 ring-blue-600'
+                                  : 'bg-white border-slate-200 hover:bg-slate-50/80 hover:border-slate-300 text-slate-800'
                               }`}
                             >
                               <div
-                                className={`w-5 h-5 rounded-full border flex items-center justify-center shrink-0 mt-0.5 font-bold text-xs transition-colors ${
+                                className={`w-6 h-6 rounded-full border flex items-center justify-center shrink-0 mt-0.5 font-bold text-xs transition-colors ${
                                   isSelected
-                                    ? 'border-blue-600 bg-blue-600 text-white'
-                                    : 'border-gray-400 bg-white text-gray-700'
+                                    ? 'border-blue-600 bg-blue-600 text-white shadow-xs'
+                                    : 'border-slate-300 bg-slate-50 text-slate-700 group-hover:border-slate-400'
                                 }`}
                               >
                                 {opt.num}
                               </div>
-                              <div className={`flex-1 ${optionFontClass} text-gray-800 leading-relaxed`}>
+
+                              <div className={`flex-1 ${optionFontClass} leading-relaxed`}>
                                 <MathRenderer text={opt.text} />
                               </div>
-                            </label>
+
+                              {/* Distractor Strikethrough Button */}
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  toggleEliminateOption(opt.num);
+                                }}
+                                className={`p-1.5 rounded-md border text-xs transition-colors cursor-pointer shrink-0 ${
+                                  isEliminated
+                                    ? 'bg-amber-100 text-amber-900 border-amber-300 font-bold'
+                                    : 'text-slate-400 hover:text-slate-700 hover:bg-slate-100 border-transparent'
+                                }`}
+                                title={
+                                  isEliminated
+                                    ? `Restore Option ${opt.num}`
+                                    : `Eliminate / Strike out Option ${opt.num} (Alt + ${opt.num})`
+                                }
+                              >
+                                <Strikethrough className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
                           );
                         })}
                       </div>
@@ -1222,56 +1473,75 @@ export default function ExamInterfacePage() {
             </div>
 
             {/* PALETTE QUICK FILTER TABS */}
-            <div className="flex items-center gap-1 overflow-x-auto pb-2 mb-2.5 border-b border-gray-200 text-[10px]">
-              {(
-                [
-                  { id: 'ALL', label: `All (${currentSubjectQuestions.length})` },
-                  { id: 'ANSWERED', label: `Ans (${currentCounts.answered})` },
-                  { id: 'NOT_ANSWERED', label: `Not Ans (${currentCounts.notAnswered})` },
-                  { id: 'MARKED', label: `Marked (${currentCounts.marked + currentCounts.answeredAndMarked})` },
-                  { id: 'NOT_VISITED', label: `Not Visited (${currentCounts.notVisited})` },
-                ] as const
-              ).map((flt) => (
-                <button
-                  key={flt.id}
-                  type="button"
-                  onClick={() => setPaletteFilter(flt.id)}
-                  className={`px-2 py-1 rounded font-bold whitespace-nowrap transition-colors cursor-pointer ${
-                    paletteFilter === flt.id
-                      ? 'bg-blue-900 text-white shadow-xs'
-                      : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-200'
-                  }`}
-                >
-                  {flt.label}
-                </button>
-              ))}
-            </div>
+            {(() => {
+              const starredInSubject = currentSubjectQuestions.filter(
+                (q) => Boolean(starredQuestions[q.id])
+              ).length;
+
+              return (
+                <div className="flex items-center gap-1 overflow-x-auto pb-2 mb-2.5 border-b border-gray-200 text-[10px]">
+                  {(
+                    [
+                      { id: 'ALL', label: `All (${currentSubjectQuestions.length})` },
+                      { id: 'ANSWERED', label: `Ans (${currentCounts.answered})` },
+                      { id: 'NOT_ANSWERED', label: `Not Ans (${currentCounts.notAnswered})` },
+                      { id: 'MARKED', label: `Marked (${currentCounts.marked + currentCounts.answeredAndMarked})` },
+                      { id: 'STARRED', label: `Flagged (${starredInSubject})` },
+                      { id: 'NOT_VISITED', label: `Not Visited (${currentCounts.notVisited})` },
+                    ] as const
+                  ).map((flt) => (
+                    <button
+                      key={flt.id}
+                      type="button"
+                      onClick={() => setPaletteFilter(flt.id)}
+                      className={`px-2 py-1 rounded font-bold whitespace-nowrap transition-colors cursor-pointer ${
+                        paletteFilter === flt.id
+                          ? 'bg-blue-900 text-white shadow-xs'
+                          : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-200'
+                      }`}
+                    >
+                      {flt.label}
+                    </button>
+                  ))}
+                </div>
+              );
+            })()}
 
             <div className="grid grid-cols-5 gap-2">
               {currentSubjectQuestions.map((q) => {
                 const globalIndex = examData.questions.findIndex((item) => item.id === q.id);
                 const isCurrent = globalIndex === activeQuestionIndex;
                 const styleClass = getPaletteStyle(q.status, isCurrent);
+                const isStarred = Boolean(starredQuestions[q.id]);
 
                 const isMatch =
                   paletteFilter === 'ALL' ||
                   (paletteFilter === 'ANSWERED' && (q.status === 'ANSWERED' || q.status === 'ANSWERED_AND_MARKED')) ||
                   (paletteFilter === 'NOT_ANSWERED' && q.status === 'NOT_ANSWERED') ||
                   (paletteFilter === 'MARKED' && (q.status === 'MARKED_FOR_REVIEW' || q.status === 'ANSWERED_AND_MARKED')) ||
+                  (paletteFilter === 'STARRED' && isStarred) ||
                   (paletteFilter === 'NOT_VISITED' && q.status === 'NOT_VISITED');
 
                 return (
                   <button
                     key={q.id}
-                    onClick={() => navigateToQuestion(globalIndex)}
-                    className={`h-9 w-full rounded flex items-center justify-center text-xs font-bold shadow-xs transition-transform ${styleClass} ${
+                    onClick={() => {
+                      navigateToQuestion(globalIndex);
+                      playOptionClickSound(soundEnabled);
+                    }}
+                    className={`relative h-9 w-full rounded flex items-center justify-center text-xs font-bold shadow-xs transition-transform ${styleClass} ${
                       isMatch ? 'opacity-100' : 'opacity-25 hover:opacity-100'
                     }`}
-                    title={`Question ${q.questionOrder}: ${q.status}`}
+                    title={`Question ${q.questionOrder}: ${q.status}${isStarred ? ' (Flagged)' : ''}`}
                   >
                     {q.questionOrder}
                     {q.status === 'ANSWERED_AND_MARKED' && (
                       <span className="absolute bottom-0.5 right-0.5 w-2 h-2 bg-green-400 border border-white rounded-full"></span>
+                    )}
+                    {isStarred && (
+                      <span className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-amber-400 rounded-full flex items-center justify-center border border-amber-600 shadow-2xs">
+                        <Star className="w-2 h-2 fill-slate-950 text-slate-950" />
+                      </span>
                     )}
                   </button>
                 );
@@ -1479,12 +1749,24 @@ export default function ExamInterfacePage() {
                 <span className="font-mono bg-gray-100 px-2 py-0.5 rounded border border-gray-300 text-red-700 font-bold">C / Backspace</span>
               </div>
               <div className="flex justify-between items-center py-1.5 border-b border-gray-100">
+                <span className="font-semibold text-gray-700">Eliminate Option Choice (Strike)</span>
+                <span className="font-mono bg-gray-100 px-2 py-0.5 rounded border border-gray-300 text-amber-700 font-bold">Alt + 1, 2, 3, 4</span>
+              </div>
+              <div className="flex justify-between items-center py-1.5 border-b border-gray-100">
+                <span className="font-semibold text-gray-700">Flag for Priority Review</span>
+                <span className="font-mono bg-gray-100 px-2 py-0.5 rounded border border-gray-300 text-amber-700 font-bold">S</span>
+              </div>
+              <div className="flex justify-between items-center py-1.5 border-b border-gray-100">
                 <span className="font-semibold text-gray-700">Toggle Fullscreen Kiosk Mode</span>
                 <span className="font-mono bg-gray-100 px-2 py-0.5 rounded border border-gray-300 text-blue-700 font-bold">F</span>
               </div>
               <div className="flex justify-between items-center py-1.5 border-b border-gray-100">
                 <span className="font-semibold text-gray-700">Previous / Next Question</span>
                 <span className="font-mono bg-gray-100 px-2 py-0.5 rounded border border-gray-300 text-gray-800 font-bold">← / → (or P / N)</span>
+              </div>
+              <div className="flex justify-between items-center py-1.5 border-b border-gray-100">
+                <span className="font-semibold text-gray-700">Close Open Modal / Dialog</span>
+                <span className="font-mono bg-gray-100 px-2 py-0.5 rounded border border-gray-300 text-gray-800 font-bold">Esc</span>
               </div>
               <div className="flex justify-between items-center py-1.5">
                 <span className="font-semibold text-gray-700">Open Shortcuts Help</span>
@@ -1597,6 +1879,16 @@ export default function ExamInterfacePage() {
           </div>
         </div>
       )}
+
+      {/* MODAL 6: OFFICIAL PHYSICAL CONSTANTS & REFERENCE */}
+      <PhysicalConstantsModal
+        isOpen={showConstantsModal}
+        onClose={() => setShowConstantsModal(false)}
+        onInsertToScratchpad={(snippet) => {
+          handleScratchpadChange(scratchpadNotes ? `${scratchpadNotes}  ${snippet}` : snippet);
+          setShowScratchpad(true);
+        }}
+      />
     </div>
   );
 }
